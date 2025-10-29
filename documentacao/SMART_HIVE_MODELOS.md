@@ -10,10 +10,10 @@
 
 ### 📁 COLEÇÃO: apiarios
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   📁 APIARIOS                           │
-│                (DOCUMENTO RAIZ)                         │
-├─────────────────────────────────────────────────────────┤
+───────────────────────────────────────────────────────────
+                   📁APIARIOS                             
+                (DOCUMENTO RAIZ)                          
+───────────────────────────────────────────────────────────
 │  🆔 _id: ObjectId                      [CHAVE PRIMÁRIA] │
 │  🔢 id: Number                         [ÚNICO, INDEXADO]│
 │  📛 nome: String                                        │
@@ -22,11 +22,11 @@
 │  📝 descricao: String                                   │
 │  📅 data_criacao: Date                                  │
 │  🏷️ status: String                   [Ativo, Inativo]   │
-│                                                         │
+│                                                         
 │  🗺️ coordenadas: Object              [SUBDOCUMENTO]     │
 │     ├── 🌐 lat: Double                                  │
 │     └── 🌐 lng: Double                                  │
-│                                                         │
+│                                                         
 │  🐝 colmeias: Array[Object]          [EMBEDDED]         │
 │     ├── 🔢 id: Number                [ÚNICO]            │
 │     ├── 📛 nome: String                                 │
@@ -34,7 +34,7 @@
 │     ├── 🏷️ status: String            [Ativa, Manutenção]│
 │     ├── 🐝 especie: String                              │
 │     ├── 📅 data_instalacao: Date                        │
-│     │                                                  │
+│     │                                                  
 │     ├── 📊 monitoramentos: Array[Object] [EMBEDDED]     │
 │     │   ├── 🔢 id: Number                               │
 │     │   ├── 📅 data_hora: Date                          │
@@ -44,16 +44,16 @@
 │     │   ├── ☀️ clima: String                            │
 │     │   ├── ⚠️ situacao: String       [Normal, Alerta]  │
 │     │   └── 📝 observacoes: String                      │
-│     │                                                  │
+│     │                                                  
 │     └── 🚨 alertas: Array[Object]     [EMBEDDED]        │
 │         ├── 🔢 id: Number                               │
 │         ├── 📅 data_hora: Date                          │
 │         ├── 📝 descricao_alerta: String                 │
 │         ├── 🏷️ tipo: String                             │
-│         ├── ⚠️ nivel: String          [Baixo, Médio, Alto]│
+│         ├── ⚠️ nivel: String        [Baixo, Médio, Alto]│
 │         ├── ✅ resolvido: Boolean                       │
 │         └── 📅 data_resolucao: Date                     │
-│                                                         │
+│                                                          
 │  📈 estatisticas: Object             [DERIVADO]         │
 │     ├── 🔢 total_colmeias: Number                       │
 │     ├── 🔢 colmeias_ativas: Number                      │
@@ -65,20 +65,20 @@
 ### 📁 COLEÇÃO: usuarios
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   📁 USUÁRIOS                           │
+│                   📁 USUÁRIOS                                  
 │                (REFERÊNCIA)                             │
 ├─────────────────────────────────────────────────────────┤
-│  🆔 _id: ObjectId                      [CHAVE PRIMÁRIA] │
-│  🔢 id: Number                         [ÚNICO, INDEXADO]│
-│  👤 username: String                   [ÚNICO, INDEXADO]│
+│  🆔 _id: ObjectId                    [CHAVE PRIMÁRIA]  │
+│  🔢 id: Number                       [ÚNICO, INDEXADO] │
+│  👤 username: String                 [ÚNICO, INDEXADO] │
 │  🔐 password: String                                   │
 │  👤 nome_completo: String                              │
 │  📧 email: String                                      │
-│  🎯 role: String                    [admin, usuario, tecnico]│
+│  🎯 role: String              [admin, usuario, tecnico]│
 │  📅 ultimo_login: Date                                 │
 │  📅 data_criacao: Date                                 │
 │  ✅ ativo: Boolean                                     │
-│                                                         │
+│                                                        │
 │  🔗 apiarios_responsavel: Array[Number] [REFERÊNCIAS]  │
 │     └── 🔢 apiario_id: Number                          │
 └─────────────────────────────────────────────────────────┘
@@ -90,23 +90,23 @@
 │               📁 PREDADOR_DETECTIONS                    │
 │                  (HÍBRIDO)                              │
 ├─────────────────────────────────────────────────────────┤
-│  🆔 _id: ObjectId                      [CHAVE PRIMÁRIA] │
-│  🔢 id: Number                         [ÚNICO, INDEXADO]│
-│  🔗 colmeia_id: Number                 [REFERÊNCIA, INDEXADO]│
-│  🔗 apiario_id: Number                 [REFERÊNCIA, INDEXADO]│
-│  📅 data_hora: Date                    [INDEXADO]       │
+│  🆔 _id: ObjectId                     [CHAVE PRIMÁRIA] │
+│  🔢 id: Number                        [ÚNICO, INDEXADO]│
+│  🔗 colmeia_id: Number           [REFERÊNCIA, INDEXADO]│
+│  🔗 apiario_id: Number           [REFERÊNCIA, INDEXADO]│
+│  📅 data_hora: Date                   [INDEXADO]       │
 │  📝 descricao: String                                  │
 │  📸 evidencias: Array[String]                          │
 │  🛠️ acoes_tomadas: String                              │
 │  ✅ resolvido: Boolean                                 │
 │  📅 data_resolucao: Date                               │
 │  🔗 usuario_registro: Number           [REFERÊNCIA]    │
-│  📅 data_registro: Date                               │
-│                                                         │
+│  📅 data_registro: Date                                │
+│                                                        │
 │  🏷️ predator_type: Object             [EMBEDDED]       │
 │     ├── 🔢 id: Number                 [REFERÊNCIA]     │
 │     ├── 📛 nome: String                                │
-│     └── ⚠️ nivel_perigo: String       [Baixo, Médio, Alto]│
+│     └── ⚠️ nivel_perigo: String    [Baixo, Médio, Alto]│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -116,11 +116,11 @@
 │                 📁 PREDATOR_TYPES                       │
 │                  (CATÁLOGO)                             │
 ├─────────────────────────────────────────────────────────┤
-│  🆔 _id: ObjectId                      [CHAVE PRIMÁRIA] │
-│  🔢 id: Number                         [ÚNICO, INDEXADO]│
+│  🆔 _id: ObjectId                     [CHAVE PRIMÁRIA]  │
+│  🔢 id: Number                       [ÚNICO, INDEXADO]  │
 │  📛 nome: String                                        │
 │  📝 descricao: String                                   │
-│  ⚠️ nivel_perigo: String             [Baixo, Médio, Alto]│
+│  ⚠️ nivel_perigo: String            [Baixo, Médio, Alto]│
 │  💡 recomendacoes: String                               │
 │  📅 data_criacao: Date                                 │
 └─────────────────────────────────────────────────────────┘
