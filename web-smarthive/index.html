@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Hive | Sistema de Monitoramento de Abelhas Nativas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #FFC107;
+      --primary-dark: #FFB300;
+      --secondary: #45B69C;
+      --secondary-dark: #389583;
+      --danger: #E63946;
+      --warning: #FB8500;
+      --success: #57A773;
+      --dark: #2B3A42;
+      --light: #F6F8FA;
+      --border-radius: 8px;
+      --font-heading: 'Poppins', 'Segoe UI', sans-serif;
+      --font-body: 'Inter', 'Segoe UI', sans-serif;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 20px rgba(0,0,0,0.12);
+    }
+    
+    body {
+      font-family: var(--font-body);
+      margin: 0;
+      padding: 0;
+      background-color: #FCFCFC;
+      color: #333F48;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    
+    .hero {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #333;
+      padding: 120px 0 80px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: 3.2rem;
+      margin-bottom: 15px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      position: relative;
+    }
+    
+    .hero-logo {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .hero-logo i {
+      color: white;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .hero p {
+      font-size: 1.35rem;
+      max-width: 700px;
+      margin: 0 auto 35px;
+      opacity: 0.9;
+      font-weight: 300;
+      position: relative;
+      color: #333;
+    }
+    
+    .login-btn {
+      display: inline-block;
+      background-color: #fff;
+      color: var(--primary-dark);
+      padding: 14px 32px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: all 0.6s ease;
+    }
+    
+    .login-btn:hover {
+      background-color: #fff;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .login-btn:hover::before {
+      left: 100%;
+    }
+    
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin: -60px 0 60px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .feature-card {
+      flex: 1;
+      min-width: 260px;
+      background-color: #fff;
+      border-radius: 16px;
+      padding: 35px 30px;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-top: 4px solid var(--primary);
+    }
+    
+    .feature-card i {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 25px;
+      display: block;
+    }
+    
+    .feature-card h3 {
+      color: #333F48;
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      font-family: var(--font-heading);
+    }
+    
+    .feature-card p {
+      margin-bottom: 0;
+      line-height: 1.6;
+      color: #607D8B;
+      font-size: 1rem;
+    }
+    
+    .documentation {
+      background-color: #fff;
+      border-radius: 16px;
+      padding: 50px;
+      margin: 60px 0;
+      box-shadow: var(--shadow-md);
+      border-left: 4px solid var(--primary);
+    }
+    
+    .documentation h2 {
+      color: #333F48;
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-size: 1.85rem;
+      font-weight: 600;
+      font-family: var(--font-heading);
+    }
+    
+    .documentation ul {
+      padding-left: 20px;
+      margin-top: 30px;
+    }
+    
+    .documentation li {
+      margin-bottom: 16px;
+      position: relative;
+      padding-left: 8px;
+      font-size: 1.1rem;
+    }
+    
+    .documentation a {
+      color: var(--primary-dark);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      font-weight: 500;
+      display: inline-block;
+      padding: 5px 0;
+    }
+    
+    .documentation a:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    
+    .documentation a i {
+      margin-right: 10px;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 80px;
+      padding: 40px 24px;
+      color: #607D8B;
+      background-color: #fff;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    
+    .footer p {
+      margin: 0;
+      font-size: 1rem;
+    }
+    
+    .footer strong {
+      color: var(--primary-dark);
+    }
+    
+    @media (max-width: 768px) {
+      .feature-card {
+        min-width: 100%;
+      }
+      .hero {
+        padding: 80px 0 60px;
+      }
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      .documentation {
+        padding: 30px;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="hero">
+    <div class="container">
+      <div class="hero-logo">
+        <i class="fas fa-hexagon"></i>
+      </div>
+      <h1>Smart Hive</h1>
+      <p>Sistema Inteligente de Monitoramento de Abelhas Nativas</p>
+      <a href="/frontend/public/index.html" class="login-btn">
+        <i class="fas fa-sign-in-alt"></i> Acessar o Sistema
+      </a>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="features">
+      <div class="feature-card">
+        <i class="fas fa-chart-line"></i>
+        <h3>Dashboard Inteligente</h3>
+        <p>Visualize o status de todas as colmeias e alertas recentes em um único local. Monitore a saúde e atividade das suas abelhas com gráficos e indicadores avançados.</p>
+      </div>
+      
+      <div class="feature-card">
+        <i class="fas fa-search"></i>
+        <h3>Monitoramento Avançado</h3>
+        <p>Acompanhe a atividade das abelhas, temperatura e condições climáticas em tempo real. Registre dados importantes para análise e tomada de decisões estratégicas.</p>
+      </div>
+      
+      <div class="feature-card">
+        <i class="fas fa-home"></i>
+        <h3>Gestão de Colmeias</h3>
+        <p>Cadastre e gerencie múltiplas colmeias com diferentes localizações. Mantenha um registro organizado e detalhado de toda sua operação de meliponicultura.</p>
+      </div>
+      
+      <div class="feature-card">
+        <i class="fas fa-bell"></i>
+        <h3>Sistema de Alertas</h3>
+        <p>Receba notificações instantâneas sobre situações críticas que requerem atenção imediata. Seja avisado quando houver mudanças importantes nas suas colmeias.</p>
+      </div>
+    </div>
+    
+    <div class="documentation">
+      <h2>Documentação do Sistema</h2>
+      <p>Para instalar e configurar o Smart Hive em seu ambiente, acesse as instruções detalhadas abaixo:</p>
+      <ul>
+        <li><a href="/backend/README.md"><i class="fas fa-server"></i> Instruções para o Backend</a></li>
+        <li><a href="/frontend/README.md"><i class="fas fa-desktop"></i> Instruções para o Frontend</a></li>
+        <li><a href="/sql/README.md"><i class="fas fa-database"></i> Scripts SQL e Configuração do Banco de Dados</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer">
+      <p><strong>Smart Hive</strong> | Sistema de Monitoramento de Abelhas Nativas &copy; 2023</p>
+    </div>
+  </div>
+</body>
+</html>

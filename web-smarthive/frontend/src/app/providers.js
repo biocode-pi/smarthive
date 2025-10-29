@@ -20,8 +20,15 @@ export function Providers({ children }) {
     setIsAuthenticated(auth);
     setLoading(false);
 
+    // If not authenticated, force to /login (unless already there).
     if (!auth && pathname !== '/login') {
       router.push('/login');
+      return;
+    }
+    // If authenticated and user is on /login, redirect to dashboard.
+    if (auth && (pathname === '/login' || pathname === '/' || pathname === '')) {
+      router.push('/dashboard');
+      return;
     }
   }, [pathname, router]);
 

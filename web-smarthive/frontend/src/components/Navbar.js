@@ -42,7 +42,8 @@ export default function Navbar() {
   };
 
   const isActive = (path) => {
-    return pathname === path || pathname.startsWith(path + '/') ? 'active' : '';
+    const fullPath = `/dashboard${path}`;
+    return pathname === fullPath || pathname.startsWith(fullPath + '/') ? 'active' : '';
   };
 
   return (
@@ -73,13 +74,13 @@ export default function Navbar() {
 
         <ul className="sidebar-menu">
           <li className={isActive('/dashboard')}>
-            <Link href="/dashboard">
+            <Link href="/dashboard/dashboard">
               <i className="fas fa-chart-pie"></i>
               <span>Visão Geral</span>
             </Link>
           </li>
           <li className={isActive('/grafico-dashboard')}>
-            <Link href="/grafico-dashboard">
+            <Link href="/dashboard/grafico-dashboard">
               <i className="fas fa-chart-line"></i>
               <span>Dashboard</span>
             </Link>
@@ -88,14 +89,14 @@ export default function Navbar() {
           <li className="menu-header">Gerenciamento</li>
 
           <li className={isActive('/apiarios')}>
-            <Link href="/apiarios">
+            <Link href="/dashboard/apiarios">
               <i className="fas fa-leaf"></i>
               <span>Apiários</span>
             </Link>
           </li>
 
           <li className={isActive('/colmeias')}>
-            <Link href="/colmeias">
+            <Link href="/dashboard/colmeias">
               <i className="fas fa-home"></i>
               <span>Colmeias</span>
             </Link>
@@ -104,21 +105,21 @@ export default function Navbar() {
           <li className="menu-header">Monitoramento</li>
 
           <li className={isActive('/cadastro')}>
-            <Link href="/cadastro">
+            <Link href="/dashboard/cadastro">
               <i className="fas fa-plus"></i>
               <span>Novo Registro</span>
             </Link>
           </li>
 
           <li className={isActive('/lista')}>
-            <Link href="/lista">
+            <Link href="/dashboard/lista">
               <i className="fas fa-list"></i>
               <span>Registros</span>
             </Link>
           </li>
 
           <li className={isActive('/alertas')}>
-            <Link href="/alertas">
+            <Link href="/dashboard/alertas">
               <i className="fas fa-bell"></i>
               <span>Alertas</span>
               {notifications > 0 && (
@@ -128,7 +129,7 @@ export default function Navbar() {
           </li>
 
           <li className={isActive('/configuracoes')}>
-            <Link href="/configuracoes">
+            <Link href="/dashboard/configuracoes">
               <i className="fas fa-cog"></i>
               <span>Configurações</span>
             </Link>
@@ -149,18 +150,18 @@ export default function Navbar() {
             <i className="fas fa-bars"></i>
           </button>
           <h4 className="mb-0 d-none d-md-block fw-semibold">{
-            pathname === '/dashboard' ? 'Visão Geral' :
-              pathname === '/grafico-dashboard' ? 'Dashboard de Análise' :
-                pathname === '/apiarios' ? 'Gerenciamento de Apiários' :
-                  pathname === '/cadastro' ? 'Novo Monitoramento' :
-                    pathname === '/lista' ? 'Registros de Monitoramento' :
-                      pathname === '/colmeias' ? 'Gerenciamento de Colmeias' :
-                        pathname === '/alertas' ? 'Sistema de Alertas' :
-                          pathname === '/configuracoes' ? 'Configurações do Sistema' : 'Smart Hive'
+            pathname === '/dashboard/dashboard' ? 'Visão Geral' :
+              pathname === '/dashboard/grafico-dashboard' ? 'Dashboard de Análise' :
+                pathname === '/dashboard/apiarios' ? 'Gerenciamento de Apiários' :
+                  pathname === '/dashboard/cadastro' ? 'Novo Monitoramento' :
+                    pathname === '/dashboard/lista' ? 'Registros de Monitoramento' :
+                      pathname === '/dashboard/colmeias' ? 'Gerenciamento de Colmeias' :
+                        pathname === '/dashboard/alertas' ? 'Sistema de Alertas' :
+                          pathname === '/dashboard/configuracoes' ? 'Configurações do Sistema' : 'Smart Hive'
           }</h4>
         </div>
         <div className="top-navbar-right">
-          <Link href="/alertas" className="notification-bell">
+          <Link href="/dashboard/alertas" className="notification-bell">
             <i className="fas fa-bell"></i>
             {notifications > 0 && (
               <span className="badge">{notifications}</span>
