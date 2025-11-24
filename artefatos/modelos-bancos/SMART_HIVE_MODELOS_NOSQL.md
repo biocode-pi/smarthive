@@ -1,0 +1,211 @@
+# 🐝 SMART HIVE - MODELO NOSQL COMPLETO
+
+## 📊 MODELO CONCEITUAL
+
+
+
+---
+
+## 🔧 MODELO LÓGICO DETALHADO
+
+### 📁 COLEÇÃO: apiarios
+```
+───────────────────────────────────────────────────────────
+                   📁APIARIOS                             
+                (DOCUMENTO RAIZ)                          
+───────────────────────────────────────────────────────────
+│  🆔 _id: ObjectId                      [CHAVE PRIMÁRIA] │
+│  🔢 id: Number                         [ÚNICO, INDEXADO]│
+│  📛 nome: String                                        │
+│  📍 localizacao: String                                 │
+│  👤 responsavel: String                                 │
+│  📝 descricao: String                                   │
+│  📅 data_criacao: Date                                  │
+│  🏷️ status: String                   [Ativo, Inativo]   │
+│                                                         
+│  🗺️ coordenadas: Object              [SUBDOCUMENTO]     │
+│     ├── 🌐 lat: Double                                  │
+│     └── 🌐 lng: Double                                  │
+│                                                         
+│  🐝 colmeias: Array[Object]          [EMBEDDED]         │
+│     ├── 🔢 id: Number                [ÚNICO]            │
+│     ├── 📛 nome: String                                 │
+│     ├── 📍 localizacao: String                          │
+│     ├── 🏷️ status: String            [Ativa, Manutenção]│
+│     ├── 🐝 especie: String                              │
+│     ├── 📅 data_instalacao: Date                        │
+│     │                                                  
+│     ├── 📊 monitoramentos: Array[Object] [EMBEDDED]     │
+│     │   ├── 🔢 id: Number                               │
+│     │   ├── 📅 data_hora: Date                          │
+│     │   ├── 🔢 numero_abelhas: Number                   │
+│     │   ├── 🌡️ temperatura: Double                      │
+│     │   ├── 💧 umidade: Double                          │
+│     │   ├── ☀️ clima: String                            │
+│     │   ├── ⚠️ situacao: String       [Normal, Alerta]  │
+│     │   └── 📝 observacoes: String                      │
+│     │                                                  
+│     └── 🚨 alertas: Array[Object]     [EMBEDDED]        │
+│         ├── 🔢 id: Number                               │
+│         ├── 📅 data_hora: Date                          │
+│         ├── 📝 descricao_alerta: String                 │
+│         ├── 🏷️ tipo: String                             │
+│         ├── ⚠️ nivel: String        [Baixo, Médio, Alto]│
+│         ├── ✅ resolvido: Boolean                       │
+│         └── 📅 data_resolucao: Date                     │
+│                                                          
+│  📈 estatisticas: Object             [DERIVADO]         │
+│     ├── 🔢 total_colmeias: Number                       │
+│     ├── 🔢 colmeias_ativas: Number                      │
+│     ├── 🔢 colmeias_manutencao: Number                  │
+│     └── 📅 ultimo_monitoramento: Date                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 📁 COLEÇÃO: usuarios
+```
+┌─────────────────────────────────────────────────────────┐
+│                   📁 USUÁRIOS                                  
+│                (REFERÊNCIA)                             │
+├─────────────────────────────────────────────────────────┤
+│  🆔 _id: ObjectId                    [CHAVE PRIMÁRIA]  │
+│  🔢 id: Number                       [ÚNICO, INDEXADO] │
+│  👤 username: String                 [ÚNICO, INDEXADO] │
+│  🔐 password: String                                   │
+│  👤 nome_completo: String                              │
+│  📧 email: String                                      │
+│  🎯 role: String              [admin, usuario, tecnico]│
+│  📅 ultimo_login: Date                                 │
+│  📅 data_criacao: Date                                 │
+│  ✅ ativo: Boolean                                     │
+│                                                        │
+│  🔗 apiarios_responsavel: Array[Number] [REFERÊNCIAS]  │
+│     └── 🔢 apiario_id: Number                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 📁 COLEÇÃO: predador_detections
+```
+┌─────────────────────────────────────────────────────────┐
+│               📁 PREDADOR_DETECTIONS                    │
+│                  (HÍBRIDO)                              │
+├─────────────────────────────────────────────────────────┤
+│  🆔 _id: ObjectId                     [CHAVE PRIMÁRIA] │
+│  🔢 id: Number                        [ÚNICO, INDEXADO]│
+│  🔗 colmeia_id: Number           [REFERÊNCIA, INDEXADO]│
+│  🔗 apiario_id: Number           [REFERÊNCIA, INDEXADO]│
+│  📅 data_hora: Date                   [INDEXADO]       │
+│  📝 descricao: String                                  │
+│  📸 evidencias: Array[String]                          │
+│  🛠️ acoes_tomadas: String                              │
+│  ✅ resolvido: Boolean                                 │
+│  📅 data_resolucao: Date                               │
+│  🔗 usuario_registro: Number           [REFERÊNCIA]    │
+│  📅 data_registro: Date                                │
+│                                                        │
+│  🏷️ predator_type: Object             [EMBEDDED]       │
+│     ├── 🔢 id: Number                 [REFERÊNCIA]     │
+│     ├── 📛 nome: String                                │
+│     └── ⚠️ nivel_perigo: String    [Baixo, Médio, Alto]│
+└─────────────────────────────────────────────────────────┘
+```
+
+### 📁 COLEÇÃO: predator_types
+```
+┌─────────────────────────────────────────────────────────┐
+│                 📁 PREDATOR_TYPES                       │
+│                  (CATÁLOGO)                             │
+├─────────────────────────────────────────────────────────┤
+│  🆔 _id: ObjectId                     [CHAVE PRIMÁRIA]  │
+│  🔢 id: Number                       [ÚNICO, INDEXADO]  │
+│  📛 nome: String                                        │
+│  📝 descricao: String                                   │
+│  ⚠️ nivel_perigo: String            [Baixo, Médio, Alto]│
+│  💡 recomendacoes: String                               │
+│  📅 data_criacao: Date                                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎨 LEGENDA E CONVENÇÕES
+
+### 🔷 TIPOS DE DADOS
+- 🆔 ObjectId: Identificador único MongoDB  
+- 🔢 Number: Valores numéricos  
+- 📛 String: Texto e descrições  
+- 📅 Date: Datas e horários  
+- ✅ Boolean: Valores verdadeiro/falso  
+- 🔗 Array: Listas e coleções  
+- 🏷️ Object: Documentos aninhados  
+
+### 🎯 ESTRATÉGIAS NOSQL
+- 🟢 **EMBEDDED:** Dados frequentemente acessados juntos  
+- 🔵 **REFERÊNCIA:** Dados mestres e reutilizáveis  
+- 🟣 **HÍBRIDO:** Combinação embedded + referência  
+- 📊 **DERIVADO:** Dados calculados para performance  
+
+### 📌 ENUMS E DOMÍNIOS
+```
+status_apiario: ["Ativo", "Inativo", "Manutenção"]
+status_colmeia: ["Ativa", "Em manutenção", "Inativa"]
+role_usuario: ["admin", "usuario", "tecnico"]
+situacao_monitoramento: ["Normal", "Alerta", "Crítico", "Em observação"]
+nivel_perigo: ["Baixo", "Médio", "Alto"]
+clima: ["Ensolarado", "Parcialmente nublado", "Nublado", "Chuvoso"]
+```
+
+---
+
+## 🔗 RELACIONAMENTOS E CARDINALIDADES
+
+### DIAGRAMA DE RELACIONAMENTOS
+```
+APIÁRIOS (1) ──── possui ────▶ (N) COLMEIAS
+    │                               │
+    │ 1                           1 │
+    ▼                               ▼
+USUÁRIOS (N) ◀─── gerencia ────▶ (N) APIÁRIOS
+    │                               │
+    │ N                           1 │
+    ▼                               ▼
+PREDADOR_DETECTIONS (N) ◀─── pertence ────▶ (1) COLMEIAS
+    │
+    ▼
+PREDATOR_TYPES (1) ◀─── classifica ────▶ (N) PREDADOR_DETECTIONS
+```
+
+---
+
+## 📋 MATRIZ DE DECISÕES NOSQL
+
+| Entidade | Estratégia | Justificativa | Impacto de Performance |
+|-----------|-------------|----------------|--------------------------|
+| colmeias | Embedded | Dados sempre acessados com apiário | 🚀 Muito rápida |
+| monitoramentos | Embedded | Alta frequência, vida curta | 🚀 Muito rápida |
+| alertas | Embedded | Específicos por colmeia | 🚀 Muito rápida |
+| usuarios | Referência | Dados mestres, reutilizáveis | ⚡ Rápida |
+| predador_detections | Híbrida | Relatórios cruzados | ⚡ Rápida |
+| predator_types | Referência | Catálogo, poucas alterações | ⚡ Rápida |
+
+---
+
+## 🚀 ÍNDICES RECOMENDADOS
+
+```javascript
+// APIARIOS
+db.apiarios.createIndex({ "id": 1 }, { unique: true })
+db.apiarios.createIndex({ "colmeias.id": 1 })
+db.apiarios.createIndex({ "colmeias.status": 1 })
+db.apiarios.createIndex({ "colmeias.monitoramentos.data_hora": -1 })
+
+// USUÁRIOS
+db.usuarios.createIndex({ "username": 1 }, { unique: true })
+db.usuarios.createIndex({ "email": 1 })
+db.usuarios.createIndex({ "apiarios_responsavel": 1 })
+
+// PREDADOR_DETECTIONS
+db.predador_detections.createIndex({ "colmeia_id": 1 })
+db.predador_detections.createIndex({ "resolvido": 1 })
+db.predador_detections.createIndex({ "data_hora": -1 })
+```
