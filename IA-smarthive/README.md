@@ -102,44 +102,20 @@ O fluxo de processamento segue o pipeline abaixo:
 ## 📁 Estrutura do Projeto
 
 ```
-IA-SmartHive/
+src/
 │
-├── dataset/                  # Imagens brutas e anotadas por classe
-│   ├── raw/                  # Imagens sem tratamento
-│   ├── labeled/              # Imagens com bounding boxes anotados
-│   └── classes/
-│       ├── abelha/
-│       ├── forideos/
-│       ├── formigas/
-│       └── vespas/
+├── capture/
+│   ├── camera_stream.py
+│   └── image_capture.py
 │
-├── models/                   # Modelos treinados e exportados
-│   ├── yolo/                 # Pesos do modelo YOLO (.pt)
-│   └── tflite/               # Modelo otimizado para edge (.tflite)
+├── vision/
+│   └── image_preprocessing.py
 │
-├── training/                 # Scripts e configurações de treinamento
-│   ├── train.py
-│   ├── config.yaml           # Configuração das classes e hiperparâmetros
-│   └── evaluate.py           # Avaliação de métricas (mAP, precisão, recall)
+├── detection/
+│   ├── motion_detection.py
+│   └── object_tracking.py
 │
-├── inference/                # Código de inferência em produção
-│   ├── detector.py           # Lógica de detecção e classificação
-│   ├── camera.py             # Interface com a câmera via OpenCV
-│   └── alert.py              # Sistema de alertas
-│
-├── scripts/                  # Utilitários e scripts auxiliares
-│   ├── collect_data.py       # Captura de imagens para o dataset
-│   ├── preprocess.py         # Pré-processamento e augmentação
-│   └── convert_tflite.py     # Conversão do modelo para TF Lite
-│
-├── docs/                     # Documentação técnica adicional
-│   ├── architecture.md
-│   ├── dataset_guide.md
-│   └── deployment_guide.md
-│
-├── requirements.txt          # Dependências Python
-├── README.md
-└── .gitignore
+└── main.py
 ```
 
 ---
