@@ -174,15 +174,45 @@ ia-smarthive/
 
 ## 🔬 Etapas de Desenvolvimento da IA
 
-### 1. Coleta de Dados
+### Captura de imagens com OpenCV
 
-O dataset é construído a partir de duas fontes complementares:
+Uso de datasets externos
 
-- **Captura própria**: imagens coletadas diretamente na entrada de colmeias reais, utilizando OpenCV para gravar frames do vídeo em intervalos definidos (`scripts/collect_data.py`).
-- **Datasets externos**: repositórios públicos de imagens de abelhas e insetos invasores, utilizados para enriquecer e balancear as classes.
+2. Organização do dataset
 
-> ⚠️ Qualidade importa mais que quantidade. Imagens com boa iluminação, ângulo consistente e insetos claramente visíveis têm prioridade.
+Separação por classes (abelha, invasores)
 
+Balanceamento de dados
+
+3. Rotulagem (Labeling)
+
+Criação de bounding boxes
+
+Uso de ferramentas como Roboflow
+
+4. Treinamento do modelo
+
+Utilização do YOLO
+
+Treinamento local ou em nuvem
+
+5. Validação
+
+Testes com imagens reais
+
+Avaliação de desempenho
+
+6. Otimização
+
+Conversão para TensorFlow Lite
+
+Redução do tamanho do modelo
+
+7. Deploy
+
+Execução em placa embarcada (Unihiker K10)
+
+Integração com câmera
 ---
 
 ### 2. Organização do Dataset
