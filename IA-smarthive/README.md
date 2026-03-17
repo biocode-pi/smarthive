@@ -102,20 +102,72 @@ O fluxo de processamento segue o pipeline abaixo:
 ## 📁 Estrutura do Projeto
 
 ```
-src/
+ia-smarthive/
 │
-├── capture/
-│   ├── camera_stream.py
-│   └── image_capture.py
+├── README.md
+├── requirements.txt
+├── .gitignore
 │
-├── vision/
-│   └── image_preprocessing.py
+├── data/
+│   ├── raw/                # Imagens brutas capturadas (sem tratamento)
+│   ├── processed/          # Imagens pré-processadas
+│   └── annotations/        # Arquivos de rotulagem (labels)
 │
-├── detection/
-│   ├── motion_detection.py
-│   └── object_tracking.py
+├── models/
+│   ├── trained/            # Modelos treinados
+│   ├── exported/           # Modelos convertidos (TensorFlow Lite, etc.)
+│   └── checkpoints/        # Salvamentos intermediários do treino
 │
-└── main.py
+├── notebooks/
+│   └── experiments.ipynb   # Testes e experimentos com IA
+│
+├── src/
+│   │
+│   ├── capture/            # Captura de imagem/vídeo
+│   │   ├── camera_stream.py
+│   │   └── image_capture.py
+│   │
+│   ├── vision/             # Processamento de imagem
+│   │   └── image_preprocessing.py
+│   │
+│   ├── detection/          # Detecção de movimento e objetos
+│   │   ├── motion_detection.py
+│   │   └── object_tracking.py
+│   │
+│   ├── ai/                 # Inteligência Artificial
+│   │   ├── model_loader.py
+│   │   ├── inference.py
+│   │   └── classifier.py
+│   │
+│   ├── utils/              # Funções auxiliares
+│   │   └── helpers.py
+│   │
+│   └── main.py             # Arquivo principal do sistema
+│
+├── training/
+│   ├── dataset_config.yaml # Configuração do dataset (YOLO)
+│   ├── train.py            # Script de treinamento
+│   └── evaluate.py         # Avaliação do modelo
+│
+├── inference/
+│   ├── run_inference.py    # Execução da IA em tempo real
+│   └── visualize.py        # Visualização de resultados
+│
+├── hardware/
+│   ├── unihiker_setup.md   # Configuração da placa Unihiker K10
+│   └── camera_setup.md     # Configuração da câmera
+│
+├── api/                    # (Futuro) comunicação com backend
+│   ├── app.py
+│   └── routes.py
+│
+├── dashboard/              # (Futuro) interface do usuário
+│   └── README.md
+│
+└── docs/
+    ├── architecture.md     # Arquitetura do sistema
+    ├── dataset.md          # Documentação do dataset
+    └── roadmap.md          # Evolução do projeto
 ```
 
 ---
