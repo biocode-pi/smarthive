@@ -172,43 +172,44 @@ ia-smarthive/
 
 ---
 
-## 🔬 Etapas de Desenvolvimento da IA
+##🧪 Etapas do Desenvolvimento da IA
+1. **📥 Coleta de dados**
 
-### Captura de imagens com OpenCV
+Captura de imagens com OpenCV
 
 Uso de datasets externos
 
-2. Organização do dataset
+2. **🗂️ Organização do dataset**
 
 Separação por classes (abelha, invasores)
 
 Balanceamento de dados
 
-3. Rotulagem (Labeling)
+3. **🏷️ Rotulagem (Labeling)**
 
 Criação de bounding boxes
 
 Uso de ferramentas como Roboflow
 
-4. Treinamento do modelo
+4. **🤖 Treinamento do modelo**
 
 Utilização do YOLO
 
 Treinamento local ou em nuvem
 
-5. Validação
+5. **🧪 Validação**
 
 Testes com imagens reais
 
 Avaliação de desempenho
 
-6. Otimização
+6. **⚙️ Otimização**
 
 Conversão para TensorFlow Lite
 
 Redução do tamanho do modelo
 
-7. Deploy
+7. **🚀 Deploy**
 
 Execução em placa embarcada (Unihiker K10)
 
