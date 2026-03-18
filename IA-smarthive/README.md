@@ -56,8 +56,8 @@ O sistema tem como metas principais:
 |---|---|
 | **Python 3.10+** | Linguagem principal de desenvolvimento |
 | **OpenCV** | Captura de imagem, pré-processamento e detecção de movimento |
-| **YOLO (v8)** | Detecção e classificação de objetos em tempo real |
-| **TensorFlow / TF Lite** | Execução otimizada do modelo no hardware embarcado |
+| **YOLO (v8 - Nano)** | Detecção e classificação de objetos em tempo real com modelo leve |
+| **TensorFlow Lite** | Execução otimizada do modelo no hardware embarcado |
 | **Roboflow** | Criação, organização e anotação do dataset |
 | **Unihiker K10** | Placa embarcada para execução da solução (edge AI) |
 | **GitHub** | Versionamento e colaboração |
@@ -193,7 +193,7 @@ Uso de ferramentas como Roboflow
 
 4. **🤖 Treinamento do modelo**
 
-Utilização do YOLO
+Utilização do YOLOv8 (versão nano para otimização)
 
 Treinamento local ou em nuvem
 
@@ -246,7 +246,7 @@ O projeto do dataset no Roboflow é mantido sincronizado com o repositório via 
 
 ### 4. Treinamento do Modelo
 
-O modelo utilizado é o **YOLOv8** (Ultralytics), treinado com o dataset anotado:
+O modelo utilizado é o **YOLOv8 Nano (Ultralytics)**, escolhido por ser leve e adequado para execução em dispositivos embarcados:
 
 ```bash
 # Exemplo de comando de treinamento
@@ -279,11 +279,13 @@ python training/evaluate.py --model models/yolo/best.pt --data training/config.y
 
 Testes com **imagens e vídeos reais** de colmeias são realizados antes de qualquer deploy para validar o comportamento em condições reais.
 
+
 ---
 
-### 6. Otimização para Edge
+### 6. Otimização para Edge (ajuste importante)
 
-Para execução na **Unihiker K10**, o modelo é convertido para **TensorFlow Lite**, reduzindo tamanho e consumo de memória:
+```md
+Para execução na **Unihiker K10**, o modelo treinado em YOLO é convertido para um formato otimizado (**TensorFlow Lite**), reduzindo tamanho e consumo de memória:
 
 ```bash
 python scripts/convert_tflite.py --input models/yolo/best.pt --output models/tflite/smarthive.tflite
@@ -295,12 +297,20 @@ Técnicas aplicadas:
 
 ---
 
-### 7. Deploy na Unihiker K10
 
-O modelo otimizado é transferido para a placa e integrado ao pipeline de câmera:
+---
+
+### 7. Deploy (ajuste leve)
+
+```md
+O modelo otimizado é integrado ao pipeline com OpenCV na placa embarcada, realizando:
+
+- Captura de frames em tempo real
+- Detecção de movimento
+- Classificação com IA
+- Geração de alertas
 
 ```bash
-# Executar inferência em tempo real na Unihiker K10
 python inference/detector.py --model models/tflite/smarthive.tflite --camera 0
 ```
 
