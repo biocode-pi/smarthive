@@ -1,0 +1,91 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambiente virtual
+venv/
+.env/
+.env
+
+# =========================
+# VS Code / IDEs
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Jupyter Notebook
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Dataset
+# =========================
+dataset/raw/
+dataset/labeled/
+
+# =========================
+# Modelos treinados
+# =========================
+models/yolo/*.pt
+models/tflite/*.tflite
+models/**/*.onnx
+
+# =========================
+# Imagens e vídeos temporários
+# =========================
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+
+# =========================
+# TensorFlow / Torch Cache
+# =========================
+.cache/
+runs/
+
+# =========================
+# Sistema Operacional
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Arquivos temporários
+# =========================
+*.tmp
+*.temp
+
+# =========================
+# Distribuição / Build
+# =========================
+build/
+dist/
+
+# =========================
+# PyTorch
+# =========================
+*.pth
+
+# =========================
+# YOLO / Ultralytics
+# =========================
+runs/detect/
+runs/train/
+
+# =========================
+# Secrets / configs locais
+# =========================
+*.env
+config.local.yaml
