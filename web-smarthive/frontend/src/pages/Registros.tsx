@@ -1,83 +1,118 @@
+import { AlertTriangle, FileText, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Layout } from "@/components/layout/Layout";
-import { Card } from "@/components/ui/Card";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/Table";
-import { api } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "../components/ui/Button";
+import { EmptyState } from "../components/ui/EmptyState";
+import { LoadingState } from "../components/ui/LoadingState";
+import { PageHeader } from "../components/ui/PageHeader";
+import { excluirMonitoramento, listarMonitoramentos } from "../services/monitoramentos";
+import type { Monitoramento } from "../types";
+import { formatDateTime } from "../utils/formatters";
 
-interface Registro {
-  id: number;
-  tipo: string;
-  valor?: number;
-  origem?: string;
-  createdAt: string;
-  colmeia: number;
-}
-
-export default function Registros() {
-  const [registros, setRegistros] = useState<Registro[]>([]);
+export function Registros() {
+  const [registros, setRegistros] = useState<Monitoramento[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadData() {
+    setLoading(true);
+    setError(null);
+    try {
+      setRegistros(await listarMonitoramentos());
+    } catch {
+      setError("Nao foi possivel carregar o historico.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const loadRegistros = async () => {
-      try {
-        const data = await api("/api/registros");
-        setRegistros(data);
-      } catch (error) {
-        toast({
-          title: "Erro ao carregar registros",
-          description: error instanceof Error ? error.message : "Erro desconhecido",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRegistros();
+    loadData();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("pt-BR");
-  };
+  async function handleDelete(id: string) {
+    if (!confirm("Excluir este registro?")) return;
+    await excluirMonitoramento(id);
+    await loadData();
+  }
+
+  if (loading) return <LoadingState />;
 
   return (
-    <Layout title="Registros">
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Histórico de Registros</h2>
-        {loading ? (
-          <p className="text-muted-foreground">Carregando...</p>
-        ) : registros.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum registro encontrado.</p>
+    <>
+      <PageHeader
+        title="Historico"
+        description="Registros manuais, capturas de camera e leituras experimentais."
+      />
+
+      {error ? (
+        <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {error}
+        </div>
+      ) : null}
+
+      <section className="surface rounded-xl p-6">
+        {registros.length === 0 ? (
+          <EmptyState
+            icon={<FileText className="h-6 w-6" />}
+            title="Nenhum registro encontrado"
+            description="Os monitoramentos criados pelo formulario ou camera aparecem aqui."
+          />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Colmeia</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Valor</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead>Data/Hora</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registros.map((registro) => (
-                <TableRow key={registro.id}>
-                  <TableCell className="font-medium">#{registro.colmeia}</TableCell>
-                  <TableCell>
-                    <span className="capitalize">{registro.tipo}</span>
-                  </TableCell>
-                  <TableCell>{registro.valor || "-"}</TableCell>
-                  <TableCell>{registro.origem || "manual"}</TableCell>
-                  <TableCell>{formatDate(registro.createdAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="table-shell">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Origem</th>
+                  <th>Fluxo</th>
+                  <th>Entradas/Saidas</th>
+                  <th>Invasor</th>
+                  <th className="text-right">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registros.map((registro) => (
+                  <tr key={registro.id}>
+                    <td>{formatDateTime(registro.data_hora ?? registro.criado_em)}</td>
+                    <td>
+                      <span className="rounded-full bg-hive-50 px-3 py-1 text-xs font-bold text-hive-700">
+                        {registro.origem.replace("_", " ")}
+                      </span>
+                    </td>
+                    <td>{registro.fluxo_estimado ?? registro.movimentos_estimados ?? "-"}</td>
+                    <td>
+                      {(registro.abelhas_entrando ?? 0)} / {(registro.abelhas_saindo ?? 0)}
+                    </td>
+                    <td>
+                      {registro.possivel_invasor ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+                          <AlertTriangle className="h-3 w-3" />
+                          Sim
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">Nao</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-9 w-9 px-0 text-rose-600"
+                          onClick={() => handleDelete(registro.id)}
+                          aria-label="Excluir registro"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </Card>
-    </Layout>
+      </section>
+    </>
   );
 }

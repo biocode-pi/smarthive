@@ -1,18 +1,15 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { componentTagger } from "lovable-tagger";
+import react from "@vitejs/plugin-react";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  plugins: [react(), mode === "mobile" ? basicSsl() : null].filter(Boolean),
   server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    port: 5173,
+    host: mode === "mobile" ? "0.0.0.0" : "localhost",
+    proxy: {
+      "/api": "http://localhost:8000",
+      "/uploads": "http://localhost:8000",
     },
   },
 }));

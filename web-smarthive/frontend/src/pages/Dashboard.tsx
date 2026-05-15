@@ -1,93 +1,172 @@
-import { useEffect, useState } from "react";
-import { Layout } from "@/components/layout/Layout";
-import { Card } from "@/components/ui/Card";
-import { api } from "@/lib/api";
+import { AlertTriangle, ArrowDown, ArrowUp, Camera, LineChart, PlusCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { AlertCard } from "../components/ui/AlertCard";
+import { EmptyState } from "../components/ui/EmptyState";
+import { LoadingState } from "../components/ui/LoadingState";
+import { MonitoringCard } from "../components/ui/MonitoringCard";
+import { PageHeader } from "../components/ui/PageHeader";
+import { StatCard } from "../components/ui/StatCard";
+import { obterResumoDashboard } from "../services/dashboard";
+import type { DashboardResumo } from "../types";
 
-interface KPIs {
-  entradas: number;
-  saidas: number;
-  predadores: number;
-}
-
-export default function Dashboard() {
-  const [kpis, setKpis] = useState<KPIs>({
-    entradas: 0,
-    saidas: 0,
-    predadores: 0,
-  });
+export function Dashboard() {
+  const [resumo, setResumo] = useState<DashboardResumo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadKPIs = async () => {
-      try {
-        const registros = await api("/api/registros");
-        
-        const entradas = registros.filter((r: any) => r.tipo === "entrada").length;
-        const saidas = registros.filter((r: any) => r.tipo === "saida").length;
-        const predadores = registros.filter((r: any) => r.tipo === "predador").length;
-
-        setKpis({ entradas, saidas, predadores });
-      } catch (error) {
-        console.error("Erro ao carregar KPIs:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadKPIs();
+    obterResumoDashboard()
+      .then(setResumo)
+      .catch(() => setError("Nao foi possivel carregar o dashboard."))
+      .finally(() => setLoading(false));
   }, []);
 
+  const fluxo = useMemo(() => {
+    const registros = resumo?.ultimos_monitoramentos ?? [];
+    return registros.reduce(
+      (acc, item) => {
+        acc.entradas += item.abelhas_entrando ?? 0;
+        acc.saidas += item.abelhas_saindo ?? 0;
+        acc.movimentos += item.movimentos_estimados ?? item.fluxo_estimado ?? 0;
+        acc.invasores += item.possivel_invasor ? 1 : 0;
+        return acc;
+      },
+      { entradas: 0, saidas: 0, movimentos: 0, invasores: 0 },
+    );
+  }, [resumo]);
+
+  if (loading) return <LoadingState />;
+
+  if (error || !resumo) {
+    return (
+      <EmptyState
+        icon={<AlertTriangle className="h-6 w-6" />}
+        title="Dashboard indisponivel"
+        description={error ?? "Sem dados para exibir."}
+      />
+    );
+  }
+
+  const totalFluxo = Math.max(fluxo.entradas + fluxo.saidas, 1);
+  const entradaPercent = Math.round((fluxo.entradas / totalFluxo) * 100);
+  const saidaPercent = Math.round((fluxo.saidas / totalFluxo) * 100);
+
   return (
-    <Layout title="Dashboard">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Entradas</h3>
-          <p className="text-4xl font-bold text-primary">
-            {loading ? "..." : kpis.entradas}
-          </p>
-        </Card>
+    <>
+      <PageHeader
+        title="Dashboard"
+        description="Metricas de atividade, fluxo visual e alertas do SmartHive."
+      >
+        <Link
+          to="/registros"
+          className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+        >
+          <LineChart className="h-4 w-4" />
+          Ver historico
+        </Link>
+      </PageHeader>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Saídas</h3>
-          <p className="text-4xl font-bold text-accent">
-            {loading ? "..." : kpis.saidas}
-          </p>
-        </Card>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Entradas" value={fluxo.entradas} icon={<ArrowDown className="h-5 w-5" />} />
+        <StatCard label="Saidas" value={fluxo.saidas} icon={<ArrowUp className="h-5 w-5" />} />
+        <StatCard label="Movimentos" value={fluxo.movimentos} icon={<LineChart className="h-5 w-5" />} />
+        <StatCard label="Possiveis invasores" value={fluxo.invasores} icon={<AlertTriangle className="h-5 w-5" />} />
+      </section>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Predadores Detectados</h3>
-          <p className="text-4xl font-bold text-destructive">
-            {loading ? "..." : kpis.predadores}
-          </p>
-        </Card>
-      </div>
-
-      <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Resumo de Atividade</h3>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-32 text-sm font-medium">Entradas:</div>
-            <div className="flex-1 bg-secondary rounded-full h-6 overflow-hidden">
-              <div 
-                className="bg-primary h-full transition-all duration-500"
-                style={{ width: `${loading ? 0 : (kpis.entradas / (kpis.entradas + kpis.saidas) * 100)}%` }}
-              />
+      <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="surface rounded-xl p-6">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-slate-950">Resumo de atividade</h2>
+              <p className="mt-1 text-sm text-slate-500">Ultimos registros processados pelo backend.</p>
             </div>
-            <div className="w-16 text-right font-semibold">{kpis.entradas}</div>
+            <Link
+              to="/sensor-celular"
+              className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
+            >
+              <Camera className="h-4 w-4" />
+              Camera IA
+            </Link>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="w-32 text-sm font-medium">Saídas:</div>
-            <div className="flex-1 bg-secondary rounded-full h-6 overflow-hidden">
-              <div 
-                className="bg-accent h-full transition-all duration-500"
-                style={{ width: `${loading ? 0 : (kpis.saidas / (kpis.entradas + kpis.saidas) * 100)}%` }}
-              />
+          <div className="space-y-5">
+            <div>
+              <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                <span>Entradas</span>
+                <span>{fluxo.entradas}</span>
+              </div>
+              <div className="h-4 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-hive-600 transition-all" style={{ width: `${entradaPercent}%` }} />
+              </div>
             </div>
-            <div className="w-16 text-right font-semibold">{kpis.saidas}</div>
+            <div>
+              <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                <span>Saidas</span>
+                <span>{fluxo.saidas}</span>
+              </div>
+              <div className="h-4 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-honey-400 transition-all" style={{ width: `${saidaPercent}%` }} />
+              </div>
+            </div>
           </div>
         </div>
-      </Card>
-    </Layout>
+
+        <div className="surface rounded-xl p-6">
+          <h2 className="text-xl font-bold text-slate-950">Status das colmeias</h2>
+          <div className="mt-5 grid gap-3">
+            {[
+              ["Ativas", resumo.colmeias_ativas, "bg-hive-50 text-hive-700"],
+              ["Observacao", resumo.colmeias_em_observacao, "bg-amber-50 text-amber-700"],
+              ["Risco", resumo.colmeias_em_risco, "bg-rose-50 text-rose-700"],
+            ].map(([label, value, className]) => (
+              <div key={label} className={`flex items-center justify-between rounded-lg px-4 py-3 ${className}`}>
+                <span className="text-sm font-bold">{label}</span>
+                <span className="text-lg font-black">{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.9fr]">
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-950">Monitoramentos recentes</h2>
+            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-800" to="/monitoramentos/novo">
+              Novo registro
+            </Link>
+          </div>
+          <div className="space-y-4">
+            {resumo.ultimos_monitoramentos.length ? (
+              resumo.ultimos_monitoramentos.map((monitoramento) => (
+                <MonitoringCard key={monitoramento.id} monitoramento={monitoramento} />
+              ))
+            ) : (
+              <EmptyState
+                icon={<LineChart className="h-6 w-6" />}
+                title="Nenhum monitoramento registrado"
+                description="Crie o primeiro registro para iniciar o historico."
+              />
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="mb-3 text-lg font-bold text-slate-950">Alertas recentes</h2>
+          <div className="space-y-4">
+            {resumo.alertas_recentes.length ? (
+              resumo.alertas_recentes.map((alerta) => <AlertCard key={alerta.id} alerta={alerta} />)
+            ) : (
+              <EmptyState
+                icon={<AlertTriangle className="h-6 w-6" />}
+                title="Sem alertas recentes"
+                description="Riscos e observacoes aparecem aqui."
+              />
+            )}
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

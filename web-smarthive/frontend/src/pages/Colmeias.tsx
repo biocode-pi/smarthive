@@ -1,215 +1,258 @@
-import { useEffect, useState } from "react";
-import { Layout } from "@/components/layout/Layout";
-import { Card } from "@/components/ui/Card";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/Table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2 } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { AlertTriangle, Eye, Flower2, Plus, Trash2 } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { EmptyState } from "../components/ui/EmptyState";
+import { LoadingState } from "../components/ui/LoadingState";
+import { PageHeader } from "../components/ui/PageHeader";
+import { StatusBadge } from "../components/ui/StatusBadge";
+import { criarColmeia, excluirColmeia, listarColmeias } from "../services/colmeias";
+import type { Colmeia, StatusColmeia } from "../types";
 
-interface Colmeia {
-  _id: string;
-  identificador: string;
-  especie?: string;
-  apiario: string | { _id: string; nome: string };
-  estado?: "saudável" | "atenção" | "critico";
-  createdAt: string;
-  updatedAt: string;
-}
+const initialForm = {
+  nome: "",
+  codigo: "",
+  especie: "Jatai",
+  localizacao: "",
+  descricao: "",
+  status: "ativa" as StatusColmeia,
+  instalada_em: "",
+};
 
-interface Apiario {
-  _id: string;
-  nome: string;
-  localizacao: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export default function Colmeias() {
+export function Colmeias() {
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);
-  const [apiarios, setApiarios] = useState<Apiario[]>([]);
+  const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(true);
-  const [identificador, setIdentificador] = useState("");
-  const [especie, setEspecie] = useState("");
-  const [apiarioId, setApiarioId] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadData = async () => {
+  async function loadData() {
+    setLoading(true);
+    setError(null);
     try {
-      const [colmeiasData, apiariosData] = await Promise.all([
-        api("/api/colmeias"),
-        api("/api/apiarios"),
-      ]);
-      setColmeias(colmeiasData);
-      setApiarios(apiariosData);
-    } catch (error) {
-      toast({
-        title: "Erro ao carregar dados",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
-      });
+      setColmeias(await listarColmeias());
+    } catch {
+      setError("Nao foi possivel carregar as colmeias.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
+  function updateField(key: keyof typeof form, value: string) {
+    setForm((state) => ({ ...state, [key]: value }));
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
 
     try {
-      await api("/api/colmeias", {
-        method: "POST",
-        body: { 
-          identificador, 
-          apiario: apiarioId, // Enviando o ID como string
-          ...(especie && { especie })
-        },
+      await criarColmeia({
+        nome: form.nome,
+        codigo: form.codigo || null,
+        especie: form.especie,
+        localizacao: form.localizacao || null,
+        descricao: form.descricao || null,
+        status: form.status,
+        instalada_em: form.instalada_em || null,
       });
-
-      toast({ title: "Colmeia criada com sucesso!" });
-      setIdentificador("");
-      setEspecie("");
-      setApiarioId("");
-      loadData();
-    } catch (error) {
-      toast({
-        title: "Erro ao criar colmeia",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
-      });
+      setForm(initialForm);
+      await loadData();
+    } catch {
+      setError("Nao foi possivel criar a colmeia.");
     } finally {
-      setSubmitting(false);
+      setSaving(false);
     }
-  };
+  }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta colmeia?")) return;
+  async function handleDelete(id: string) {
+    if (!confirm("Excluir esta colmeia?")) return;
+    await excluirColmeia(id);
+    await loadData();
+  }
 
-    try {
-      await api(`/api/colmeias/${id}`, { method: "DELETE" });
-      toast({ title: "Colmeia excluída com sucesso!" });
-      loadData();
-    } catch (error) {
-      toast({
-        title: "Erro ao excluir colmeia",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getApiarioNome = (apiario: string | { _id: string; nome: string }) => {
-    if (typeof apiario === 'string') {
-      const apiarioObj = apiarios.find((a) => a._id === apiario);
-      return apiarioObj?.nome || "Não encontrado";
-    }
-    return apiario.nome;
-  };
+  if (loading) return <LoadingState />;
 
   return (
-    <Layout title="Colmeias">
-      <div className="space-y-6">
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Nova Colmeia</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="identificador">Identificador</Label>
-              <Input
-                id="identificador"
-                value={identificador}
-                onChange={(e) => setIdentificador(e.target.value)}
-                required
-                disabled={submitting}
-              />
-            </div>
-            <div>
-              <Label htmlFor="especie">Espécie</Label>
-              <Input
-                id="especie"
-                value={especie}
-                onChange={(e) => setEspecie(e.target.value)}
-                disabled={submitting}
-              />
-            </div>
-            <div>
-              <Label htmlFor="apiario">Apiário</Label>
-              <select
-                id="apiario"
-                value={apiarioId}
-                onChange={(e) => setApiarioId(e.target.value)}
-                required
-                disabled={submitting}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="">Selecione um apiário</option>
-                {apiarios.map((apiario) => (
-                  <option key={apiario._id} value={apiario._id}>
-                    {apiario.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="md:col-span-3">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Salvando..." : "Criar Colmeia"}
-              </Button>
-            </div>
-          </form>
-        </Card>
+    <>
+      <PageHeader
+        title="Colmeias"
+        description="Cadastro das colonias monitoradas pelo SmartHive."
+      />
 
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Lista de Colmeias</h2>
-          {loading ? (
-            <p className="text-muted-foreground">Carregando...</p>
-          ) : colmeias.length === 0 ? (
-            <p className="text-muted-foreground">Nenhuma colmeia cadastrada.</p>
+      {error ? (
+        <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+          {error}
+        </div>
+      ) : null}
+
+      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.55fr]">
+        <form onSubmit={handleSubmit} className="surface rounded-xl p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="rounded-lg bg-hive-50 p-3 text-hive-700">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-950">Nova colmeia</h2>
+              <p className="text-sm text-slate-500">Identificacao e localizacao da colonia.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            <label className="grid gap-1 text-sm font-semibold text-slate-700">
+              Nome
+              <input
+                className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                value={form.nome}
+                onChange={(event) => updateField("nome", event.target.value)}
+                required
+              />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-1 text-sm font-semibold text-slate-700">
+                Codigo
+                <input
+                  className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  value={form.codigo}
+                  onChange={(event) => updateField("codigo", event.target.value)}
+                />
+              </label>
+              <label className="grid gap-1 text-sm font-semibold text-slate-700">
+                Especie
+                <input
+                  className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  value={form.especie}
+                  onChange={(event) => updateField("especie", event.target.value)}
+                  required
+                />
+              </label>
+            </div>
+            <label className="grid gap-1 text-sm font-semibold text-slate-700">
+              Localizacao
+              <input
+                className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                value={form.localizacao}
+                onChange={(event) => updateField("localizacao", event.target.value)}
+              />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-1 text-sm font-semibold text-slate-700">
+                Status
+                <select
+                  className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  value={form.status}
+                  onChange={(event) => updateField("status", event.target.value)}
+                >
+                  <option value="ativa">Ativa</option>
+                  <option value="observacao">Observacao</option>
+                  <option value="risco">Risco</option>
+                  <option value="inativa">Inativa</option>
+                </select>
+              </label>
+              <label className="grid gap-1 text-sm font-semibold text-slate-700">
+                Instalada em
+                <input
+                  type="date"
+                  className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  value={form.instalada_em}
+                  onChange={(event) => updateField("instalada_em", event.target.value)}
+                />
+              </label>
+            </div>
+            <label className="grid gap-1 text-sm font-semibold text-slate-700">
+              Descricao
+              <textarea
+                className="focus-ring min-h-24 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                value={form.descricao}
+                onChange={(event) => updateField("descricao", event.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="mt-5 flex justify-end">
+            <Button type="submit" disabled={saving} icon={<Plus className="h-4 w-4" />}>
+              {saving ? "Salvando..." : "Criar colmeia"}
+            </Button>
+          </div>
+        </form>
+
+        <div className="surface rounded-xl p-6">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-slate-950">Lista de colmeias</h2>
+              <p className="text-sm text-slate-500">{colmeias.length} registros cadastrados</p>
+            </div>
+          </div>
+
+          {colmeias.length === 0 ? (
+            <EmptyState
+              icon={<Flower2 className="h-6 w-6" />}
+              title="Nenhuma colmeia cadastrada"
+              description="Cadastre a primeira colmeia para iniciar o monitoramento."
+            />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Identificador</TableHead>
-                  <TableHead>Espécie</TableHead>
-                  <TableHead>Apiário</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {colmeias.map((colmeia) => (
-                  <TableRow key={colmeia.id}>
-                    <TableCell className="font-medium">{colmeia.identificador}</TableCell>
-                    <TableCell>{colmeia.especie || "-"}</TableCell>
-                    <TableCell>{getApiarioNome(colmeia.apiario)}</TableCell>
-                    <TableCell>{colmeia.estado || "Normal"}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(colmeia.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Colmeia</th>
+                    <th>Especie</th>
+                    <th>Status</th>
+                    <th>Localizacao</th>
+                    <th className="text-right">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {colmeias.map((colmeia) => (
+                    <tr key={colmeia.id}>
+                      <td>
+                        <div className="font-bold text-slate-950">{colmeia.nome}</div>
+                        <div className="text-xs text-slate-500">{colmeia.codigo || colmeia.id}</div>
+                      </td>
+                      <td>{colmeia.especie}</td>
+                      <td>
+                        <StatusBadge status={colmeia.status} />
+                      </td>
+                      <td>{colmeia.localizacao || "-"}</td>
+                      <td>
+                        <div className="flex justify-end gap-2">
+                          <Link
+                            to={`/colmeias/${colmeia.id}`}
+                            className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                            aria-label="Ver detalhes"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                          <button
+                            type="button"
+                            className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-200 bg-white text-rose-600 hover:bg-rose-50"
+                            onClick={() => handleDelete(colmeia.id)}
+                            aria-label="Excluir colmeia"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </Card>
-      </div>
-    </Layout>
+
+          {colmeias.some((colmeia) => colmeia.status === "risco") ? (
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+              <AlertTriangle className="h-4 w-4" />
+              Existem colmeias marcadas como risco.
+            </div>
+          ) : null}
+        </div>
+      </section>
+    </>
   );
 }
