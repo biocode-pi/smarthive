@@ -249,3 +249,84 @@ comment on table colmeias is 'Colmeias de abelhas nativas monitoradas pelo Smart
 comment on table monitoramentos is 'Historico de monitoramentos manuais, por celular e futuramente IoT.';
 comment on table alertas is 'Alertas manuais ou gerados por heuristicas/IA futura.';
 comment on table capturas_sensor_celular is 'Capturas experimentais em que o celular simula o sensor visual.';
+
+create schema if not exists private;
+
+revoke all on schema private from anon, authenticated;
+
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  nome text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table profiles enable row level security;
+
+grant select, insert, update on profiles to authenticated;
+
+drop policy if exists profiles_select_own on profiles;
+create policy profiles_select_own
+  on profiles for select
+  to authenticated
+  using ((select auth.uid()) = id);
+
+drop policy if exists profiles_insert_own on profiles;
+create policy profiles_insert_own
+  on profiles for insert
+  to authenticated
+  with check ((select auth.uid()) = id);
+
+drop policy if exists profiles_update_own on profiles;
+create policy profiles_update_own
+  on profiles for update
+  to authenticated
+  using ((select auth.uid()) = id)
+  with check ((select auth.uid()) = id);
+
+drop trigger if exists trg_profiles_updated_at on profiles;
+create trigger trg_profiles_updated_at
+before update on profiles
+for each row execute function set_updated_at();
+
+create or replace function private.handle_new_auth_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, nome, created_at, updated_at)
+  values (
+    new.id,
+    coalesce(new.email, ''),
+    nullif(new.raw_user_meta_data ->> 'nome', ''),
+    coalesce(new.created_at, now()),
+    now()
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    nome = coalesce(excluded.nome, public.profiles.nome),
+    updated_at = now();
+
+  return new;
+end;
+$$ language plpgsql security definer
+set search_path = public, auth;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function private.handle_new_auth_user();
+
+insert into profiles (id, email, nome, created_at, updated_at)
+select
+  users.id,
+  coalesce(users.email, ''),
+  nullif(users.raw_user_meta_data ->> 'nome', ''),
+  coalesce(users.created_at, now()),
+  now()
+from auth.users
+on conflict (id) do update set
+  email = excluded.email,
+  nome = coalesce(excluded.nome, profiles.nome),
+  updated_at = now();
+
+comment on table profiles is 'Perfis publicos de usuarios do SmartHive sincronizados com auth.users.';
