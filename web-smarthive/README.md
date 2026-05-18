@@ -29,6 +29,16 @@ smarthive/
 - Storage MVP: pasta local `backend/app/uploads`.
 - Sensor experimental: celular como camera provisoria.
 
+## Repositorios relacionados
+
+- Web: `https://github.com/biocode-pi/smarthive`, pasta `web-smarthive`.
+- Mobile: `https://github.com/biocode-pi/mobile`.
+
+Para web e mobile funcionarem em paralelo, use o mesmo projeto Supabase nos dois
+ambientes. O backend web deve manter `SUPABASE_SERVICE_ROLE_KEY` somente no
+Render. O mobile deve usar apenas a chave publica anon em
+`EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+
 ## Como rodar com Docker
 
 O Compose sobe o backend FastAPI e o frontend React servido por Nginx. Por
