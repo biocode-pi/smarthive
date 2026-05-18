@@ -10,6 +10,8 @@ type Mode = "login" | "cadastro" | "recuperar" | "novaSenha";
 const inputClass =
   "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:bg-slate-50";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,6 +48,10 @@ export function Login() {
 
     if (mode !== "novaSenha" && !email.trim()) {
       setErro("Informe seu e-mail.");
+      return;
+    }
+    if (mode !== "novaSenha" && !emailRegex.test(email.trim())) {
+      setErro("Informe um e-mail valido. Exemplo: nome@dominio.com");
       return;
     }
     if (mode !== "recuperar" && senha.length < 6) {
@@ -89,6 +95,12 @@ export function Login() {
         return;
       }
       navigate(redirectTo, { replace: true });
+    } catch (error) {
+      setErro(
+        error instanceof Error && error.message === "auth_timeout"
+          ? "A autenticacao demorou demais para responder. Verifique sua conexao e tente novamente."
+          : "Nao foi possivel concluir a autenticacao. Tente novamente.",
+      );
     } finally {
       setEnviando(false);
     }

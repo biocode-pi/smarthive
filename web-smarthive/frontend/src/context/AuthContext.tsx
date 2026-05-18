@@ -4,6 +4,8 @@ import { hasSupabaseConfig, supabase } from "../services/supabase";
 
 type AuthResult = { erro?: string; sessaoCriada?: boolean };
 
+const AUTH_TIMEOUT_MS = 15000;
+
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
@@ -58,7 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(email: string, senha: string): Promise<AuthResult> {
     if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    const { data, error } = await withAuthTimeout(
+      supabase.auth.signInWithPassword({ email, password: senha }),
+    );
     if (error) return { erro: traduzirErro(error.message) };
     setSession(data.session);
     setUser(data.user);
@@ -67,11 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function registrar(email: string, senha: string, nome: string): Promise<AuthResult> {
     if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password: senha,
-      options: { data: { nome } },
-    });
+    const { data, error } = await withAuthTimeout(
+      supabase.auth.signUp({
+        email,
+        password: senha,
+        options: { data: { nome } },
+      }),
+    );
     if (error) return { erro: traduzirErro(error.message) };
     if (data.session) {
       setSession(data.session);
@@ -82,15 +88,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function recuperarSenha(email: string): Promise<AuthResult> {
     if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
-    });
+    const { error } = await withAuthTimeout(
+      supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login`,
+      }),
+    );
     return error ? { erro: traduzirErro(error.message) } : {};
   }
 
   async function atualizarSenha(senha: string): Promise<AuthResult> {
     if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { error } = await supabase.auth.updateUser({ password: senha });
+    const { error } = await withAuthTimeout(supabase.auth.updateUser({ password: senha }));
     if (error) return { erro: traduzirErro(error.message) };
     setRecuperandoSenha(false);
     return {};
@@ -133,8 +141,24 @@ export function userDisplayName(user: User | null): string {
   return user?.email ?? "Usuario";
 }
 
+function withAuthTimeout<T>(promise: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("auth_timeout"));
+    }, AUTH_TIMEOUT_MS);
+
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => window.clearTimeout(timeoutId));
+  });
+}
+
 function traduzirErro(message: string): string {
   const normalized = message.toLowerCase();
+  if (normalized.includes("auth_timeout")) {
+    return "A autenticacao demorou demais para responder. Verifique sua conexao e tente novamente.";
+  }
   if (normalized.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
   if (normalized.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
   if (normalized.includes("user already registered")) return "Este e-mail ja esta cadastrado.";
