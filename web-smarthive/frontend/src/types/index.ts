@@ -54,6 +54,44 @@ export interface Alerta {
   resolvido_em?: string | null;
 }
 
+export interface SerieDiariaPonto {
+  data: string;
+  rotulo: string;
+  entradas: number;
+  saidas: number;
+  movimentos: number;
+  invasores: number;
+  fluxo: number;
+}
+
+export interface DistribuicaoItem {
+  categoria: string;
+  total: number;
+}
+
+export interface PerfilTeiaItem {
+  metrica: string;
+  valor: number;
+}
+
+export interface MapaCalorCelula {
+  dia_indice: number;
+  dia: string;
+  hora: number;
+  total: number;
+}
+
+export interface TopColmeiaItem {
+  id: string;
+  nome: string;
+  especie: string;
+  status: StatusColmeia;
+  monitoramentos: number;
+  fluxo: number;
+  movimentos: number;
+  ultima_atividade?: string | null;
+}
+
 export interface DashboardResumo {
   total_colmeias: number;
   colmeias_ativas: number;
@@ -61,12 +99,23 @@ export interface DashboardResumo {
   colmeias_em_risco: number;
   monitoramentos_realizados: number;
   alertas_abertos: number;
+  fluxo_acumulado: number;
+  movimentos_acumulados: number;
+  entradas: number;
+  saidas: number;
   ultimos_monitoramentos: Monitoramento[];
   alertas_recentes: Alerta[];
   sensor_celular: {
     ativo: boolean;
     descricao: string;
   };
+  serie_diaria: SerieDiariaPonto[];
+  distribuicao_status: DistribuicaoItem[];
+  distribuicao_origem: DistribuicaoItem[];
+  distribuicao_severidade: DistribuicaoItem[];
+  perfil_teia: PerfilTeiaItem[];
+  mapa_calor: MapaCalorCelula[];
+  top_colmeias: TopColmeiaItem[];
 }
 
 export interface SensorCelularResposta {

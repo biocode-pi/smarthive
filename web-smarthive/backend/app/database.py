@@ -19,7 +19,7 @@ def now_iso() -> str:
 
 
 class Store(Protocol):
-    def list(self, table: str) -> List[Dict[str, Any]]: ...
+    def list(self, table: str, *, where: Dict[str, Any] | None = None) -> List[Dict[str, Any]]: ...
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]: ...
     def create(self, table: str, payload: Dict[str, Any]) -> Dict[str, Any]: ...
     def update(self, table: str, item_id: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]: ...
@@ -147,9 +147,12 @@ class LocalJsonStore:
         with self.data_file.open("w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=2)
 
-    def list(self, table: str) -> List[Dict[str, Any]]:
+    def list(self, table: str, *, where: Dict[str, Any] | None = None) -> List[Dict[str, Any]]:
         data = self._read()
-        return deepcopy(data.get(table, []))
+        rows = deepcopy(data.get(table, []))
+        if where:
+            rows = [row for row in rows if all(row.get(k) == v for k, v in where.items())]
+        return rows
 
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]:
         return next((item for item in self.list(table) if item.get("id") == item_id), None)
@@ -206,8 +209,12 @@ class SupabaseStore:
         headers = {"x-smarthive-backend-key": backend_secret} if backend_secret else {}
         self.client = create_client(url, key, options=ClientOptions(headers=headers))
 
-    def list(self, table: str) -> List[Dict[str, Any]]:
-        response = self.client.table(table).select("*").execute()
+    def list(self, table: str, *, where: Dict[str, Any] | None = None) -> List[Dict[str, Any]]:
+        query = self.client.table(table).select("*")
+        if where:
+            for column, value in where.items():
+                query = query.eq(column, value)
+        response = query.execute()
         return response.data or []
 
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]:
@@ -278,11 +285,22 @@ class PostgresStore:
         data = clean_insert_payload(payload) if remove_none else payload
         return {key: self._adapt_value(value) for key, value in data.items()}
 
-    def list(self, table: str) -> List[Dict[str, Any]]:
-        query = self._psycopg.sql.SQL("select * from {}").format(self._table_identifier(table))
+    def list(self, table: str, *, where: Dict[str, Any] | None = None) -> List[Dict[str, Any]]:
+        base = self._psycopg.sql.SQL("select * from {}").format(self._table_identifier(table))
+        params: tuple = ()
+        if where:
+            conditions = self._psycopg.sql.SQL(" and ").join(
+                self._psycopg.sql.SQL("{} = {}").format(
+                    self._psycopg.sql.Identifier(column),
+                    self._psycopg.sql.Placeholder(),
+                )
+                for column in where.keys()
+            )
+            base = self._psycopg.sql.SQL("{} where {}").format(base, conditions)
+            params = tuple(where.values())
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query)
+                cursor.execute(base, params)
                 return normalize_db_rows(cursor.fetchall())
 
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]:

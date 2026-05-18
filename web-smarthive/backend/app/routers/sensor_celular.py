@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, Form, UploadFile, status
 
+from app.auth import CurrentUser
 from app.database import get_store
 from app.schemas.sensor_celular import SensorCelularResposta
 from app.services import monitoramento_service, storage_service
@@ -10,6 +11,7 @@ router = APIRouter(prefix="/sensor-celular", tags=["Sensor Celular"])
 
 @router.post("/captura", response_model=SensorCelularResposta, status_code=status.HTTP_201_CREATED)
 async def registrar_captura_sensor_celular(
+    current_user: CurrentUser,
     colmeia_id: str = Form(...),
     duracao_segundos: int | None = Form(default=None),
     movimentos_estimados: int = Form(default=0),
@@ -34,7 +36,8 @@ async def registrar_captura_sensor_celular(
             "possivel_invasor": possivel_invasor,
             "observacoes": observacoes,
             "midia_url": midia_url,
-        }
+        },
+        current_user,
     )
 
     captura = get_store().create(
@@ -57,4 +60,3 @@ async def registrar_captura_sensor_celular(
         "captura_id": captura["id"],
         "mensagem": "Captura experimental registrada como monitoramento.",
     }
-

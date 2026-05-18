@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     supabase_key: str | None = None
     supabase_service_role_key: str | None = None
     supabase_backend_secret: str | None = None
+    supabase_jwt_secret: str | None = None
     supabase_storage_bucket: str = "smarthive-capturas"
     database_url: str | None = None
     use_supabase: bool = False
