@@ -37,7 +37,8 @@ smarthive/
 Para web e mobile funcionarem em paralelo, use o mesmo projeto Supabase nos dois
 ambientes. O backend web deve manter `SUPABASE_SERVICE_ROLE_KEY` somente no
 Render. O mobile deve usar apenas a chave publica anon em
-`EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+`EXPO_PUBLIC_SUPABASE_ANON_KEY`. Execute `database/schema.sql` no Supabase para
+criar tambem as tabelas e politicas usadas pelo mobile.
 
 ## Como rodar com Docker
 
