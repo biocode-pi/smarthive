@@ -127,55 +127,59 @@ alter table monitoramentos enable row level security;
 alter table alertas enable row level security;
 alter table capturas_sensor_celular enable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.apiarios to authenticated;
+grant select, insert, update, delete on public.colmeias to authenticated;
+
 drop policy if exists apiarios_select_own on apiarios;
 create policy apiarios_select_own
   on apiarios for select
   to authenticated
-  using (user_id = auth.uid());
+  using ((select auth.uid()) = user_id);
 
 drop policy if exists apiarios_insert_own on apiarios;
 create policy apiarios_insert_own
   on apiarios for insert
   to authenticated
-  with check (user_id = auth.uid());
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists apiarios_update_own on apiarios;
 create policy apiarios_update_own
   on apiarios for update
   to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists apiarios_delete_own on apiarios;
 create policy apiarios_delete_own
   on apiarios for delete
   to authenticated
-  using (user_id = auth.uid());
+  using ((select auth.uid()) = user_id);
 
 drop policy if exists colmeias_select_own on colmeias;
 create policy colmeias_select_own
   on colmeias for select
   to authenticated
-  using (user_id = auth.uid());
+  using ((select auth.uid()) = user_id);
 
 drop policy if exists colmeias_insert_own on colmeias;
 create policy colmeias_insert_own
   on colmeias for insert
   to authenticated
-  with check (user_id = auth.uid());
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists colmeias_update_own on colmeias;
 create policy colmeias_update_own
   on colmeias for update
   to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists colmeias_delete_own on colmeias;
 create policy colmeias_delete_own
   on colmeias for delete
   to authenticated
-  using (user_id = auth.uid());
+  using ((select auth.uid()) = user_id);
 
 create index if not exists idx_apiarios_user_id
   on apiarios (user_id);
