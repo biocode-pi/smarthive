@@ -29,6 +29,56 @@ smarthive/
 - Storage MVP: pasta local `backend/app/uploads`.
 - Sensor experimental: celular como camera provisoria.
 
+## Como rodar com Docker
+
+O Compose sobe o backend FastAPI e o frontend React servido por Nginx. Por
+padrao, o backend usa o JSON local do MVP, persistido em volume Docker, sem
+exigir Supabase.
+
+```bash
+copy .env.docker.example .env
+docker compose up --build
+```
+
+Aplicacao: `http://localhost:5173`
+
+API: `http://localhost:8000`
+
+Swagger: `http://localhost:8000/docs`
+
+O frontend em Docker usa `VITE_API_URL=/api`; o Nginx encaminha `/api` e
+`/uploads` para o container do backend.
+
+Para parar:
+
+```bash
+docker compose down
+```
+
+Para remover tambem os dados locais persistidos em volumes:
+
+```bash
+docker compose down -v
+```
+
+### Docker com Supabase
+
+Para usar Supabase ou PostgreSQL externo, preencha as variaveis no `.env` da
+raiz e altere:
+
+```env
+USE_SUPABASE=true
+SUPABASE_URL=
+SUPABASE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_STORAGE_BUCKET=smarthive-capturas
+DATABASE_URL=
+```
+
+Se `DATABASE_URL` estiver preenchida, o backend usa conexao PostgreSQL direta.
+Caso contrario, usa `SUPABASE_URL` com `SUPABASE_SERVICE_ROLE_KEY` ou
+`SUPABASE_KEY`.
+
 ## Como rodar o backend
 
 ```bash
