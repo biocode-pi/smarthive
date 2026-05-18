@@ -5,13 +5,16 @@ import {
   FileText,
   Flower2,
   Home,
+  LogOut,
   Menu,
   Settings,
+  UserCircle,
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
+import { useAuth, userDisplayName } from "../../context/AuthContext";
 import { cn } from "../../utils/classNames";
 
 const navItems = [
@@ -67,6 +70,13 @@ function Brand() {
 
 export function AppLayout() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <div className="min-h-screen">
@@ -81,10 +91,25 @@ export function AppLayout() {
         </div>
 
         <div className="absolute bottom-6 left-5 right-5 rounded-xl border border-honey-200 bg-honey-100/75 p-4">
+          <div className="mb-4 flex items-center gap-3 border-b border-honey-200 pb-4">
+            <UserCircle className="h-8 w-8 flex-shrink-0 text-hive-700" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-slate-950">{userDisplayName(user)}</p>
+              <p className="truncate text-xs font-medium text-slate-600">{user?.email}</p>
+            </div>
+          </div>
           <p className="text-sm font-bold text-slate-950">Sensor experimental</p>
           <p className="mt-1 text-xs leading-5 text-slate-600">
             O celular captura frames reais para alimentar o historico no Supabase.
           </p>
+          <button
+            type="button"
+            className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-honey-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-honey-100"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </button>
         </div>
       </aside>
 
@@ -103,6 +128,20 @@ export function AppLayout() {
         {open ? (
           <div className="border-t border-slate-100 bg-white/95 px-4 py-3">
             <Navigation onNavigate={() => setOpen(false)} />
+            <div className="mt-3 flex items-center justify-between rounded-lg bg-hive-50 px-3 py-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-slate-950">{userDisplayName(user)}</p>
+                <p className="truncate text-xs text-slate-600">{user?.email}</p>
+              </div>
+              <button
+                type="button"
+                className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-700"
+                onClick={handleLogout}
+                aria-label="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         ) : (
           <Navigation compact />

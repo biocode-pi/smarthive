@@ -40,6 +40,14 @@ Render. O mobile deve usar apenas a chave publica anon em
 `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Execute `database/schema.sql` no Supabase para
 criar tambem as tabelas e politicas usadas pelo mobile.
 
+Na Vercel, configure o frontend com:
+
+```env
+VITE_API_URL=https://SEU-BACKEND.onrender.com/api
+VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+VITE_SUPABASE_ANON_KEY=SUA_ANON_KEY
+```
+
 ## Como rodar com Docker
 
 O Compose sobe o backend FastAPI e o frontend React servido por Nginx. Por
@@ -133,9 +141,15 @@ Frontend (`frontend/.env`):
 
 ```env
 VITE_API_URL=http://localhost:8000/api
+VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+VITE_SUPABASE_ANON_KEY=SUA_ANON_KEY
 ```
 
 Nao insira chaves reais no repositorio.
+
+O web e o mobile usam o mesmo Supabase Auth. Uma conta criada no frontend web
+tambem acessa o app mobile, desde que ambos apontem para o mesmo
+`SUPABASE_URL`/anon key.
 
 ## Supabase
 

@@ -23,6 +23,7 @@ O web e o mobile compartilham o mesmo projeto Supabase.
 - Frontend web: `web-smarthive/frontend`
 - App mobile: `mobile`
 - Schema compartilhado: `web-smarthive/database/schema.sql`
+- Autenticacao compartilhada: Supabase Auth
 
 Para rodar cada aplicacao, consulte os READMEs dentro de `web-smarthive/` e
 `mobile/`.
