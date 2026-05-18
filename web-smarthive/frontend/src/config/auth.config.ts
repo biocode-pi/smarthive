@@ -3,16 +3,11 @@ import logo from "../assets/logo.png";
 export interface AuthBrandConfig {
   logoSrc: string;
   name: string;
-  tagline: string;
 }
 
-export interface AuthPromoConfig {
-  eyebrow: string;
-  title: string;
-  description: string;
-  bullets: string[];
-  ctaLabel: string;
-  ctaHref: string;
+export interface AuthQuoteConfig {
+  text: string;
+  attribution: string;
 }
 
 export interface AuthFooterLink {
@@ -53,6 +48,11 @@ export interface AuthTextsConfig {
     subtitle: string;
     submit: string;
   };
+  labels: {
+    nome: string;
+    email: string;
+    senha: string;
+  };
   placeholders: {
     nome: string;
     email: string;
@@ -62,7 +62,7 @@ export interface AuthTextsConfig {
 
 export interface AuthConfig {
   brand: AuthBrandConfig;
-  promo: AuthPromoConfig;
+  quote: AuthQuoteConfig;
   footer: AuthFooterConfig;
   texts: AuthTextsConfig;
 }
@@ -70,56 +70,51 @@ export interface AuthConfig {
 export const authConfig: AuthConfig = {
   brand: {
     logoSrc: logo,
-    name: "Smart Hive",
-    tagline: "Apicultura inteligente",
+    name: "SmartHive",
   },
-  promo: {
-    eyebrow: "Monitoramento conectado",
-    title: "A melhor plataforma de gestao apicola do mercado.",
-    description:
-      "Acompanhe colmeias, sensores e alertas em tempo real. Use a mesma conta no aplicativo mobile e na web - tudo sincronizado pelo Supabase.",
-    bullets: [
-      "Sessao unica entre web e mobile",
-      "Historico em tempo real no banco compartilhado",
-      "Alertas automaticos e relatorios prontos",
-    ],
-    ctaLabel: "Conhecer o app mobile",
-    ctaHref: "#",
+  quote: {
+    text: "Apicultura conectada, do campo aos dados.",
+    attribution: "SmartHive",
   },
   footer: {
-    copyright: `(c) ${new Date().getFullYear()} SmartHive. Todos os direitos reservados.`,
+    copyright: `© ${new Date().getFullYear()} SmartHive`,
     links: [
-      { label: "Termos de servico", href: "#" },
-      { label: "Politica de privacidade", href: "#" },
+      { label: "Termos", href: "#" },
+      { label: "Privacidade", href: "#" },
     ],
   },
   texts: {
     login: {
       title: "Entrar",
-      subtitle: "Use a mesma conta do aplicativo mobile.",
+      subtitle: "Acesse sua conta para continuar.",
       submit: "Entrar",
-      rememberLabel: "Manter conectado por 2 semanas",
-      forgotLabel: "Esqueceu sua senha?",
-      noAccountPrefix: "Nao tem uma conta?",
-      noAccountAction: "Criar conta.",
+      rememberLabel: "Manter conectado",
+      forgotLabel: "Esqueci minha senha",
+      noAccountPrefix: "Novo por aqui?",
+      noAccountAction: "Criar conta",
     },
     cadastro: {
       title: "Criar conta",
-      subtitle: "A conta criada aqui tambem entra no mobile.",
+      subtitle: "Use a mesma conta no aplicativo web e mobile.",
       submit: "Criar conta",
-      hasAccountPrefix: "Ja tem uma conta?",
-      hasAccountAction: "Entrar.",
+      hasAccountPrefix: "Ja tem conta?",
+      hasAccountAction: "Entrar",
     },
     recuperar: {
-      title: "Recuperar senha",
-      subtitle: "Enviaremos as instrucoes para o e-mail da sua conta.",
-      submit: "Enviar e-mail",
+      title: "Recuperar acesso",
+      subtitle: "Enviaremos as instrucoes para redefinir sua senha.",
+      submit: "Enviar instrucoes",
       backAction: "Voltar para o login",
     },
     novaSenha: {
-      title: "Criar nova senha",
-      subtitle: "Defina uma senha nova para continuar usando web e mobile.",
-      submit: "Atualizar senha",
+      title: "Nova senha",
+      subtitle: "Defina uma senha para continuar.",
+      submit: "Salvar senha",
+    },
+    labels: {
+      nome: "Nome",
+      email: "E-mail",
+      senha: "Senha",
     },
     placeholders: {
       nome: "Seu nome",
