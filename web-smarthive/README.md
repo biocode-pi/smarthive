@@ -29,10 +29,10 @@ smarthive/
 - Storage MVP: pasta local `backend/app/uploads`.
 - Sensor experimental: celular como camera provisoria.
 
-## Repositorios relacionados
+## Projetos relacionados
 
-- Web: `https://github.com/biocode-pi/smarthive`, pasta `web-smarthive`.
-- Mobile: `https://github.com/biocode-pi/mobile`.
+- Web: pasta `web-smarthive`.
+- Mobile: pasta `mobile`.
 
 Para web e mobile funcionarem em paralelo, use o mesmo projeto Supabase nos dois
 ambientes. O backend web deve manter `SUPABASE_SERVICE_ROLE_KEY` somente no
