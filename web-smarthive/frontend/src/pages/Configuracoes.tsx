@@ -14,8 +14,8 @@ const settings = [
     icon: Smartphone,
   },
   {
-    title: "Classificador",
-    value: "MobileNet no navegador",
+    title: "Deteccao",
+    value: "Visao local com circulos",
     icon: Camera,
   },
   {

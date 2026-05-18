@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class SensorCelularCaptura(BaseModel):
     colmeia_id: str
-    duracao_segundos: int = Field(..., ge=1)
+    duracao_segundos: int | None = Field(default=None, ge=0)
     movimentos_estimados: int = Field(default=0, ge=0)
     abelhas_entrando: int = Field(default=0, ge=0)
     abelhas_saindo: int = Field(default=0, ge=0)

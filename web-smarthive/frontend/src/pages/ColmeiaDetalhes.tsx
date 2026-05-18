@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardPlus, LineChart } from "lucide-react";
+import { ArrowLeft, Camera, LineChart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -53,11 +53,11 @@ export function ColmeiaDetalhes() {
           Voltar
         </Link>
         <Link
-          to={`/colmeias/${colmeia.id}/monitoramentos/novo`}
+          to={`/sensor-celular?colmeia_id=${encodeURIComponent(colmeia.id)}`}
           className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
         >
-          <ClipboardPlus className="h-4 w-4" />
-          Novo monitoramento
+          <Camera className="h-4 w-4" />
+          Registrar pela camera
         </Link>
       </PageHeader>
 
@@ -90,7 +90,7 @@ export function ColmeiaDetalhes() {
           ) : (
             <EmptyState
               title="Sem historico"
-              description="Registre o primeiro monitoramento para criar a linha do tempo da colmeia."
+              description="Use a camera do celular para criar a linha do tempo da colmeia."
             />
           )}
         </div>

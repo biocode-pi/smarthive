@@ -81,7 +81,7 @@ create table if not exists capturas_sensor_celular (
   id text primary key default gen_random_uuid()::text,
   colmeia_id text not null references colmeias(id) on delete cascade,
   monitoramento_id text references monitoramentos(id) on delete set null,
-  duracao_segundos integer not null check (duracao_segundos >= 1),
+  duracao_segundos integer check (duracao_segundos is null or duracao_segundos >= 0),
   movimentos_estimados integer not null default 0 check (movimentos_estimados >= 0),
   abelhas_entrando integer not null default 0 check (abelhas_entrando >= 0),
   abelhas_saindo integer not null default 0 check (abelhas_saindo >= 0),

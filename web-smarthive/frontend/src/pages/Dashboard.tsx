@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowDown, ArrowUp, Camera, LineChart, PlusCircle } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, Camera, LineChart } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertCard } from "../components/ui/AlertCard";
@@ -133,8 +133,8 @@ export function Dashboard() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-950">Monitoramentos recentes</h2>
-            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-800" to="/monitoramentos/novo">
-              Novo registro
+            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-800" to="/sensor-celular">
+              Registrar pela camera
             </Link>
           </div>
           <div className="space-y-4">
@@ -146,7 +146,7 @@ export function Dashboard() {
               <EmptyState
                 icon={<LineChart className="h-6 w-6" />}
                 title="Nenhum monitoramento registrado"
-                description="Crie o primeiro registro para iniciar o historico."
+                description="Use a camera do celular para iniciar o historico."
               />
             )}
           </div>

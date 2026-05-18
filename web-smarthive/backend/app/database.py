@@ -196,12 +196,15 @@ class SupabaseStore:
     database/schema.sql cria as tabelas esperadas por este adapter.
     """
 
-    def __init__(self, url: str, key: str):
+    def __init__(self, url: str, key: str, backend_secret: str | None = None):
         try:
+            from supabase import ClientOptions
             from supabase import create_client
         except ImportError as exc:
             raise RuntimeError("Instale a dependencia supabase para usar USE_SUPABASE=true.") from exc
-        self.client = create_client(url, key)
+
+        headers = {"x-smarthive-backend-key": backend_secret} if backend_secret else {}
+        self.client = create_client(url, key, options=ClientOptions(headers=headers))
 
     def list(self, table: str) -> List[Dict[str, Any]]:
         response = self.client.table(table).select("*").execute()
@@ -366,7 +369,7 @@ def get_store() -> Store:
             if settings.database_url:
                 _store = PostgresStore(settings.database_url)
             elif settings.supabase_url and settings.supabase_access_key:
-                _store = SupabaseStore(settings.supabase_url, settings.supabase_access_key)
+                _store = SupabaseStore(settings.supabase_url, settings.supabase_access_key, settings.supabase_backend_secret)
             else:
                 raise RuntimeError(
                     "USE_SUPABASE=true exige DATABASE_URL ou SUPABASE_URL com "

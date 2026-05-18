@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Alertas } from "./pages/Alertas";
 import { ColmeiaDetalhes } from "./pages/ColmeiaDetalhes";
@@ -6,7 +6,6 @@ import { Colmeias } from "./pages/Colmeias";
 import { Configuracoes } from "./pages/Configuracoes";
 import { Dashboard } from "./pages/Dashboard";
 import { NotFound } from "./pages/NotFound";
-import { NovoMonitoramento } from "./pages/NovoMonitoramento";
 import { Overview } from "./pages/Overview";
 import { Registros } from "./pages/Registros";
 import { SensorCelular } from "./pages/SensorCelular";
@@ -20,8 +19,8 @@ export default function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="colmeias" element={<Colmeias />} />
           <Route path="colmeias/:id" element={<ColmeiaDetalhes />} />
-          <Route path="colmeias/:id/monitoramentos/novo" element={<NovoMonitoramento />} />
-          <Route path="monitoramentos/novo" element={<NovoMonitoramento />} />
+          <Route path="colmeias/:id/monitoramentos/novo" element={<Navigate to="/sensor-celular" replace />} />
+          <Route path="monitoramentos/novo" element={<Navigate to="/sensor-celular" replace />} />
           <Route path="registros" element={<Registros />} />
           <Route path="sensor-celular" element={<SensorCelular />} />
           <Route path="alertas" element={<Alertas />} />

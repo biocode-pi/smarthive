@@ -2,7 +2,6 @@ import {
   BarChart3,
   Bell,
   Camera,
-  ClipboardPlus,
   FileText,
   Flower2,
   Home,
@@ -19,9 +18,8 @@ const navItems = [
   { to: "/", label: "Visao geral", icon: Home },
   { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { to: "/colmeias", label: "Colmeias", icon: Flower2 },
-  { to: "/monitoramentos/novo", label: "Novo registro", icon: ClipboardPlus },
-  { to: "/registros", label: "Historico", icon: FileText },
   { to: "/sensor-celular", label: "Camera IA", icon: Camera },
+  { to: "/registros", label: "Historico", icon: FileText },
   { to: "/alertas", label: "Alertas", icon: Bell },
   { to: "/configuracoes", label: "Configuracoes", icon: Settings },
 ];

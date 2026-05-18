@@ -41,7 +41,7 @@ export function Registros() {
     <>
       <PageHeader
         title="Historico"
-        description="Registros manuais, capturas de camera e leituras experimentais."
+        description="Capturas de camera e leituras experimentais."
       />
 
       {error ? (
@@ -55,7 +55,7 @@ export function Registros() {
           <EmptyState
             icon={<FileText className="h-6 w-6" />}
             title="Nenhum registro encontrado"
-            description="Os monitoramentos criados pelo formulario ou camera aparecem aqui."
+            description="Os monitoramentos criados pela camera aparecem aqui."
           />
         ) : (
           <div className="table-shell">

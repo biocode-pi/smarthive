@@ -1,4 +1,4 @@
-import { AlertTriangle, Camera, CheckCircle2, Flower2, MapPin, PlusCircle } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, Flower2, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -62,11 +62,11 @@ export function Overview() {
               <p className="mt-1 text-sm text-slate-500">Resumo rapido dos sinais de atividade nas colmeias.</p>
             </div>
             <Link
-              to="/monitoramentos/novo"
+              to="/sensor-celular"
               className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
             >
-              <PlusCircle className="h-4 w-4" />
-              Novo registro
+              <Camera className="h-4 w-4" />
+              Registrar pela camera
             </Link>
           </div>
 

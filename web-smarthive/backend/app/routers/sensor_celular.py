@@ -11,7 +11,7 @@ router = APIRouter(prefix="/sensor-celular", tags=["Sensor Celular"])
 @router.post("/captura", response_model=SensorCelularResposta, status_code=status.HTTP_201_CREATED)
 async def registrar_captura_sensor_celular(
     colmeia_id: str = Form(...),
-    duracao_segundos: int = Form(...),
+    duracao_segundos: int | None = Form(default=None),
     movimentos_estimados: int = Form(default=0),
     abelhas_entrando: int = Form(default=0),
     abelhas_saindo: int = Form(default=0),
