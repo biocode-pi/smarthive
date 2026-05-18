@@ -77,7 +77,7 @@ export const authConfig: AuthConfig = {
     attribution: "SmartHive",
   },
   footer: {
-    copyright: `© ${new Date().getFullYear()} SmartHive`,
+    copyright: `(c) ${new Date().getFullYear()} SmartHive`,
     links: [
       { label: "Termos", href: "#" },
       { label: "Privacidade", href: "#" },

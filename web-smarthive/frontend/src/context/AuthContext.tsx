@@ -58,8 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(email: string, senha: string): Promise<AuthResult> {
     if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-    return error ? { erro: traduzirErro(error.message) } : {};
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if (error) return { erro: traduzirErro(error.message) };
+    setSession(data.session);
+    setUser(data.user);
+    return {};
   }
 
   async function registrar(email: string, senha: string, nome: string): Promise<AuthResult> {
@@ -69,7 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: senha,
       options: { data: { nome } },
     });
-    return error ? { erro: traduzirErro(error.message) } : { sessaoCriada: Boolean(data.session) };
+    if (error) return { erro: traduzirErro(error.message) };
+    if (data.session) {
+      setSession(data.session);
+      setUser(data.user);
+    }
+    return { sessaoCriada: Boolean(data.session) };
   }
 
   async function recuperarSenha(email: string): Promise<AuthResult> {
@@ -126,11 +134,15 @@ export function userDisplayName(user: User | null): string {
 }
 
 function traduzirErro(message: string): string {
-  if (message.includes("Invalid login credentials")) return "E-mail ou senha incorretos.";
-  if (message.includes("Email not confirmed")) return "Confirme seu e-mail antes de entrar.";
-  if (message.includes("User already registered")) return "Este e-mail ja esta cadastrado.";
-  if (message.includes("Password should be at least")) return "A senha deve ter pelo menos 6 caracteres.";
-  if (message.includes("Unable to validate email")) return "E-mail invalido.";
-  if (message.includes("For security purposes")) return "Aguarde alguns segundos antes de tentar novamente.";
+  const normalized = message.toLowerCase();
+  if (normalized.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
+  if (normalized.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
+  if (normalized.includes("user already registered")) return "Este e-mail ja esta cadastrado.";
+  if (normalized.includes("password should be at least")) return "A senha deve ter pelo menos 6 caracteres.";
+  if (normalized.includes("invalid") && normalized.includes("email")) return "Informe um e-mail valido.";
+  if (normalized.includes("email rate limit")) {
+    return "Limite de envio de e-mails do Supabase atingido. Aguarde alguns minutos ou desative a confirmacao por e-mail.";
+  }
+  if (normalized.includes("for security purposes")) return "Aguarde alguns segundos antes de tentar novamente.";
   return "Nao foi possivel concluir a autenticacao. Tente novamente.";
 }
