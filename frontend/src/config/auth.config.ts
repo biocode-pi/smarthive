@@ -37,6 +37,11 @@ export interface AuthTextsConfig {
     hasAccountPrefix: string;
     hasAccountAction: string;
   };
+  mfa: {
+    title: string;
+    subtitle: string;
+    submit: string;
+  };
   confirmar: {
     title: string;
     subtitle: string;
@@ -107,6 +112,11 @@ export const authConfig: AuthConfig = {
       submit: "Criar conta",
       hasAccountPrefix: "Ja tem conta?",
       hasAccountAction: "Entrar",
+    },
+    mfa: {
+      title: "Verificacao em duas etapas",
+      subtitle: "Digite o codigo de 6 digitos do seu aplicativo autenticador.",
+      submit: "Verificar",
     },
     confirmar: {
       title: "Confirmar e-mail",

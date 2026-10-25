@@ -73,6 +73,13 @@ recusada.
   destruir os backups. Verificado em producao (listar/ler/apagar: acesso negado).
 - **Restauracao pelo operador**: so com credenciais de administrador, URL pre-assinada de
   15 minutos, chave explicita e `--confirmar`.
+- **Limite de requisicoes por IP** (janela de 60 s): 120 requisicoes gerais e 20 uploads,
+  com resposta 429 e `Retry-After`. O IP usado e o anotado pelo CloudFront no
+  `X-Forwarded-For`, entao um cabecalho forjado pelo cliente nao burla o limite.
+  Ver [backend/app/rate_limit.py](../backend/app/rate_limit.py). Evidencias:
+  `test_limite_geral_por_ip`, `test_limite_de_upload`,
+  `test_x_forwarded_for_falsificado_nao_burla_limite`. Login e cadastro sao limitados
+  pelo proprio Cognito.
 
 ## A05 - Configuracao incorreta de seguranca
 
@@ -108,6 +115,7 @@ recusada.
 | Access token de 60 minutos, refresh de 30 dias, revogacao de tokens habilitada | `UserPoolClient` |
 | A API valida assinatura (JWKS do User Pool, RS256), emissor, expiracao, `token_use=access` e `client_id` | [backend/app/auth.py](../backend/app/auth.py) |
 | Opcao "manter conectado" desmarcada guarda a sessao so ate fechar o navegador | [AuthContext.tsx](../frontend/src/context/AuthContext.tsx) |
+| **Verificacao em duas etapas (MFA) opcional** por aplicativo autenticador (TOTP), ativada pelo usuario em Configuracoes | `MfaConfiguration: OPTIONAL` / [MfaSettings.tsx](../frontend/src/components/auth/MfaSettings.tsx) |
 
 Evidencia: `test_token_invalido_rejeitado` cobre token de outro app (`client_id`), ID token
 no lugar do access token, emissor de outro User Pool e token expirado.
@@ -154,6 +162,9 @@ no lugar do access token, emissor de outro User Pool e token expirado.
 | `test_upload_valido` | Upload permitido funciona |
 | `test_cabecalhos_de_seguranca` | Cabecalhos de seguranca presentes |
 | `test_producao_exige_cognito` | Configuracao insegura em producao e recusada |
+| `test_limite_geral_por_ip` | 429 com `Retry-After` apos o limite; healthcheck fora do limite |
+| `test_limite_de_upload` | Uploads tem limite proprio, separado do geral |
+| `test_x_forwarded_for_falsificado_nao_burla_limite` | `X-Forwarded-For` forjado nao troca o IP contado |
 
 ### Integracao continua
 
@@ -173,6 +184,10 @@ no lugar do access token, emissor de outro User Pool e token expirado.
 | `/api/docs` em producao | 404 |
 | Instancia tentando listar/ler/apagar backups | acesso negado |
 | Restauracao com metadado malicioso | recusada |
+| Rajada de 200 requisicoes do mesmo IP | 429 apos o limite, com `Retry-After` |
+| Mesmo IP com `X-Forwarded-For` forjado | continua 429 |
+| Outro IP durante o bloqueio | liberado (limite e por IP real) |
+| Ativar MFA, sair e entrar: codigo errado / correto | recusado / acesso liberado |
 
 ## Limitacoes conhecidas e proximos passos
 
@@ -182,9 +197,10 @@ Escolhas feitas pelo orcamento do projeto (creditos limitados) ou ainda pendente
 |---|---|---|
 | Porta 443 do EC2 aberta a internet (exigida pela validacao do certificado) | Qualquer um alcanca o Caddy | Requisicoes sem o cabecalho secreto recebem 403 |
 | Origem usa `sslip.io` (DNS de terceiros) | Dependencia externa | Trocar por dominio proprio |
-| Sem limite de requisicoes (rate limiting) na API | Risco de abuso | Adicionar `rate_limit` no Caddy ou AWS WAF (pago) |
+| Limite de requisicoes em memoria, em um unico processo | Contadores zeram ao reiniciar a API | Aceitavel com uma instancia; usar Redis/WAF se escalar |
 | Sem WAF | Sem filtragem de ataques comuns na borda | Custo; avaliar AWS WAF |
-| Sem MFA | Conta depende so da senha | Habilitar MFA opcional (TOTP) no Cognito |
+| MFA opcional, nao obrigatorio | Quem nao ativa depende so da senha | Tornar obrigatorio para administradores |
+| Access token valido ate expirar mesmo apos excluir o usuario ou sair | Ate 60 min de acesso com um token vazado | Reduzir a validade ou checar revogacao (GlobalSignOut) na API |
 | Sem alertas de monitoramento | Incidentes so sao percebidos manualmente | CloudWatch Alarms para 5xx e falhas de login |
 | Banco no mesmo servidor da API | Comprometer a instancia expoe o banco | Backups somente escrita fora da instancia; RDS em privado se houver orcamento |
 | Backups sem Object Lock | Sobrescrita possivel por quem tem `PutObject` (versionamento preserva 7 dias) | Habilitar Object Lock |

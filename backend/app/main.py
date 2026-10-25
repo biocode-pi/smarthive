@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
+from app.rate_limit import aplicar_limite
 from app.routers import alertas, colmeias, dashboard, health, monitoramentos, sensor_celular
 
 
@@ -34,8 +35,9 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def security_headers(request: Request, call_next):
-    response = await call_next(request)
+async def seguranca_http(request: Request, call_next):
+    # Limite de requisicoes antes de tudo; depois cabecalhos de seguranca em toda resposta.
+    response = await aplicar_limite(request, settings) or await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

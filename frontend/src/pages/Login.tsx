@@ -5,7 +5,7 @@ import { AuthLayout } from "../components/auth/AuthLayout";
 import { authConfig } from "../config/auth.config";
 import { useAuth } from "../context/AuthContext";
 
-type Mode = "login" | "cadastro" | "confirmar" | "recuperar" | "novaSenha";
+type Mode = "login" | "mfa" | "cadastro" | "confirmar" | "recuperar" | "novaSenha";
 
 const inputClass =
   "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:bg-slate-50";
@@ -16,13 +16,21 @@ const senhaForteRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 const pedeEmail: Mode[] = ["login", "cadastro", "recuperar"];
 const pedeSenha: Mode[] = ["login", "cadastro", "novaSenha"];
-const pedeCodigo: Mode[] = ["confirmar", "novaSenha"];
+const pedeCodigo: Mode[] = ["mfa", "confirmar", "novaSenha"];
 
 export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { confirmarCadastro, configurado, login, recuperarSenha, redefinirSenha, reenviarCodigo, registrar } =
-    useAuth();
+  const {
+    confirmarCadastro,
+    confirmarMfa,
+    configurado,
+    login,
+    recuperarSenha,
+    redefinirSenha,
+    reenviarCodigo,
+    registrar,
+  } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -78,6 +86,14 @@ export function Login() {
         const result = await login(emailLimpo, senha, manterConectado);
         if (result.erro) return setErro(result.erro);
         if (result.precisaConfirmar) return irPara("confirmar", "Confirme seu e-mail: enviamos um novo codigo.");
+        if (result.precisaMfa) return irPara("mfa");
+        navigate(redirectTo, { replace: true });
+        return;
+      }
+
+      if (mode === "mfa") {
+        const result = await confirmarMfa(codigo.trim());
+        if (result.erro) return setErro(result.erro);
         navigate(redirectTo, { replace: true });
         return;
       }

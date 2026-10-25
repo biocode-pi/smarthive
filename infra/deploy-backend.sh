@@ -48,6 +48,10 @@ STORAGE_BACKEND=s3
 S3_BUCKET=$(output UploadsBucketName)
 BACKUP_BUCKET=$(output BackupBucketName)
 MAX_UPLOAD_MB=50
+# CloudFront + Caddy acrescentam ao X-Forwarded-For; o IP real e o 2o a partir do fim.
+TRUSTED_PROXY_HOPS=2
+RATE_LIMIT_POR_MINUTO=120
+RATE_LIMIT_UPLOAD_POR_MINUTO=20
 ENV
 
 "$AWS" s3 cp "$TMP/app.tgz" "$RELEASE_URI/app.tgz" --only-show-errors

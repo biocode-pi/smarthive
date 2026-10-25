@@ -2,6 +2,11 @@
 # /opt/smarthive/origin.env, gerado pelo install.sh.
 {
 	admin off
+	servers {
+		# Preserva o X-Forwarded-For do CloudFront (a API usa o IP real para o limite de
+		# requisicoes). Seguro aqui porque tudo sem o cabecalho secreto recebe 403 abaixo.
+		trusted_proxies static 0.0.0.0/0 ::/0
+	}
 }
 
 {$ORIGIN_DOMAIN} {

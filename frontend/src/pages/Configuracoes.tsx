@@ -1,4 +1,5 @@
 import { Camera, Database, Lock, LogOut, Smartphone, UserCircle } from "lucide-react";
+import { MfaSettings } from "../components/auth/MfaSettings";
 import { PageHeader } from "../components/ui/PageHeader";
 import { Button } from "../components/ui/Button";
 import { useAuth, userDisplayName } from "../context/AuthContext";
@@ -22,7 +23,7 @@ const settings = [
   },
   {
     title: "Dados",
-    value: "Supabase PostgreSQL",
+    value: "PostgreSQL na AWS",
     icon: Lock,
   },
 ];
@@ -54,6 +55,8 @@ export function Configuracoes() {
           </Button>
         </div>
       </section>
+
+      {user ? <MfaSettings email={user.email} /> : null}
 
       <section className="grid gap-4 md:grid-cols-2">
         {settings.map((item) => (

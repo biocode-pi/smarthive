@@ -1,5 +1,6 @@
 import {
   confirmResetPassword,
+  confirmSignIn,
   confirmSignUp,
   fetchAuthSession,
   getCurrentUser,
@@ -20,7 +21,7 @@ export interface Usuario {
   nome: string | null;
 }
 
-export type AuthResult = { erro?: string; precisaConfirmar?: boolean };
+export type AuthResult = { erro?: string; precisaConfirmar?: boolean; precisaMfa?: boolean };
 
 const AUTH_TIMEOUT_MS = 15000;
 
@@ -29,6 +30,7 @@ interface AuthContextValue {
   carregando: boolean;
   configurado: boolean;
   login: (email: string, senha: string, manterConectado: boolean) => Promise<AuthResult>;
+  confirmarMfa: (codigo: string) => Promise<AuthResult>;
   registrar: (email: string, senha: string, nome: string) => Promise<AuthResult>;
   confirmarCadastro: (email: string, codigo: string) => Promise<AuthResult>;
   reenviarCodigo: (email: string) => Promise<AuthResult>;
@@ -104,6 +106,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await resendSignUpCode({ username: email });
         return { precisaConfirmar: true };
       }
+      if (nextStep.signInStep === "CONFIRM_SIGN_IN_WITH_TOTP_CODE") return { precisaMfa: true };
+      if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login nao suportada." };
+      await atualizarUsuario();
+    });
+
+  const confirmarMfa = (codigo: string) =>
+    executar(async () => {
+      const { nextStep } = await confirmSignIn({ challengeResponse: codigo });
       if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login nao suportada." };
       await atualizarUsuario();
     });
@@ -151,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         carregando,
         configurado: hasCognitoConfig,
         login,
+        confirmarMfa,
         registrar,
         confirmarCadastro,
         reenviarCodigo,
@@ -199,8 +210,9 @@ function traduzirErro(error: unknown): string {
       return "Este e-mail ja esta cadastrado.";
     case "InvalidPasswordException":
       return "A senha precisa ter 8 caracteres, com letra maiuscula, minuscula e numero.";
+    case "EnableSoftwareTokenMFAException":
     case "CodeMismatchException":
-      return "Codigo incorreto. Confira o e-mail e tente novamente.";
+      return "Codigo incorreto. Confira e tente novamente.";
     case "ExpiredCodeException":
       return "Codigo expirado. Solicite um novo.";
     case "LimitExceededException":

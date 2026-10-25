@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     s3_url_expiracao_segundos: int = 3600
     max_upload_mb: int = 50
 
+    # Limite de requisicoes por IP a cada 60 s. TRUSTED_PROXY_HOPS: quantos proxies
+    # confiaveis acrescentam ao X-Forwarded-For (producao: CloudFront + Caddy = 2).
+    rate_limit_por_minuto: int = 120
+    rate_limit_upload_por_minuto: int = 20
+    trusted_proxy_hops: int = 0
+
     upload_dir: Path = Path(__file__).resolve().parent / "uploads"
     local_data_file: Path = Path(__file__).resolve().parent / "data" / "smarthive.local.json"
 

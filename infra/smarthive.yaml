@@ -57,6 +57,9 @@ Resources:
       UserPoolTier: ESSENTIALS
       UsernameAttributes: [email]
       AutoVerifiedAttributes: [email]
+      # MFA opcional por aplicativo autenticador (TOTP), sem custo de SMS.
+      MfaConfiguration: OPTIONAL
+      EnabledMfas: [SOFTWARE_TOKEN_MFA]
       AccountRecoverySetting:
         RecoveryMechanisms:
           - Name: verified_email

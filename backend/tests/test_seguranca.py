@@ -95,3 +95,44 @@ def test_cabecalhos_de_seguranca(client):
 def test_producao_exige_cognito():
     with pytest.raises(ValidationError):
         Settings(environment="production", auth_mode="dev", _env_file=None)
+
+
+@pytest.fixture
+def limitador_limpo():
+    from app.rate_limit import limitador
+
+    limitador.reset()
+    yield
+    limitador.reset()
+
+
+def test_limite_geral_por_ip(client, settings, monkeypatch, limitador_limpo):
+    monkeypatch.setattr(settings, "rate_limit_por_minuto", 3)
+    h = headers_de("user-rl")
+    codigos = [client.get("/api/colmeias", headers=h).status_code for _ in range(4)]
+    assert codigos == [200, 200, 200, 429]
+    bloqueada = client.get("/api/colmeias", headers=h)
+    assert int(bloqueada.headers["Retry-After"]) >= 1
+    assert client.get("/api/health").status_code == 200  # healthcheck fica fora do limite
+
+
+def test_limite_de_upload(client, settings, monkeypatch, limitador_limpo):
+    monkeypatch.setattr(settings, "rate_limit_upload_por_minuto", 1)
+    h = headers_de("user-rl-up")
+    colmeia_id = client.post("/api/colmeias", json=COLMEIA, headers=h).json()["id"]
+    dados = {"colmeia_id": colmeia_id}
+    assert client.post("/api/monitoramentos", data=dados, headers=h).status_code == 201
+    assert client.post("/api/monitoramentos", data=dados, headers=h).status_code == 429
+    assert client.get("/api/colmeias", headers=h).status_code == 200  # limite geral e separado
+
+
+def test_x_forwarded_for_falsificado_nao_burla_limite(client, settings, monkeypatch, limitador_limpo):
+    # Producao: CloudFront acrescenta o IP real e o Caddy acrescenta o do CloudFront.
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
+    monkeypatch.setattr(settings, "rate_limit_por_minuto", 2)
+    h = headers_de("user-rl-xff")
+    codigos = []
+    for i in range(3):
+        cadeia = f"10.0.0.{i}, 203.0.113.7, 130.176.0.1"  # 1o item forjado pelo cliente; IP real fixo
+        codigos.append(client.get("/api/colmeias", headers={**h, "X-Forwarded-For": cadeia}).status_code)
+    assert codigos == [200, 200, 429]
