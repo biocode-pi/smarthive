@@ -7,7 +7,7 @@
 - Upload de imagem ou video capturado pelo celular.
 - Tela de sensor celular experimental.
 - Alertas manuais e automaticos simples.
-- Backend preparado para Supabase.
+- Backend preparado para PostgreSQL na AWS.
 
 ## Fase 2 - Analise assistida
 
@@ -30,12 +30,12 @@
 - Camera fixa em colmeia piloto.
 - Integracao com ESP32-CAM, Raspberry Pi ou dispositivo de borda.
 - Envio periodico de eventos.
-- Supabase Storage para imagens/videos.
+- Amazon S3 para imagens/videos.
 - Dashboard em tempo quase real.
 
 ## Fase 5 - Plataforma inteligente
 
-- Multiusuario com Supabase Auth.
+- Multiusuario com Amazon Cognito.
 - Perfis de pesquisador, meliponicultor e administrador.
 - Series temporais de saude da colmeia.
 - Recomendacoes operacionais.

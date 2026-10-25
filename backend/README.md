@@ -1,6 +1,6 @@
 # SmartHive Backend
 
-API em FastAPI para o MVP academico do SmartHive.
+API em FastAPI do SmartHive, preparada para rodar na AWS (Cognito, RDS e S3).
 
 ## Rodando localmente
 
@@ -8,56 +8,61 @@ API em FastAPI para o MVP academico do SmartHive.
 cd backend
 python -m venv .venv
 .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 copy .env.example .env
 uvicorn app.main:app --reload
 ```
 
-A API ficara em `http://localhost:8000` e a documentacao interativa em
-`http://localhost:8000/docs`.
+A API fica em `http://localhost:8000` e a documentacao interativa em
+`http://localhost:8000/docs` (desativada quando `ENVIRONMENT=production`).
 
-## Supabase
+Sem configuracao extra a API roda com `AUTH_MODE=dev` (sem login, todos os dados
+pertencem ao usuario `dev-local`) e grava em `app/data/smarthive.local.json`.
 
-Por padrao, o backend usa um arquivo local em `app/data/smarthive.local.json`
-para facilitar testes do MVP. Para usar Supabase:
+## Configuracao
 
-1. Execute `database/schema.sql` no SQL Editor do Supabase.
-2. Preencha `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_KEY`,
-   `SUPABASE_STORAGE_BUCKET` e `DATABASE_URL` no `.env`.
-3. Altere `USE_SUPABASE=true`.
-4. Reinicie a API.
+| Variavel | Valores | Descricao |
+|---|---|---|
+| `ENVIRONMENT` | `development`, `production` | Em producao a API so sobe com Cognito e esconde o Swagger |
+| `AUTH_MODE` | `dev`, `cognito` | `cognito` valida o JWT de acesso do Amazon Cognito |
+| `COGNITO_USER_POOL_ID`, `COGNITO_APP_CLIENT_ID`, `AWS_REGION` | | Obrigatorias com `AUTH_MODE=cognito` |
+| `DATABASE_URL` | `postgresql://...` | Vazio usa JSON local; preenchido usa PostgreSQL (Amazon RDS) |
+| `DATABASE_SSLMODE` | `require` (padrao), `disable` | `disable` apenas para o Postgres local do Docker |
+| `STORAGE_BACKEND` | `local`, `s3` | `s3` grava midias em bucket privado |
+| `S3_BUCKET` | | Obrigatoria com `STORAGE_BACKEND=s3` |
+| `MAX_UPLOAD_MB` | `50` | Tamanho maximo de imagem/video |
 
-Valide a conexao em:
+No EC2 as credenciais AWS (S3) vem da IAM Role da instancia. Nao coloque chaves
+de acesso no `.env` nem no codigo.
 
-```text
-GET http://localhost:8000/api/health/supabase
-```
+## Seguranca
 
-Quando `USE_SUPABASE=true`, a API nao usa fallback local. Se faltar credencial
-ou tabela, o endpoint retorna erro explicitamente.
+- **Autenticacao**: toda rota (exceto `GET /api/health`) exige
+  `Authorization: Bearer <access token do Cognito>`. O token e validado pela
+  assinatura (JWKS do User Pool), emissor, expiracao, `token_use=access` e `client_id`.
+- **Isolamento por usuario**: cada registro guarda `usuario_id` (o `sub` do
+  Cognito). Consultas filtram por esse campo e acessos a ids de outro usuario
+  retornam 404.
+- **Uploads**: extensao e content-type precisam bater com a lista permitida
+  (JPG, PNG, WEBP, MP4, MOV, WEBM) e o tamanho e limitado. No S3 os arquivos ficam
+  em bucket privado, criptografados, em `usuarios/<sub>/...`, e sao lidos por URL
+  pre-assinada com validade de 1 hora.
+- **HTTP**: CORS restrito as origens configuradas, cabecalhos `nosniff`,
+  `X-Frame-Options`, `Referrer-Policy`, `Cache-Control: no-store` e HSTS em producao.
+- **SQL**: consultas parametrizadas com `psycopg.sql`, sem concatenacao de strings.
 
-Se voce tiver apenas a string PostgreSQL do Supabase, basta preencher
-`DATABASE_URL` e usar `USE_SUPABASE=true`. O CRUD passara a gravar diretamente
-nas tabelas PostgreSQL.
-
-Para testar gravacao real no Supabase:
+## Testes
 
 ```bash
-copy .env.supabase.example .env
-# preencha as chaves reais no .env
-python scripts/verificar_supabase.py
+pip install -r requirements-dev.txt
+python -m pytest -q tests
 ```
 
-O script cria colmeia, monitoramento e alerta temporarios no Supabase e limpa os
-registros ao final.
+Os testes simulam tokens do Cognito e cobrem: rotas sem token, tokens invalidos
+(client_id, tipo, emissor, expirado), isolamento entre usuarios, validacao de
+upload, cabecalhos de seguranca e bloqueio do modo `dev` em producao.
 
-Nesta primeira versao nao ha autenticacao obrigatoria. O Supabase Auth pode ser
-adicionado depois para separar pesquisadores, meliponicultores e administradores.
+## Banco de dados
 
-## Uploads
-
-Com `USE_SUPABASE=false`, uploads de imagem e video capturados pelo celular sao
-salvos em `app/uploads` e expostos pela rota `/uploads/{arquivo}`.
-
-Com `USE_SUPABASE=true`, os uploads sao enviados para o bucket configurado em
-`SUPABASE_STORAGE_BUCKET`, por padrao `smarthive-capturas`.
+O schema esta em `database/schema.sql` (PostgreSQL 16). No Docker Compose ele e
+aplicado automaticamente no container `db`, que simula o RDS.

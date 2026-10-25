@@ -1,0 +1,21 @@
+# Proxy TLS na frente da API. O dominio (<ip>.sslip.io) e o segredo vem de
+# /opt/smarthive/origin.env, gerado pelo install.sh.
+{
+	admin off
+}
+
+{$ORIGIN_DOMAIN} {
+	tls {
+		# Porta 80 fechada: valida o certificado so pelo desafio TLS-ALPN na 443.
+		issuer acme {
+			disable_http_challenge
+		}
+	}
+
+	# So o CloudFront conhece o segredo; acesso direto ao IP recebe 403.
+	@semSegredo not header X-Origin-Verify {$ORIGIN_SECRET}
+	respond @semSegredo "Forbidden" 403
+
+	header -Server
+	reverse_proxy backend:8000
+}

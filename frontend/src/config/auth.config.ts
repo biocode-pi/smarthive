@@ -37,6 +37,12 @@ export interface AuthTextsConfig {
     hasAccountPrefix: string;
     hasAccountAction: string;
   };
+  confirmar: {
+    title: string;
+    subtitle: string;
+    submit: string;
+    resendAction: string;
+  };
   recuperar: {
     title: string;
     subtitle: string;
@@ -52,11 +58,13 @@ export interface AuthTextsConfig {
     nome: string;
     email: string;
     senha: string;
+    codigo: string;
   };
   placeholders: {
     nome: string;
     email: string;
     senha: string;
+    codigo: string;
   };
 }
 
@@ -100,26 +108,34 @@ export const authConfig: AuthConfig = {
       hasAccountPrefix: "Ja tem conta?",
       hasAccountAction: "Entrar",
     },
+    confirmar: {
+      title: "Confirmar e-mail",
+      subtitle: "Digite o codigo de 6 digitos que enviamos para o seu e-mail.",
+      submit: "Confirmar",
+      resendAction: "Reenviar codigo",
+    },
     recuperar: {
       title: "Recuperar acesso",
-      subtitle: "Enviaremos as instrucoes para redefinir sua senha.",
+      subtitle: "Enviaremos um codigo para redefinir sua senha.",
       submit: "Enviar instrucoes",
       backAction: "Voltar para o login",
     },
     novaSenha: {
       title: "Nova senha",
-      subtitle: "Defina uma senha para continuar.",
+      subtitle: "Digite o codigo recebido por e-mail e a nova senha.",
       submit: "Salvar senha",
     },
     labels: {
       nome: "Nome",
       email: "E-mail",
       senha: "Senha",
+      codigo: "Codigo de verificacao",
     },
     placeholders: {
       nome: "Seu nome",
       email: "voce@email.com",
-      senha: "Minimo 6 caracteres",
+      senha: "Minimo 8 caracteres, com maiuscula e numero",
+      codigo: "000000",
     },
   },
 };

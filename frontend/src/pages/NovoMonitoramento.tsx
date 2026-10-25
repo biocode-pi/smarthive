@@ -65,7 +65,7 @@ export function NovoMonitoramento() {
 
     try {
       await criarMonitoramento(formData);
-      navigate(`/colmeias/${form.colmeia_id}`);
+      navigate(`/app/colmeias/${form.colmeia_id}`);
     } catch {
       setError("Nao foi possivel registrar o monitoramento.");
     } finally {

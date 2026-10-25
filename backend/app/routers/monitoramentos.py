@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from fastapi import APIRouter, File, Form, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
+
+from app.auth import Usuario, get_usuario_atual
 
 from app.schemas.monitoramento import Monitoramento, MonitoramentoUpdate, OrigemMonitoramento
 from app.services import monitoramento_service, storage_service
@@ -10,13 +12,13 @@ router = APIRouter(prefix="/monitoramentos", tags=["Monitoramentos"])
 
 
 @router.get("", response_model=list[Monitoramento])
-def listar_monitoramentos():
-    return monitoramento_service.listar_monitoramentos()
+def listar_monitoramentos(usuario: Usuario = Depends(get_usuario_atual)):
+    return monitoramento_service.listar_monitoramentos(usuario.id)
 
 
 @router.get("/{monitoramento_id}", response_model=Monitoramento)
-def obter_monitoramento(monitoramento_id: str):
-    return monitoramento_service.obter_monitoramento(monitoramento_id)
+def obter_monitoramento(monitoramento_id: str, usuario: Usuario = Depends(get_usuario_atual)):
+    return monitoramento_service.obter_monitoramento(usuario.id, monitoramento_id)
 
 
 @router.post("", response_model=Monitoramento, status_code=status.HTTP_201_CREATED)
@@ -34,9 +36,11 @@ async def criar_monitoramento(
     possivel_invasor: bool = Form(default=False),
     observacoes: str | None = Form(default=None),
     arquivo: UploadFile | None = File(default=None),
+    usuario: Usuario = Depends(get_usuario_atual),
 ):
-    midia_url = await storage_service.salvar_upload(arquivo)
+    midia_url = await storage_service.salvar_upload(usuario.id, arquivo)
     return monitoramento_service.criar_monitoramento(
+        usuario.id,
         {
             "colmeia_id": colmeia_id,
             "data_hora": data_hora.isoformat() if data_hora else None,
@@ -56,11 +60,11 @@ async def criar_monitoramento(
 
 
 @router.put("/{monitoramento_id}", response_model=Monitoramento)
-def atualizar_monitoramento(monitoramento_id: str, payload: MonitoramentoUpdate):
-    return monitoramento_service.atualizar_monitoramento(monitoramento_id, payload)
+def atualizar_monitoramento(monitoramento_id: str, payload: MonitoramentoUpdate, usuario: Usuario = Depends(get_usuario_atual)):
+    return monitoramento_service.atualizar_monitoramento(usuario.id, monitoramento_id, payload)
 
 
 @router.delete("/{monitoramento_id}", status_code=status.HTTP_204_NO_CONTENT)
-def excluir_monitoramento(monitoramento_id: str):
-    monitoramento_service.excluir_monitoramento(monitoramento_id)
+def excluir_monitoramento(monitoramento_id: str, usuario: Usuario = Depends(get_usuario_atual)):
+    monitoramento_service.excluir_monitoramento(usuario.id, monitoramento_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

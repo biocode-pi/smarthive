@@ -24,9 +24,9 @@ export function ProtectedRoute() {
 }
 
 export function PublicOnlyRoute() {
-  const { carregando, recuperandoSenha, user } = useAuth();
+  const { carregando, user } = useAuth();
   const location = useLocation();
-  const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/";
+  const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/app";
 
   if (carregando) {
     return (
@@ -39,7 +39,7 @@ export function PublicOnlyRoute() {
     );
   }
 
-  if (user && !recuperandoSenha) {
+  if (user) {
     return <Navigate to={redirectTo} replace />;
   }
 

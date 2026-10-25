@@ -1,0 +1,97 @@
+import time
+
+import pytest
+from pydantic import ValidationError
+
+from app.config import Settings
+from tests.conftest import headers_de
+
+COLMEIA = {"nome": "Colmeia Teste", "especie": "Jatai"}
+
+
+def test_rotas_exigem_token(client):
+    for rota in ["/api/colmeias", "/api/monitoramentos", "/api/alertas", "/api/dashboard/resumo", "/api/health/db"]:
+        assert client.get(rota).status_code == 401, rota
+
+
+def test_health_publico(client):
+    assert client.get("/api/health").status_code == 200
+
+
+@pytest.mark.parametrize(
+    "extras",
+    [
+        {"client_id": "outro-app"},
+        {"token_use": "id"},
+        {"iss": "https://cognito-idp.us-east-1.amazonaws.com/OUTRO_POOL"},
+        {"exp": int(time.time()) - 10},
+    ],
+)
+def test_token_invalido_rejeitado(client, extras):
+    assert client.get("/api/colmeias", headers=headers_de("user-a", **extras)).status_code == 401
+
+
+def test_usuario_nao_acessa_dados_de_outro(client):
+    criada = client.post("/api/colmeias", json=COLMEIA, headers=headers_de("user-a"))
+    assert criada.status_code == 201
+    colmeia_id = criada.json()["id"]
+
+    b = headers_de("user-b")
+    assert all(c["id"] != colmeia_id for c in client.get("/api/colmeias", headers=b).json())
+    assert client.get(f"/api/colmeias/{colmeia_id}", headers=b).status_code == 404
+    assert client.put(f"/api/colmeias/{colmeia_id}", json={"nome": "Hack"}, headers=b).status_code == 404
+    assert client.delete(f"/api/colmeias/{colmeia_id}", headers=b).status_code == 404
+    novo_monitoramento = client.post("/api/monitoramentos", data={"colmeia_id": colmeia_id}, headers=b)
+    assert novo_monitoramento.status_code == 404
+
+    a = client.get(f"/api/colmeias/{colmeia_id}", headers=headers_de("user-a"))
+    assert a.status_code == 200 and a.json()["nome"] == COLMEIA["nome"]
+
+
+def test_upload_tipo_invalido(client):
+    h = headers_de("user-up")
+    colmeia_id = client.post("/api/colmeias", json=COLMEIA, headers=h).json()["id"]
+    resposta = client.post(
+        "/api/monitoramentos",
+        data={"colmeia_id": colmeia_id},
+        files={"arquivo": ("script.jpg", b"<?php echo 1;", "application/x-php")},
+        headers=h,
+    )
+    assert resposta.status_code == 415
+
+
+def test_upload_acima_do_limite(client, settings, monkeypatch):
+    monkeypatch.setattr(settings, "max_upload_mb", 1)
+    h = headers_de("user-up")
+    colmeia_id = client.post("/api/colmeias", json=COLMEIA, headers=h).json()["id"]
+    resposta = client.post(
+        "/api/monitoramentos",
+        data={"colmeia_id": colmeia_id},
+        files={"arquivo": ("foto.jpg", b"0" * (2 * 1024 * 1024), "image/jpeg")},
+        headers=h,
+    )
+    assert resposta.status_code == 413
+
+
+def test_upload_valido(client):
+    h = headers_de("user-up")
+    colmeia_id = client.post("/api/colmeias", json=COLMEIA, headers=h).json()["id"]
+    resposta = client.post(
+        "/api/monitoramentos",
+        data={"colmeia_id": colmeia_id},
+        files={"arquivo": ("foto.png", b"\x89PNG fake", "image/png")},
+        headers=h,
+    )
+    assert resposta.status_code == 201
+    assert resposta.json()["midia_url"].startswith("/uploads/")
+
+
+def test_cabecalhos_de_seguranca(client):
+    resposta = client.get("/api/health")
+    assert resposta.headers["X-Content-Type-Options"] == "nosniff"
+    assert resposta.headers["X-Frame-Options"] == "DENY"
+
+
+def test_producao_exige_cognito():
+    with pytest.raises(ValidationError):
+        Settings(environment="production", auth_mode="dev", _env_file=None)

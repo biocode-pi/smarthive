@@ -113,14 +113,14 @@ export function Overview() {
       >
         <div className="flex flex-wrap gap-2">
           <Link
-            to="/registros"
+            to="/app/registros"
             className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
           >
             <Clock3 className="h-4 w-4" />
             Historico
           </Link>
           <Link
-            to="/sensor-celular"
+            to="/app/sensor-celular"
             className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-700 bg-hive-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-900"
           >
             <Camera className="h-4 w-4" />
@@ -212,7 +212,7 @@ export function Overview() {
               <p className="mt-1 text-sm text-slate-500">Balanco agregado dos ultimos registros.</p>
             </div>
             <Link
-              to="/monitoramentos/novo"
+              to="/app/monitoramentos/novo"
               className="focus-ring inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
             >
               <PlusCircle className="h-4 w-4" />
@@ -260,7 +260,7 @@ export function Overview() {
               <h2 className="text-base font-bold text-slate-950">Ultimos eventos</h2>
               <p className="mt-1 text-sm text-slate-500">Leituras recentes ja normalizadas pelo backend.</p>
             </div>
-            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-900" to="/registros">
+            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-900" to="/app/registros">
               Ver todos
             </Link>
           </div>

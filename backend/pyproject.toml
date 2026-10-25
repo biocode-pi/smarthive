@@ -1,6 +1,6 @@
 [project]
 name = "smarthive-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = "SmartHive FastAPI backend"
 requires-python = ">=3.11,<3.13"
 dependencies = [
@@ -10,6 +10,7 @@ dependencies = [
   "pydantic-settings==2.7.1",
   "python-dotenv==1.0.1",
   "python-multipart==0.0.20",
-  "supabase==2.10.0",
+  "PyJWT[crypto]==2.10.1",
+  "boto3==1.35.99",
   "psycopg[binary]==3.2.3",
 ]

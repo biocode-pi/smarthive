@@ -1,36 +1,27 @@
 # Banco de dados SmartHive
 
-O banco alvo e PostgreSQL no Supabase. O frontend nao acessa o Supabase
-diretamente nesta versao; ele consome o backend FastAPI, que pode usar Supabase
-quando as variaveis de ambiente estiverem configuradas.
+PostgreSQL 16. Em producao roda no **Amazon RDS**; localmente, no container `db`
+do Docker Compose, que aplica `schema.sql` e `seed.sql` na primeira subida.
 
-## Como executar no Supabase
+## Aplicar no RDS
 
-1. Crie um projeto no Supabase.
-2. Abra o SQL Editor.
-3. Execute `schema.sql`.
-4. Opcionalmente execute `seed.sql` para dados de exemplo.
-5. Copie `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` e `DATABASE_URL`.
-6. Preencha esses valores em `backend/.env`.
-7. Defina `USE_SUPABASE=true`.
+```bash
+psql "postgresql://smarthive:SENHA@HOST-DO-RDS:5432/smarthive?sslmode=require" -f schema.sql
+```
+
+O `seed.sql` e opcional e cria dados de exemplo do usuario `dev-local`.
 
 ## Entidades
 
-- `colmeias`: cadastro das colmeias de abelhas nativas.
+Todas as tabelas tem `usuario_id` (o `sub` do usuario no Amazon Cognito). A API
+filtra cada consulta por esse campo.
+
+- `colmeias`: cadastro das colmeias de abelhas nativas (`codigo` unico por usuario).
 - `monitoramentos`: historico de observacoes, fluxo, midia e possivel invasor.
 - `alertas`: observacoes criticas, manuais ou geradas pelo sistema.
 - `capturas_sensor_celular`: camada experimental em que o celular simula o sensor visual.
 
-## Storage
+## Midias
 
-O `schema.sql` tambem cria o bucket publico `smarthive-capturas` no Supabase
-Storage. O backend envia imagens/videos para esse bucket quando
-`USE_SUPABASE=true`.
-
-Use `SUPABASE_SERVICE_ROLE_KEY` no backend para permitir escrita no bucket sem
-depender de politicas publicas de insert.
-
-## Autenticacao futura
-
-O MVP nao exige login. Em uma evolucao, use Supabase Auth e Row Level Security
-para separar pesquisadores, propriedades, meliponicultores e administradores.
+Imagens e videos ficam no Amazon S3 (bucket privado). A coluna `midia_url` guarda
+`s3:<chave>`, e a API devolve uma URL pre-assinada temporaria ao ler o registro.

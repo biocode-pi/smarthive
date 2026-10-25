@@ -1,0 +1,57 @@
+# Compose de producao no EC2: Caddy (TLS) + API + Postgres. O frontend fica no S3/CloudFront.
+# Rodado por install.sh com --env-file /opt/smarthive/db.env (senha gerada na instancia).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smarthive
+      POSTGRES_USER: smarthive
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?senha ausente}
+    volumes:
+      - /opt/smarthive/pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smarthive -d smarthive"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Banco nao publica porta: so a API, na rede interna do Compose, o acessa.
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - /opt/smarthive/app.env
+    environment:
+      DATABASE_URL: postgresql://smarthive:${POSTGRES_PASSWORD}@db:5432/smarthive
+      DATABASE_SSLMODE: disable
+    # Sem porta publicada: so o Caddy, na rede interna do Compose, alcanca a API.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+    env_file:
+      - /opt/smarthive/origin.env
+    ports:
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/smarthive/caddy/data:/data
+      - /opt/smarthive/caddy/config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

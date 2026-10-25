@@ -25,15 +25,16 @@ smarthive/
 
 - Frontend: React, Vite, TypeScript, Tailwind CSS, React Router DOM, Axios.
 - Backend: Python, FastAPI, Pydantic, Uvicorn.
-- Banco: PostgreSQL no Supabase.
+- Banco: PostgreSQL (Amazon RDS; Postgres local no Docker).
+- Autenticacao: Amazon Cognito.
+- Midias: Amazon S3 (bucket privado).
 - Storage MVP: pasta local `backend/app/uploads`.
 - Sensor experimental: celular como camera provisoria.
 
 ## Como rodar com Docker
 
-O Compose sobe o backend FastAPI e o frontend React servido por Nginx. Por
-padrao, o backend usa o JSON local do MVP, persistido em volume Docker, sem
-exigir Supabase.
+O Compose sobe o PostgreSQL, o backend FastAPI e o frontend React servido por
+Nginx. Por padrao a API roda com `AUTH_MODE=dev` (sem login).
 
 ```bash
 copy .env.docker.example .env
@@ -61,23 +62,21 @@ Para remover tambem os dados locais persistidos em volumes:
 docker compose down -v
 ```
 
-### Docker com Supabase
+### Configuracao AWS
 
-Para usar Supabase ou PostgreSQL externo, preencha as variaveis no `.env` da
-raiz e altere:
+O Compose sobe um PostgreSQL local que simula o Amazon RDS, com `schema.sql` e
+`seed.sql` aplicados na primeira subida. Para validar tokens reais do Cognito ou
+gravar midias no S3, ajuste no `.env` da raiz:
 
 ```env
-USE_SUPABASE=true
-SUPABASE_URL=
-SUPABASE_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_STORAGE_BUCKET=smarthive-capturas
-DATABASE_URL=
+AUTH_MODE=cognito
+COGNITO_USER_POOL_ID=
+COGNITO_APP_CLIENT_ID=
+STORAGE_BACKEND=s3
+S3_BUCKET=
 ```
 
-Se `DATABASE_URL` estiver preenchida, o backend usa conexao PostgreSQL direta.
-Caso contrario, usa `SUPABASE_URL` com `SUPABASE_SERVICE_ROLE_KEY` ou
-`SUPABASE_KEY`.
+Detalhes de configuracao e seguranca em `backend/README.md`.
 
 ## Como rodar o backend
 
@@ -107,16 +106,7 @@ Aplicacao: `http://localhost:5173`
 
 ## Variaveis de ambiente
 
-Backend (`backend/.env`):
-
-```env
-SUPABASE_URL=
-SUPABASE_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_STORAGE_BUCKET=smarthive-capturas
-DATABASE_URL=
-USE_SUPABASE=false
-```
+Backend (`backend/.env`): veja `backend/.env.example` e `backend/README.md`.
 
 Frontend (`frontend/.env`):
 
@@ -125,37 +115,6 @@ VITE_API_URL=http://localhost:8000/api
 ```
 
 Nao insira chaves reais no repositorio.
-
-## Supabase
-
-1. Crie um projeto no Supabase.
-2. Execute `database/schema.sql`.
-3. Opcionalmente execute `database/seed.sql`.
-4. Preencha `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
-   `SUPABASE_STORAGE_BUCKET` e `DATABASE_URL` no backend.
-5. Altere `USE_SUPABASE=true`.
-
-Por padrao, o backend usa um arquivo JSON local para facilitar demonstracoes sem
-infraestrutura externa. Quando `USE_SUPABASE=true`, nao existe fallback local:
-os dados e uploads sao enviados ao Supabase ou a API retorna erro claro.
-
-Quando `DATABASE_URL` estiver preenchida, o backend usa conexao PostgreSQL direta
-com o banco do Supabase para o CRUD.
-
-Valide a conexao com:
-
-```bash
-curl http://localhost:8000/api/health/supabase
-```
-
-Teste gravacao real com:
-
-```bash
-cd C:\Users\draxs\Desktop\smarthive\backend
-copy .env.supabase.example .env
-# preencha as chaves reais
-python scripts/verificar_supabase.py
-```
 
 ## Celular como sensor experimental
 
@@ -178,8 +137,7 @@ Detalhes em `docs/iot/sensor-celular.md`.
 
 ## Roadmap futuro
 
-- Supabase Auth e perfis de usuarios.
-- Supabase Storage para midias.
+- Perfis de usuario (pesquisador, meliponicultor, administrador) com grupos do Cognito.
 - Analise de frames com OpenCV.
 - Deteccao de fluxo com YOLO, TensorFlow ou PyTorch.
 - Identificacao de possiveis invasores.

@@ -16,6 +16,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard").then(({ Dashboard }) =>
 const Login = lazy(() => import("./pages/Login").then(({ Login }) => ({ default: Login })));
 const NotFound = lazy(() => import("./pages/NotFound").then(({ NotFound }) => ({ default: NotFound })));
 const Overview = lazy(() => import("./pages/Overview").then(({ Overview }) => ({ default: Overview })));
+const Site = lazy(() => import("./pages/Site").then(({ Site }) => ({ default: Site })));
 const Registros = lazy(() => import("./pages/Registros").then(({ Registros }) => ({ default: Registros })));
 const SensorCelular = lazy(() =>
   import("./pages/SensorCelular").then(({ SensorCelular }) => ({ default: SensorCelular })),
@@ -38,18 +39,20 @@ export default function App() {
       <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
+            <Route index element={<Site />} />
+
             <Route element={<PublicOnlyRoute />}>
               <Route path="login" element={<Login />} />
             </Route>
 
             <Route element={<ProtectedRoute />}>
-              <Route element={<AppLayout />}>
+              <Route path="app" element={<AppLayout />}>
                 <Route index element={<Overview />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="colmeias" element={<Colmeias />} />
                 <Route path="colmeias/:id" element={<ColmeiaDetalhes />} />
-                <Route path="colmeias/:id/monitoramentos/novo" element={<Navigate to="/sensor-celular" replace />} />
-                <Route path="monitoramentos/novo" element={<Navigate to="/sensor-celular" replace />} />
+                <Route path="colmeias/:id/monitoramentos/novo" element={<Navigate to="/app/sensor-celular" replace />} />
+                <Route path="monitoramentos/novo" element={<Navigate to="/app/sensor-celular" replace />} />
                 <Route path="registros" element={<Registros />} />
                 <Route path="sensor-celular" element={<SensorCelular />} />
                 <Route path="alertas" element={<Alertas />} />
@@ -57,6 +60,8 @@ export default function App() {
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

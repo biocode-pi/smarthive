@@ -307,7 +307,7 @@ export function SensorCelular() {
     try {
       const response = await registrarCapturaSensorCelular(formData);
       setMessage(response.mensagem);
-      navigate(`/colmeias/${form.colmeia_id}`);
+      navigate(`/app/colmeias/${form.colmeia_id}`);
     } catch {
       setMessage("Nao foi possivel salvar a captura experimental.");
     } finally {

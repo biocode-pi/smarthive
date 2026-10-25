@@ -4,5 +4,6 @@ pydantic==2.10.4
 pydantic-settings==2.7.1
 python-dotenv==1.0.1
 python-multipart==0.0.20
-supabase==2.10.0
+PyJWT[crypto]==2.10.1
+boto3==1.35.99
 psycopg[binary]==3.2.3

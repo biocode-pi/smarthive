@@ -37,7 +37,7 @@ export function HiveCard({ colmeia, onEdit, onDelete }: HiveCardProps) {
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Link
-          to={`/colmeias/${colmeia.id}`}
+          to={`/app/colmeias/${colmeia.id}`}
           className="focus-ring inline-flex min-h-10 items-center justify-center rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
         >
           Ver detalhes

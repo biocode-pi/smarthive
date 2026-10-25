@@ -18,13 +18,13 @@ import { useAuth, userDisplayName } from "../../context/AuthContext";
 import { cn } from "../../utils/classNames";
 
 const navItems = [
-  { to: "/", label: "Visao geral", icon: Home },
-  { to: "/dashboard", label: "Dashboard", icon: BarChart3 },
-  { to: "/colmeias", label: "Colmeias", icon: Flower2 },
-  { to: "/sensor-celular", label: "Camera IA", icon: Camera },
-  { to: "/registros", label: "Historico", icon: FileText },
-  { to: "/alertas", label: "Alertas", icon: Bell },
-  { to: "/configuracoes", label: "Configuracoes", icon: Settings },
+  { to: "/app", label: "Visao geral", icon: Home },
+  { to: "/app/dashboard", label: "Dashboard", icon: BarChart3 },
+  { to: "/app/colmeias", label: "Colmeias", icon: Flower2 },
+  { to: "/app/sensor-celular", label: "Camera IA", icon: Camera },
+  { to: "/app/registros", label: "Historico", icon: FileText },
+  { to: "/app/alertas", label: "Alertas", icon: Bell },
+  { to: "/app/configuracoes", label: "Configuracoes", icon: Settings },
 ];
 
 function Navigation({ onNavigate, compact = false }: { onNavigate?: () => void; compact?: boolean }) {
@@ -34,7 +34,7 @@ function Navigation({ onNavigate, compact = false }: { onNavigate?: () => void; 
         <NavLink
           key={to}
           to={to}
-          end={to === "/"}
+          end={to === "/app"}
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(

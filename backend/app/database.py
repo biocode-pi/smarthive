@@ -19,7 +19,7 @@ def now_iso() -> str:
 
 
 class Store(Protocol):
-    def list(self, table: str) -> List[Dict[str, Any]]: ...
+    def list(self, table: str, filtros: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]: ...
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]: ...
     def create(self, table: str, payload: Dict[str, Any]) -> Dict[str, Any]: ...
     def update(self, table: str, item_id: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]: ...
@@ -49,13 +49,14 @@ def normalize_db_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return [item for item in (normalize_db_row(row) for row in rows) if item is not None]
 
 
-def seed_data() -> Dict[str, List[Dict[str, Any]]]:
+def seed_data(usuario_id: str) -> Dict[str, List[Dict[str, Any]]]:
     hive_id = "colmeia-jatai-campus"
     monitoring_id = "mon-campus-001"
     return {
         "colmeias": [
             {
                 "id": hive_id,
+                "usuario_id": usuario_id,
                 "nome": "Colmeia Jatai - Campus",
                 "codigo": "JAT-001",
                 "especie": "Jatai",
@@ -68,6 +69,7 @@ def seed_data() -> Dict[str, List[Dict[str, Any]]]:
             },
             {
                 "id": "colmeia-mandacaia-lab",
+                "usuario_id": usuario_id,
                 "nome": "Mandacaia - Meliponario",
                 "codigo": "MAN-002",
                 "especie": "Mandacaia",
@@ -82,6 +84,7 @@ def seed_data() -> Dict[str, List[Dict[str, Any]]]:
         "monitoramentos": [
             {
                 "id": monitoring_id,
+                "usuario_id": usuario_id,
                 "colmeia_id": hive_id,
                 "data_hora": now_iso(),
                 "origem": "sensor_celular",
@@ -107,6 +110,7 @@ def seed_data() -> Dict[str, List[Dict[str, Any]]]:
         "alertas": [
             {
                 "id": "alerta-observacao-campus",
+                "usuario_id": usuario_id,
                 "colmeia_id": hive_id,
                 "monitoramento_id": monitoring_id,
                 "tipo": "observacao",
@@ -125,16 +129,15 @@ def seed_data() -> Dict[str, List[Dict[str, Any]]]:
 class LocalJsonStore:
     """Persistencia simples para o MVP local.
 
-    O projeto foi desenhado para Supabase/PostgreSQL, mas este store deixa a API
-    funcional imediatamente em bancada academica, antes da criacao do projeto
-    Supabase.
+    Em producao a API usa PostgreSQL (Amazon RDS); este store deixa a API
+    funcional em bancada academica sem nenhum banco configurado.
     """
 
-    def __init__(self, data_file: Path):
+    def __init__(self, data_file: Path, usuario_seed: str):
         self.data_file = data_file
         self.data_file.parent.mkdir(parents=True, exist_ok=True)
         if not self.data_file.exists():
-            self._write(seed_data())
+            self._write(seed_data(usuario_seed))
 
     def _read(self) -> Dict[str, List[Dict[str, Any]]]:
         with self.data_file.open("r", encoding="utf-8") as file:
@@ -147,9 +150,12 @@ class LocalJsonStore:
         with self.data_file.open("w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=2)
 
-    def list(self, table: str) -> List[Dict[str, Any]]:
+    def list(self, table: str, filtros: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         data = self._read()
-        return deepcopy(data.get(table, []))
+        itens = data.get(table, [])
+        if filtros:
+            itens = [item for item in itens if all(item.get(k) == v for k, v in filtros.items())]
+        return deepcopy(itens)
 
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]:
         return next((item for item in self.list(table) if item.get("id") == item_id), None)
@@ -189,57 +195,10 @@ class LocalJsonStore:
         }
 
 
-class SupabaseStore:
-    """Adapter minimo para Supabase.
-
-    Ative com USE_SUPABASE=true, SUPABASE_URL e SUPABASE_KEY. O SQL em
-    database/schema.sql cria as tabelas esperadas por este adapter.
-    """
-
-    def __init__(self, url: str, key: str):
-        try:
-            from supabase import create_client
-        except ImportError as exc:
-            raise RuntimeError("Instale a dependencia supabase para usar USE_SUPABASE=true.") from exc
-        self.client = create_client(url, key)
-
-    def list(self, table: str) -> List[Dict[str, Any]]:
-        response = self.client.table(table).select("*").execute()
-        return response.data or []
-
-    def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]:
-        response = self.client.table(table).select("*").eq("id", item_id).limit(1).execute()
-        return (response.data or [None])[0]
-
-    def create(self, table: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        response = self.client.table(table).insert(clean_insert_payload(payload)).execute()
-        if not response.data:
-            raise RuntimeError(f"Supabase nao retornou dados ao inserir em {table}.")
-        return response.data[0]
-
-    def update(self, table: str, item_id: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        response = self.client.table(table).update(payload).eq("id", item_id).execute()
-        return (response.data or [None])[0]
-
-    def delete(self, table: str, item_id: str) -> bool:
-        if self.get(table, item_id) is None:
-            return False
-        self.client.table(table).delete().eq("id", item_id).execute()
-        return True
-
-    def ping(self) -> Dict[str, Any]:
-        self.client.table("colmeias").select("id").limit(1).execute()
-        return {
-            "mode": "supabase",
-            "status": "ok",
-            "table_check": "colmeias",
-        }
-
-
 class PostgresStore:
-    """Persistencia direta no PostgreSQL do Supabase via DATABASE_URL."""
+    """Persistencia no PostgreSQL (Amazon RDS em producao) via DATABASE_URL."""
 
-    def __init__(self, database_url: str):
+    def __init__(self, database_url: str, sslmode: str = "require"):
         try:
             import psycopg
             from psycopg.rows import dict_row
@@ -248,6 +207,7 @@ class PostgresStore:
             raise RuntimeError("Instale psycopg[binary] para usar DATABASE_URL.") from exc
 
         self.database_url = database_url
+        self.sslmode = sslmode
         self._psycopg = psycopg
         self._dict_row = dict_row
         self._jsonb = Jsonb
@@ -257,7 +217,7 @@ class PostgresStore:
             self.database_url,
             row_factory=self._dict_row,
             connect_timeout=10,
-            sslmode="require",
+            sslmode=self.sslmode,
             prepare_threshold=None,
         )
 
@@ -275,11 +235,17 @@ class PostgresStore:
         data = clean_insert_payload(payload) if remove_none else payload
         return {key: self._adapt_value(value) for key, value in data.items()}
 
-    def list(self, table: str) -> List[Dict[str, Any]]:
-        query = self._psycopg.sql.SQL("select * from {}").format(self._table_identifier(table))
+    def list(self, table: str, filtros: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        sql = self._psycopg.sql
+        query = sql.SQL("select * from {}").format(self._table_identifier(table))
+        params: tuple = ()
+        if filtros:
+            condicoes = [sql.SQL("{} = {}").format(sql.Identifier(col), sql.Placeholder()) for col in filtros]
+            query = query + sql.SQL(" where ") + sql.SQL(" and ").join(condicoes)
+            params = tuple(filtros.values())
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query)
+                cursor.execute(query, params)
                 return normalize_db_rows(cursor.fetchall())
 
     def get(self, table: str, item_id: str) -> Optional[Dict[str, Any]]:
@@ -362,18 +328,10 @@ def get_store() -> Store:
     global _store
     if _store is None:
         settings = get_settings()
-        if settings.use_supabase:
-            if settings.database_url:
-                _store = PostgresStore(settings.database_url)
-            elif settings.supabase_url and settings.supabase_access_key:
-                _store = SupabaseStore(settings.supabase_url, settings.supabase_access_key)
-            else:
-                raise RuntimeError(
-                    "USE_SUPABASE=true exige DATABASE_URL ou SUPABASE_URL com "
-                    "SUPABASE_SERVICE_ROLE_KEY/SUPABASE_KEY no backend/.env."
-                )
+        if settings.database_url:
+            _store = PostgresStore(settings.database_url, settings.database_sslmode)
         else:
-            _store = LocalJsonStore(settings.local_data_file)
+            _store = LocalJsonStore(settings.local_data_file, settings.dev_user_id)
     return _store
 
 

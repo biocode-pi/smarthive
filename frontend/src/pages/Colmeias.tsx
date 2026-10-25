@@ -222,7 +222,7 @@ export function Colmeias() {
                       <td>
                         <div className="flex justify-end gap-2">
                           <Link
-                            to={`/colmeias/${colmeia.id}`}
+                            to={`/app/colmeias/${colmeia.id}`}
                             className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                             aria-label="Ver detalhes"
                           >

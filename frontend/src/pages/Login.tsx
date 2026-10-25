@@ -1,25 +1,33 @@
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { authConfig } from "../config/auth.config";
 import { useAuth } from "../context/AuthContext";
 
-type Mode = "login" | "cadastro" | "recuperar" | "novaSenha";
+type Mode = "login" | "cadastro" | "confirmar" | "recuperar" | "novaSenha";
 
 const inputClass =
   "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:bg-slate-50";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Mesma politica do User Pool do Cognito.
+const senhaForteRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+const pedeEmail: Mode[] = ["login", "cadastro", "recuperar"];
+const pedeSenha: Mode[] = ["login", "cadastro", "novaSenha"];
+const pedeCodigo: Mode[] = ["confirmar", "novaSenha"];
 
 export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { atualizarSenha, configurado, login, recuperarSenha, recuperandoSenha, registrar } = useAuth();
+  const { confirmarCadastro, configurado, login, recuperarSenha, redefinirSenha, reenviarCodigo, registrar } =
+    useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [codigo, setCodigo] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [manterConectado, setManterConectado] = useState(true);
   const [enviando, setEnviando] = useState(false);
@@ -28,88 +36,95 @@ export function Login() {
 
   const { texts, brand, quote, footer } = authConfig;
 
-  const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/";
+  const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/app";
 
-  useEffect(() => {
-    if (recuperandoSenha) setMode("novaSenha");
-  }, [recuperandoSenha]);
+  const current = useMemo(() => texts[mode], [mode, texts]);
 
-  const current = useMemo(() => {
-    if (mode === "login") return texts.login;
-    if (mode === "cadastro") return texts.cadastro;
-    if (mode === "recuperar") return texts.recuperar;
-    return texts.novaSenha;
-  }, [mode, texts]);
+  function validar(): string | null {
+    if (pedeEmail.includes(mode) && !emailRegex.test(email.trim())) {
+      return "Informe um e-mail valido. Exemplo: nome@dominio.com";
+    }
+    if (mode === "cadastro" && !nome.trim()) return "Informe seu nome.";
+    if (mode === "login" && !senha) return "Informe sua senha.";
+    if ((mode === "cadastro" || mode === "novaSenha") && !senhaForteRegex.test(senha)) {
+      return "A senha precisa ter 8 caracteres, com letra maiuscula, minuscula e numero.";
+    }
+    if (pedeCodigo.includes(mode) && !/^\d{6}$/.test(codigo.trim())) return "Informe o codigo de 6 digitos.";
+    return null;
+  }
+
+  function irPara(next: Mode, mensagem: string | null = null) {
+    setMode(next);
+    setErro(null);
+    setSucesso(mensagem);
+    setCodigo("");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErro(null);
     setSucesso(null);
 
-    if (mode !== "novaSenha" && !email.trim()) {
-      setErro("Informe seu e-mail.");
-      return;
-    }
-    if (mode !== "novaSenha" && !emailRegex.test(email.trim())) {
-      setErro("Informe um e-mail valido. Exemplo: nome@dominio.com");
-      return;
-    }
-    if (mode !== "recuperar" && senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
-    if (mode === "cadastro" && !nome.trim()) {
-      setErro("Informe seu nome.");
+    const erroValidacao = validar();
+    if (erroValidacao) {
+      setErro(erroValidacao);
       return;
     }
 
+    const emailLimpo = email.trim();
     setEnviando(true);
     try {
-      const result =
-        mode === "login"
-          ? await login(email.trim(), senha)
-          : mode === "cadastro"
-            ? await registrar(email.trim(), senha, nome.trim())
-            : mode === "recuperar"
-              ? await recuperarSenha(email.trim())
-              : await atualizarSenha(senha);
-
-      if (result.erro) {
-        setErro(result.erro);
-        return;
-      }
-
-      if (mode === "recuperar") {
-        setSucesso("Confira seu e-mail para continuar a recuperacao.");
-        return;
-      }
-      if (mode === "novaSenha") {
-        setSucesso("Senha atualizada.");
+      if (mode === "login") {
+        const result = await login(emailLimpo, senha, manterConectado);
+        if (result.erro) return setErro(result.erro);
+        if (result.precisaConfirmar) return irPara("confirmar", "Confirme seu e-mail: enviamos um novo codigo.");
         navigate(redirectTo, { replace: true });
         return;
       }
-      if (mode === "cadastro" && !result.sessaoCriada) {
-        setSucesso("Conta criada. Confirme seu e-mail antes de entrar.");
-        setMode("login");
-        setSenha("");
-        return;
+
+      if (mode === "cadastro") {
+        const result = await registrar(emailLimpo, senha, nome.trim());
+        if (result.erro) return setErro(result.erro);
+        if (result.precisaConfirmar) return irPara("confirmar", `Enviamos um codigo para ${emailLimpo}.`);
+        return irPara("login", "Conta criada. Entre para continuar.");
       }
-      navigate(redirectTo, { replace: true });
-    } catch (error) {
-      setErro(
-        error instanceof Error && error.message === "auth_timeout"
-          ? "A autenticacao demorou demais para responder. Verifique sua conexao e tente novamente."
-          : "Nao foi possivel concluir a autenticacao. Tente novamente.",
-      );
+
+      if (mode === "confirmar") {
+        const result = await confirmarCadastro(emailLimpo, codigo.trim());
+        if (result.erro) return setErro(result.erro);
+        // Logo apos o cadastro a senha ainda esta no formulario: entra direto.
+        if (senha) {
+          const entrada = await login(emailLimpo, senha, manterConectado);
+          if (!entrada.erro && !entrada.precisaConfirmar) {
+            navigate(redirectTo, { replace: true });
+            return;
+          }
+        }
+        setSenha("");
+        return irPara("login", "E-mail confirmado. Entre com sua senha.");
+      }
+
+      if (mode === "recuperar") {
+        const result = await recuperarSenha(emailLimpo);
+        if (result.erro) return setErro(result.erro);
+        setSenha("");
+        return irPara("novaSenha", `Se ${emailLimpo} estiver cadastrado, voce recebera um codigo.`);
+      }
+
+      const result = await redefinirSenha(emailLimpo, codigo.trim(), senha);
+      if (result.erro) return setErro(result.erro);
+      setSenha("");
+      irPara("login", "Senha alterada. Entre com a nova senha.");
     } finally {
       setEnviando(false);
     }
   }
 
-  function changeMode(next: Mode) {
-    setMode(next);
+  async function handleReenviar() {
     setErro(null);
-    setSucesso(null);
+    const result = await reenviarCodigo(email.trim());
+    if (result.erro) setErro(result.erro);
+    else setSucesso("Codigo reenviado.");
   }
 
   return (
@@ -121,7 +136,7 @@ export function Login() {
 
       {!configurado ? (
         <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
-          Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no .env do frontend.
+          Configure VITE_COGNITO_USER_POOL_ID e VITE_COGNITO_CLIENT_ID no .env do frontend.
         </div>
       ) : null}
 
@@ -155,7 +170,7 @@ export function Login() {
           </div>
         ) : null}
 
-        {mode !== "novaSenha" ? (
+        {pedeEmail.includes(mode) ? (
           <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
               {texts.labels.email}
@@ -172,7 +187,24 @@ export function Login() {
           </div>
         ) : null}
 
-        {mode !== "recuperar" ? (
+        {pedeCodigo.includes(mode) ? (
+          <div>
+            <label htmlFor="codigo" className="mb-1.5 block text-sm font-medium text-slate-700">
+              {texts.labels.codigo}
+            </label>
+            <input
+              id="codigo"
+              className={`${inputClass} tracking-[0.3em]`}
+              value={codigo}
+              onChange={(event) => setCodigo(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder={texts.placeholders.codigo}
+            />
+          </div>
+        ) : null}
+
+        {pedeSenha.includes(mode) ? (
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <label htmlFor="senha" className="block text-sm font-medium text-slate-700">
@@ -181,7 +213,7 @@ export function Login() {
               {mode === "login" ? (
                 <button
                   type="button"
-                  onClick={() => changeMode("recuperar")}
+                  onClick={() => irPara("recuperar")}
                   className="text-xs font-medium text-slate-500 transition hover:text-slate-900"
                 >
                   {texts.login.forgotLabel}
@@ -239,7 +271,7 @@ export function Login() {
             <button
               type="button"
               className="font-medium text-slate-900 underline-offset-4 hover:underline"
-              onClick={() => changeMode("cadastro")}
+              onClick={() => irPara("cadastro")}
             >
               {texts.login.noAccountAction}
             </button>
@@ -250,7 +282,7 @@ export function Login() {
             <button
               type="button"
               className="font-medium text-slate-900 underline-offset-4 hover:underline"
-              onClick={() => changeMode("login")}
+              onClick={() => irPara("login")}
             >
               {texts.cadastro.hasAccountAction}
             </button>
@@ -259,11 +291,30 @@ export function Login() {
           <button
             type="button"
             className="font-medium text-slate-900 underline-offset-4 hover:underline"
-            onClick={() => changeMode("login")}
+            onClick={() => irPara("login")}
           >
             {texts.recuperar.backAction}
           </button>
-        ) : null}
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            {mode === "confirmar" ? (
+              <button
+                type="button"
+                className="font-medium text-slate-900 underline-offset-4 hover:underline"
+                onClick={handleReenviar}
+              >
+                {texts.confirmar.resendAction}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="font-medium text-slate-500 underline-offset-4 hover:underline"
+              onClick={() => irPara("login")}
+            >
+              {texts.recuperar.backAction}
+            </button>
+          </div>
+        )}
       </div>
     </AuthLayout>
   );

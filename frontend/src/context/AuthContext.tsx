@@ -1,126 +1,161 @@
-import type { Session, User } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { hasSupabaseConfig, supabase } from "../services/supabase";
+import {
+  confirmResetPassword,
+  confirmSignUp,
+  fetchAuthSession,
+  getCurrentUser,
+  resendSignUpCode,
+  resetPassword,
+  signIn,
+  signOut,
+  signUp,
+} from "aws-amplify/auth";
+import { cognitoUserPoolsTokenProvider } from "aws-amplify/auth/cognito";
+import { Hub, sessionStorage as amplifySessionStorage, defaultStorage } from "aws-amplify/utils";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { hasCognitoConfig } from "../services/cognito";
 
-type AuthResult = { erro?: string; sessaoCriada?: boolean };
+export interface Usuario {
+  id: string;
+  email: string;
+  nome: string | null;
+}
+
+export type AuthResult = { erro?: string; precisaConfirmar?: boolean };
 
 const AUTH_TIMEOUT_MS = 15000;
 
 interface AuthContextValue {
-  user: User | null;
-  session: Session | null;
+  user: Usuario | null;
   carregando: boolean;
   configurado: boolean;
-  recuperandoSenha: boolean;
-  login: (email: string, senha: string) => Promise<AuthResult>;
+  login: (email: string, senha: string, manterConectado: boolean) => Promise<AuthResult>;
   registrar: (email: string, senha: string, nome: string) => Promise<AuthResult>;
+  confirmarCadastro: (email: string, codigo: string) => Promise<AuthResult>;
+  reenviarCodigo: (email: string) => Promise<AuthResult>;
   recuperarSenha: (email: string) => Promise<AuthResult>;
-  atualizarSenha: (senha: string) => Promise<AuthResult>;
+  redefinirSenha: (email: string, codigo: string, novaSenha: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [carregando, setCarregando] = useState(true);
-  const [recuperandoSenha, setRecuperandoSenha] = useState(false);
-
-  useEffect(() => {
-    if (!hasSupabaseConfig) {
-      setCarregando(false);
-      return;
-    }
-
-    let mounted = true;
-
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setCarregando(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === "PASSWORD_RECOVERY") setRecuperandoSenha(true);
-      if (event === "SIGNED_OUT" || event === "USER_UPDATED") setRecuperandoSenha(false);
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setCarregando(false);
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
+async function carregarUsuario(): Promise<Usuario | null> {
+  try {
+    const { userId } = await getCurrentUser();
+    // Nome e e-mail ja vem no ID token salvo localmente; evita uma chamada de rede a cada carregamento.
+    const { tokens } = await fetchAuthSession();
+    const claims = tokens?.idToken?.payload;
+    if (!claims) return null;
+    return {
+      id: userId,
+      email: typeof claims.email === "string" ? claims.email : "",
+      nome: typeof claims.name === "string" ? claims.name : null,
     };
+  } catch {
+    return null;
+  }
+}
+
+/** Access token atual (renovado automaticamente pelo Amplify) para enviar a API. */
+export async function obterAccessToken(): Promise<string | null> {
+  if (!hasCognitoConfig) return null;
+  try {
+    const { tokens } = await fetchAuthSession();
+    return tokens?.accessToken?.toString() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<Usuario | null>(null);
+  const [carregando, setCarregando] = useState(hasCognitoConfig);
+
+  const atualizarUsuario = useCallback(async () => {
+    setUser(await carregarUsuario());
+    setCarregando(false);
   }, []);
 
-  async function login(email: string, senha: string): Promise<AuthResult> {
-    if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { data, error } = await withAuthTimeout(
-      supabase.auth.signInWithPassword({ email, password: senha }),
-    );
-    if (error) return { erro: traduzirErro(error.message) };
-    setSession(data.session);
-    setUser(data.user);
-    return {};
-  }
+  useEffect(() => {
+    if (!hasCognitoConfig) return;
+    void atualizarUsuario();
 
-  async function registrar(email: string, senha: string, nome: string): Promise<AuthResult> {
-    if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { data, error } = await withAuthTimeout(
-      supabase.auth.signUp({
-        email,
-        password: senha,
-        options: { data: { nome } },
-      }),
-    );
-    if (error) return { erro: traduzirErro(error.message) };
-    if (data.session) {
-      setSession(data.session);
-      setUser(data.user);
+    return Hub.listen("auth", ({ payload }) => {
+      if (payload.event === "signedIn") void atualizarUsuario();
+      if (payload.event === "signedOut" || payload.event === "tokenRefresh_failure") setUser(null);
+    });
+  }, [atualizarUsuario]);
+
+  async function executar(acao: () => Promise<AuthResult | void>): Promise<AuthResult> {
+    if (!hasCognitoConfig) return { erro: "Login nao configurado no frontend." };
+    try {
+      return (await withAuthTimeout(acao())) ?? {};
+    } catch (error) {
+      return { erro: traduzirErro(error) };
     }
-    return { sessaoCriada: Boolean(data.session) };
   }
 
-  async function recuperarSenha(email: string): Promise<AuthResult> {
-    if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { error } = await withAuthTimeout(
-      supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
-      }),
-    );
-    return error ? { erro: traduzirErro(error.message) } : {};
-  }
+  const login = (email: string, senha: string, manterConectado: boolean) =>
+    executar(async () => {
+      // Sem "manter conectado", os tokens ficam so ate fechar o navegador.
+      cognitoUserPoolsTokenProvider.setKeyValueStorage(manterConectado ? defaultStorage : amplifySessionStorage);
+      const { nextStep } = await signIn({ username: email, password: senha });
+      if (nextStep.signInStep === "CONFIRM_SIGN_UP") {
+        await resendSignUpCode({ username: email });
+        return { precisaConfirmar: true };
+      }
+      if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login nao suportada." };
+      await atualizarUsuario();
+    });
 
-  async function atualizarSenha(senha: string): Promise<AuthResult> {
-    if (!hasSupabaseConfig) return { erro: "Supabase nao configurado no frontend." };
-    const { error } = await withAuthTimeout(supabase.auth.updateUser({ password: senha }));
-    if (error) return { erro: traduzirErro(error.message) };
-    setRecuperandoSenha(false);
-    return {};
-  }
+  const registrar = (email: string, senha: string, nome: string) =>
+    executar(async () => {
+      const { nextStep } = await signUp({
+        username: email,
+        password: senha,
+        options: { userAttributes: { email, name: nome } },
+      });
+      return { precisaConfirmar: nextStep.signUpStep === "CONFIRM_SIGN_UP" };
+    });
+
+  const confirmarCadastro = (email: string, codigo: string) =>
+    executar(async () => {
+      await confirmSignUp({ username: email, confirmationCode: codigo });
+    });
+
+  const reenviarCodigo = (email: string) =>
+    executar(async () => {
+      await resendSignUpCode({ username: email });
+    });
+
+  const recuperarSenha = (email: string) =>
+    executar(async () => {
+      await resetPassword({ username: email });
+    });
+
+  const redefinirSenha = (email: string, codigo: string, novaSenha: string) =>
+    executar(async () => {
+      await confirmResetPassword({ username: email, confirmationCode: codigo, newPassword: novaSenha });
+    });
 
   async function logout() {
-    if (!hasSupabaseConfig) return;
-    await supabase.auth.signOut();
+    if (!hasCognitoConfig) return;
+    await signOut();
+    setUser(null);
   }
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        session,
         carregando,
-        configurado: hasSupabaseConfig,
-        recuperandoSenha,
+        configurado: hasCognitoConfig,
         login,
         registrar,
+        confirmarCadastro,
+        reenviarCodigo,
         recuperarSenha,
-        atualizarSenha,
+        redefinirSenha,
         logout,
       }}
     >
@@ -135,18 +170,14 @@ export function useAuth() {
   return context;
 }
 
-export function userDisplayName(user: User | null): string {
-  const nome = user?.user_metadata?.nome;
-  if (typeof nome === "string" && nome.trim()) return nome.trim();
-  return user?.email ?? "Usuario";
+export function userDisplayName(user: Usuario | null): string {
+  if (user?.nome?.trim()) return user.nome.trim();
+  return user?.email || "Usuario";
 }
 
 function withAuthTimeout<T>(promise: Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      reject(new Error("auth_timeout"));
-    }, AUTH_TIMEOUT_MS);
-
+    const timeoutId = window.setTimeout(() => reject(new Error("auth_timeout")), AUTH_TIMEOUT_MS);
     promise
       .then(resolve)
       .catch(reject)
@@ -154,19 +185,33 @@ function withAuthTimeout<T>(promise: Promise<T>): Promise<T> {
   });
 }
 
-function traduzirErro(message: string): string {
-  const normalized = message.toLowerCase();
-  if (normalized.includes("auth_timeout")) {
+function traduzirErro(error: unknown): string {
+  const nome = error instanceof Error ? error.name : "";
+  const mensagem = error instanceof Error ? error.message : "";
+
+  if (mensagem === "auth_timeout") {
     return "A autenticacao demorou demais para responder. Verifique sua conexao e tente novamente.";
   }
-  if (normalized.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
-  if (normalized.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
-  if (normalized.includes("user already registered")) return "Este e-mail ja esta cadastrado.";
-  if (normalized.includes("password should be at least")) return "A senha deve ter pelo menos 6 caracteres.";
-  if (normalized.includes("invalid") && normalized.includes("email")) return "Informe um e-mail valido.";
-  if (normalized.includes("email rate limit")) {
-    return "Limite de envio de e-mails do Supabase atingido. Aguarde alguns minutos ou desative a confirmacao por e-mail.";
+  switch (nome) {
+    case "NotAuthorizedException":
+      return "E-mail ou senha incorretos.";
+    case "UsernameExistsException":
+      return "Este e-mail ja esta cadastrado.";
+    case "InvalidPasswordException":
+      return "A senha precisa ter 8 caracteres, com letra maiuscula, minuscula e numero.";
+    case "CodeMismatchException":
+      return "Codigo incorreto. Confira o e-mail e tente novamente.";
+    case "ExpiredCodeException":
+      return "Codigo expirado. Solicite um novo.";
+    case "LimitExceededException":
+    case "TooManyRequestsException":
+    case "TooManyFailedAttemptsException":
+      return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    case "UserAlreadyAuthenticatedException":
+      return "Voce ja esta conectado.";
+    case "InvalidParameterException":
+      return "Dados invalidos. Confira o e-mail e a senha.";
+    default:
+      return "Nao foi possivel concluir a autenticacao. Tente novamente.";
   }
-  if (normalized.includes("for security purposes")) return "Aguarde alguns segundos antes de tentar novamente.";
-  return "Nao foi possivel concluir a autenticacao. Tente novamente.";
 }

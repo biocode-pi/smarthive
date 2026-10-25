@@ -59,7 +59,7 @@ export function Dashboard() {
         description="Metricas de atividade, fluxo visual e alertas do SmartHive."
       >
         <Link
-          to="/registros"
+          to="/app/registros"
           className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
         >
           <LineChart className="h-4 w-4" />
@@ -82,7 +82,7 @@ export function Dashboard() {
               <p className="mt-1 text-sm text-slate-500">Ultimos registros processados pelo backend.</p>
             </div>
             <Link
-              to="/sensor-celular"
+              to="/app/sensor-celular"
               className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
             >
               <Camera className="h-4 w-4" />
@@ -133,7 +133,7 @@ export function Dashboard() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-950">Monitoramentos recentes</h2>
-            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-800" to="/monitoramentos/novo">
+            <Link className="text-sm font-semibold text-hive-700 hover:text-hive-800" to="/app/monitoramentos/novo">
               Novo registro
             </Link>
           </div>
