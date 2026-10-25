@@ -76,7 +76,9 @@ STORAGE_BACKEND=s3
 S3_BUCKET=
 ```
 
-Detalhes de configuracao e seguranca em `backend/README.md`.
+Detalhes de configuracao em `backend/README.md`. Praticas de seguranca (OWASP Top 10,
+evidencias e limitacoes) em [docs/seguranca.md](docs/seguranca.md). Infraestrutura em
+[infra/README.md](infra/README.md).
 
 ## Como rodar o backend
 
