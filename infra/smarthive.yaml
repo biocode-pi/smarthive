@@ -376,19 +376,13 @@ Resources:
                 Effect: Allow
                 Action: s3:GetObject
                 Resource: !Sub "${DeployBucket.Arn}/*"
-              - Sid: BackupsDoBanco
+              # Backup somente escrita: a mesma credencial serve a API (container), entao
+              # ela nao pode ler, listar nem apagar backups. A restauracao usa uma URL
+              # pre-assinada gerada pelo operador (infra/restore-db.sh).
+              - Sid: BackupsDoBancoSomenteEscrita
                 Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:GetObject
+                Action: s3:PutObject
                 Resource: !Sub "${BackupBucket.Arn}/postgres/*"
-              - Sid: ListarBackups
-                Effect: Allow
-                Action: s3:ListBucket
-                Resource: !GetAtt BackupBucket.Arn
-                Condition:
-                  StringLike:
-                    s3:prefix: postgres/*
               - Sid: SegredoDeOrigem
                 Effect: Allow
                 Action: ssm:GetParameter

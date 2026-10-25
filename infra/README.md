@@ -116,13 +116,25 @@ Um timer do systemd na instancia (`smarthive-backup.timer`) roda todo dia as 03:
 `postgres/smarthive-<data>.dump`. Os backups ficam 30 dias e depois sao apagados
 automaticamente. Custo: centavos por mes.
 
-Comandos na instancia (`aws ssm start-session --target <InstanceId>`):
+**Seguranca:** a credencial da instancia e compartilhada com a API, entao ela e
+*somente escrita* no bucket de backup: nao le, nao lista e nao apaga. Mesmo com a API
+comprometida, ninguem baixa ou destroi os backups por ela (o versionamento preserva
+versoes sobrescritas). Cada backup leva o SHA-256 do arquivo nos metadados, conferido
+antes da restauracao.
+
+Backup manual, na instancia (`aws ssm start-session --target <InstanceId>`):
 
 ```bash
 sudo systemctl list-timers smarthive-backup.timer      # proximo backup agendado
 sudo /opt/smarthive/current/backup.sh                  # backup na hora
-sudo /opt/smarthive/current/restore.sh latest --confirmar                              # restaura o mais recente
-sudo /opt/smarthive/current/restore.sh postgres/smarthive-<data>.dump --confirmar      # restaura um especifico
+```
+
+Restauracao, no computador do operador (credenciais de administrador). O script gera
+uma URL pre-assinada de 15 minutos e manda a instancia restaurar:
+
+```powershell
+.\infra\restore-db.cmd                                                   # lista os backups
+.\infra\restore-db.cmd postgres/smarthive-<data>.dump --confirmar        # restaura
 ```
 
 A restauracao **substitui** os dados atuais e para a API durante o processo.

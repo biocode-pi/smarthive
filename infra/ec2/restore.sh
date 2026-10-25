@@ -1,36 +1,29 @@
 #!/bin/bash
-# Restaura o Postgres a partir de um backup no S3. SUBSTITUI os dados atuais.
-# Uso na instancia:
-#   sudo /opt/smarthive/current/restore.sh latest --confirmar
-#   sudo /opt/smarthive/current/restore.sh postgres/smarthive-20261025T030000Z.dump --confirmar
+# Restaura o Postgres a partir de uma URL pre-assinada de um backup. SUBSTITUI os dados atuais.
+# Nao e chamado manualmente: use infra/restore-db.sh no computador do operador, que
+# escolhe o backup, gera a URL (a instancia nao tem permissao de leitura) e chama este script.
 set -euo pipefail
 
-ALVO="${1:-}"
-if [ -z "$ALVO" ] || [ "${2:-}" != "--confirmar" ]; then
-  echo "Uso: $0 <latest|postgres/arquivo.dump> --confirmar" >&2
+URL="${1:-}"
+SHA256_ESPERADO="${2:-}"
+if [ -z "$URL" ] || [ -z "$SHA256_ESPERADO" ]; then
+  echo "Uso: $0 <url-pre-assinada> <sha256-base64>" >&2
   exit 2
-fi
-
-set -a
-. /opt/smarthive/app.env
-set +a
-
-if [ "$ALVO" = "latest" ]; then
-  ALVO="$(aws s3api list-objects-v2 --bucket "$BACKUP_BUCKET" --prefix postgres/ \
-    --query 'sort_by(Contents, &LastModified)[-1].Key' --output text)"
-  if [ -z "$ALVO" ] || [ "$ALVO" = "None" ]; then
-    echo "Nenhum backup encontrado em s3://$BACKUP_BUCKET/postgres/" >&2
-    exit 1
-  fi
 fi
 
 TMP="$(mktemp)"
 trap 'rm -f "$TMP"' EXIT
-aws s3 cp "s3://$BACKUP_BUCKET/$ALVO" "$TMP" --only-show-errors
+curl -fsS -o "$TMP" "$URL"
+
+# Confere a integridade com o checksum registrado pelo S3 no momento do backup.
+SHA256_OBTIDO="$(openssl dgst -sha256 -binary "$TMP" | base64)"
+if [ "$SHA256_OBTIDO" != "$SHA256_ESPERADO" ]; then
+  echo "Checksum nao confere (esperado $SHA256_ESPERADO, obtido $SHA256_OBTIDO). Abortando." >&2
+  exit 1
+fi
 
 cd /opt/smarthive/current
-echo "Restaurando $ALVO ..."
 docker compose -p smarthive stop backend
+trap 'docker compose -p smarthive start backend >/dev/null; rm -f "$TMP"' EXIT
 docker compose -p smarthive exec -T db pg_restore -U smarthive -d smarthive --clean --if-exists --no-owner < "$TMP"
-docker compose -p smarthive start backend
-echo "Restauracao concluida."
+echo "Restauracao concluida (checksum ok)."
