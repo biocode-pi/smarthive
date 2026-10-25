@@ -149,10 +149,19 @@ def test_ipv6_do_mesmo_bloco_64_conta_junto(client, settings, monkeypatch, limit
     assert codigos == [200, 200, 429]
 
 
-def test_teto_de_chaves_falha_fechado():
-    from app.rate_limit import LimitadorDeRequisicoes
+def test_teto_de_chaves_usa_balde_de_excedente():
+    from app.rate_limit import FATOR_EXCEDENTE, LimitadorDeRequisicoes
 
     limitador = LimitadorDeRequisicoes(max_chaves=3)
-    assert [limitador.registrar(f"10.0.0.{i}", "geral", 100) for i in range(3)] == [None, None, None]
-    assert limitador.registrar("10.0.0.99", "geral", 100) is not None  # chave nova acima do teto: bloqueada
-    assert limitador.registrar("10.0.0.1", "geral", 100) is None  # chave conhecida segue funcionando
+    assert [limitador.registrar(f"10.0.0.{i}", "geral", 2) for i in range(3)] == [None, None, None]
+    # Teto atingido: IPs novos nao sao recusados de cara, dividem o balde de excedente (2 x fator).
+    novos = [limitador.registrar(f"10.9.{i}.1", "geral", 2) for i in range(2 * FATOR_EXCEDENTE + 1)]
+    assert novos[:-1] == [None] * (2 * FATOR_EXCEDENTE) and novos[-1] is not None
+    # Clientes ja conhecidos continuam com o proprio limite, sem efeito do excedente.
+    assert limitador.registrar("10.0.0.1", "geral", 2) is None
+
+
+def test_ip_invalido_vira_chave_unica():
+    from app.rate_limit import normalizar_ip
+
+    assert normalizar_ip("lixo-1") == normalizar_ip("lixo-2") == "__invalido__"

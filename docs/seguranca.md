@@ -77,11 +77,12 @@ recusada.
   com resposta 429 e `Retry-After`. O IP usado e o anotado pelo CloudFront no
   `X-Forwarded-For`, entao um cabecalho forjado pelo cliente nao burla o limite.
   Enderecos IPv6 contam pelo prefixo /64 (um cliente costuma ter um /64 inteiro), e ha um
-  teto de chaves por janela: acima dele, IPs novos sao bloqueados em vez de crescer a memoria.
+  teto de chaves por janela: acima dele, IPs novos dividem um balde de excedente com limite
+  proprio (a memoria nao cresce e quem enche o teto nao bloqueia os demais clientes).
   Ver [backend/app/rate_limit.py](../backend/app/rate_limit.py). Evidencias:
   `test_limite_geral_por_ip`, `test_limite_de_upload`,
   `test_x_forwarded_for_falsificado_nao_burla_limite`, `test_ipv6_do_mesmo_bloco_64_conta_junto`,
-  `test_teto_de_chaves_falha_fechado`. Login e cadastro sao limitados
+  `test_teto_de_chaves_usa_balde_de_excedente`, `test_ip_invalido_vira_chave_unica`. Login e cadastro sao limitados
   pelo proprio Cognito.
 
 ## A05 - Configuracao incorreta de seguranca
@@ -169,7 +170,8 @@ no lugar do access token, emissor de outro User Pool e token expirado.
 | `test_limite_de_upload` | Uploads tem limite proprio, separado do geral |
 | `test_x_forwarded_for_falsificado_nao_burla_limite` | `X-Forwarded-For` forjado nao troca o IP contado |
 | `test_ipv6_do_mesmo_bloco_64_conta_junto` | Trocar de endereco dentro do mesmo /64 nao burla o limite |
-| `test_teto_de_chaves_falha_fechado` | Excesso de IPs distintos nao esgota memoria (falha fechada) |
+| `test_teto_de_chaves_usa_balde_de_excedente` | Excesso de IPs distintos nao esgota memoria nem bloqueia clientes conhecidos |
+| `test_ip_invalido_vira_chave_unica` | Valores que nao sao IP nao viram chaves arbitrarias |
 
 ### Integracao continua
 

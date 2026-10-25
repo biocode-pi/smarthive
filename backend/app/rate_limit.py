@@ -25,9 +25,12 @@ JANELA_SEGUNDOS = 60
 ROTAS_DE_UPLOAD = ("/monitoramentos", "/sensor-celular/captura")
 
 
-# Teto de chaves distintas por janela. Acima dele, chaves novas sao bloqueadas (falha
-# fechada) em vez de crescer a memoria; chaves ja conhecidas seguem contando normalmente.
+# Teto de chaves distintas por janela, para a memoria nao crescer sem limite. Acima dele,
+# IPs novos dividem um balde de excedente com limite proprio, em vez de serem recusados:
+# assim quem enche o teto (ex.: varrendo um /48 IPv6) nao bloqueia todos os outros clientes.
 MAX_CHAVES_POR_JANELA = 20_000
+CHAVE_EXCEDENTE = "__excedente__"
+FATOR_EXCEDENTE = 10
 
 
 def normalizar_ip(ip: str) -> str:
@@ -36,7 +39,7 @@ def normalizar_ip(ip: str) -> str:
     try:
         endereco = ipaddress.ip_address(ip)
     except ValueError:
-        return ip
+        return "__invalido__"  # nunca usar texto arbitrario como chave
     if endereco.version == 4:
         return str(endereco)
     if endereco.ipv4_mapped is not None:  # ::ffff:1.2.3.4 conta como o IPv4
@@ -75,10 +78,10 @@ class LimitadorDeRequisicoes:
                 self._contadores = {}
                 self._janela = janela
             k = (chave, grupo)
-            atual = self._contadores.get(k)
-            if atual is None and len(self._contadores) >= self._max_chaves:
-                return espera
-            self._contadores[k] = (atual or 0) + 1
+            if k not in self._contadores and len(self._contadores) >= self._max_chaves:
+                k = (CHAVE_EXCEDENTE, grupo)
+                limite *= FATOR_EXCEDENTE
+            self._contadores[k] = self._contadores.get(k, 0) + 1
             if self._contadores[k] > limite:
                 return espera
         return None
