@@ -34,17 +34,30 @@ if [ "${2:-}" != "--confirmar" ]; then
   exit 2
 fi
 
+# A chave vem do operador e o checksum vem dos metadados do objeto, que a instancia
+# (e portanto uma API comprometida) consegue escrever. Os dois sao validados com
+# regex estritas e trafegam em base64 para nunca serem interpretados pelo shell remoto.
+if ! [[ "$KEY" =~ ^postgres/smarthive-[0-9]{8}T[0-9]{6}Z\.dump$ ]]; then
+  echo "Chave invalida: $KEY" >&2
+  exit 2
+fi
 SHA256="$("$AWS" s3api head-object --bucket "$BUCKET" --key "$KEY" --query 'Metadata.sha256' --output text | tr -d '\r')"
-if [ -z "$SHA256" ] || [ "$SHA256" = "None" ]; then
-  echo "O backup $KEY nao tem checksum nos metadados; restauracao recusada." >&2
+if ! [[ "$SHA256" =~ ^[A-Za-z0-9+/]{43}=$ ]]; then
+  echo "Checksum ausente ou malformado nos metadados de $KEY; restauracao recusada." >&2
   exit 1
 fi
 URL="$("$AWS" s3 presign "s3://$BUCKET/$KEY" --expires-in 900 | tr -d '\r')"
+if ! [[ "$URL" =~ ^https://[A-Za-z0-9.-]+/[A-Za-z0-9._~%/?=\&+-]+$ ]]; then
+  echo "URL pre-assinada inesperada; restauracao recusada." >&2
+  exit 1
+fi
+URL_B64="$(printf '%s' "$URL" | base64 -w0)"
+SHA_B64="$(printf '%s' "$SHA256" | base64 -w0)"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 cat > "$TMP/params.json" <<JSON
-{"commands": ["/opt/smarthive/current/restore.sh '$URL' '$SHA256'"], "executionTimeout": ["900"]}
+{"commands": ["/opt/smarthive/current/restore.sh --b64 $URL_B64 $SHA_B64"], "executionTimeout": ["900"]}
 JSON
 PARAMS_FILE="$TMP/params.json"
 command -v cygpath >/dev/null 2>&1 && PARAMS_FILE="$(cygpath -w "$PARAMS_FILE")"
