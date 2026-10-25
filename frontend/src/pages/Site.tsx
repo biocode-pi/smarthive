@@ -63,12 +63,11 @@ const steps = [
   { title: "Agir", text: "Dashboard e alertas apoiam decisoes de manejo." },
 ];
 
-// TODO: preencher com os integrantes reais do grupo
 const team = [
-  { name: "Integrante 1", role: "Interface Web e Website" },
-  { name: "Integrante 2", role: "Aplicativo Mobile" },
-  { name: "Integrante 3", role: "Backend e Nuvem" },
-  { name: "Integrante 4", role: "Inteligencia Artificial" },
+  { name: "Mauricio Rafael", role: "Desenvolvedor" },
+  { name: "Bruno Davies", role: "Desenvolvedor" },
+  { name: "Bruno Eduardo", role: "Desenvolvedor" },
+  { name: "Leonardo Ribeiro", role: "Desenvolvedor" },
 ];
 
 export function Site() {
@@ -225,7 +224,10 @@ export function Site() {
             {team.map((member) => (
               <div key={member.name} className="rounded-xl border border-border bg-white p-6 text-center shadow-soft">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-honey-100 text-xl font-bold text-honey-500">
-                  {member.name.charAt(0)}
+                  {member.name
+                    .split(" ")
+                    .map((parte) => parte.charAt(0))
+                    .join("")}
                 </div>
                 <p className="mt-4 font-bold text-hive-900">{member.name}</p>
                 <p className="text-sm text-slate-500">{member.role}</p>
