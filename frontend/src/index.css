@@ -29,6 +29,15 @@ textarea {
   font: inherit;
 }
 
+/* Campos tem largura minima intrinseca; sem isso, numa coluna estreita de grid eles
+   empurram o card para fora (ex.: "Especie" no formulario de colmeias). */
+label,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
 a {
   color: inherit;
 }

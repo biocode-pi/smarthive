@@ -61,8 +61,8 @@ function Brand() {
         <img src={logo} alt="SmartHive" className="h-9 w-9 object-contain" />
       </div>
       <div>
-        <p className="text-lg font-bold tracking-tight text-slate-950">Smart Hive</p>
-        <p className="text-xs font-medium text-slate-500">Gestao apicola inteligente</p>
+        <p className="text-lg font-bold tracking-tight text-slate-950">SmartHive</p>
+        <p className="text-xs font-medium text-slate-500">Meliponicultura inteligente</p>
       </div>
     </div>
   );

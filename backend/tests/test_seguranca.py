@@ -165,3 +165,15 @@ def test_ip_invalido_vira_chave_unica():
     from app.rate_limit import normalizar_ip
 
     assert normalizar_ip("lixo-1") == normalizar_ip("lixo-2") == "__invalido__"
+
+
+def test_apagar_colmeia_remove_alertas_e_monitoramentos(client):
+    h = headers_de("user-cascata")
+    colmeia_id = client.post("/api/colmeias", json=COLMEIA, headers=h).json()["id"]
+    client.post("/api/monitoramentos", data={"colmeia_id": colmeia_id, "possivel_invasor": "true"}, headers=h)
+    client.post("/api/alertas", json={"colmeia_id": colmeia_id, "titulo": "Alerta manual"}, headers=h)
+    assert len(client.get("/api/alertas", headers=h).json()) == 2
+
+    assert client.delete(f"/api/colmeias/{colmeia_id}", headers=h).status_code == 204
+    assert client.get("/api/alertas", headers=h).json() == []
+    assert client.get("/api/monitoramentos", headers=h).json() == []

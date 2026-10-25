@@ -174,7 +174,7 @@ export function Overview() {
 
         <div className="surface rounded-lg p-5">
           <div>
-            <h2 className="text-base font-bold text-slate-950">Status do apiario</h2>
+            <h2 className="text-base font-bold text-slate-950">Status do meliponario</h2>
             <p className="mt-1 text-sm text-slate-500">Distribuicao atual das colmeias cadastradas.</p>
           </div>
 

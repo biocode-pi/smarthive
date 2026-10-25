@@ -46,7 +46,7 @@ create table if not exists monitoramentos (
 create table if not exists alertas (
   id text primary key default gen_random_uuid()::text,
   usuario_id text not null,
-  colmeia_id text references colmeias(id) on delete set null,
+  colmeia_id text references colmeias(id) on delete cascade,
   monitoramento_id text references monitoramentos(id) on delete set null,
   tipo text not null default 'observacao'
     check (tipo in ('observacao', 'possivel_invasor', 'baixa_atividade', 'sistema')),

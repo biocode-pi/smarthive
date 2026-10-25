@@ -86,7 +86,7 @@ export const authConfig: AuthConfig = {
     name: "SmartHive",
   },
   quote: {
-    text: "Apicultura conectada, do campo aos dados.",
+    text: "Meliponicultura conectada, do campo aos dados.",
     attribution: "SmartHive",
   },
   footer: {
