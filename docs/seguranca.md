@@ -76,9 +76,12 @@ recusada.
 - **Limite de requisicoes por IP** (janela de 60 s): 120 requisicoes gerais e 20 uploads,
   com resposta 429 e `Retry-After`. O IP usado e o anotado pelo CloudFront no
   `X-Forwarded-For`, entao um cabecalho forjado pelo cliente nao burla o limite.
+  Enderecos IPv6 contam pelo prefixo /64 (um cliente costuma ter um /64 inteiro), e ha um
+  teto de chaves por janela: acima dele, IPs novos sao bloqueados em vez de crescer a memoria.
   Ver [backend/app/rate_limit.py](../backend/app/rate_limit.py). Evidencias:
   `test_limite_geral_por_ip`, `test_limite_de_upload`,
-  `test_x_forwarded_for_falsificado_nao_burla_limite`. Login e cadastro sao limitados
+  `test_x_forwarded_for_falsificado_nao_burla_limite`, `test_ipv6_do_mesmo_bloco_64_conta_junto`,
+  `test_teto_de_chaves_falha_fechado`. Login e cadastro sao limitados
   pelo proprio Cognito.
 
 ## A05 - Configuracao incorreta de seguranca
@@ -165,6 +168,8 @@ no lugar do access token, emissor de outro User Pool e token expirado.
 | `test_limite_geral_por_ip` | 429 com `Retry-After` apos o limite; healthcheck fora do limite |
 | `test_limite_de_upload` | Uploads tem limite proprio, separado do geral |
 | `test_x_forwarded_for_falsificado_nao_burla_limite` | `X-Forwarded-For` forjado nao troca o IP contado |
+| `test_ipv6_do_mesmo_bloco_64_conta_junto` | Trocar de endereco dentro do mesmo /64 nao burla o limite |
+| `test_teto_de_chaves_falha_fechado` | Excesso de IPs distintos nao esgota memoria (falha fechada) |
 
 ### Integracao continua
 
@@ -197,7 +202,7 @@ Escolhas feitas pelo orcamento do projeto (creditos limitados) ou ainda pendente
 |---|---|---|
 | Porta 443 do EC2 aberta a internet (exigida pela validacao do certificado) | Qualquer um alcanca o Caddy | Requisicoes sem o cabecalho secreto recebem 403 |
 | Origem usa `sslip.io` (DNS de terceiros) | Dependencia externa | Trocar por dominio proprio |
-| Limite de requisicoes em memoria, em um unico processo | Contadores zeram ao reiniciar a API | Aceitavel com uma instancia; usar Redis/WAF se escalar |
+| Limite de requisicoes em memoria, em um unico processo, so por IP | Contadores zeram ao reiniciar; ataque distribuido (muitos IPs) nao e contido | Limite tambem por usuario autenticado; AWS WAF (pago) para ataques distribuidos |
 | Sem WAF | Sem filtragem de ataques comuns na borda | Custo; avaliar AWS WAF |
 | MFA opcional, nao obrigatorio | Quem nao ativa depende so da senha | Tornar obrigatorio para administradores |
 | Access token valido ate expirar mesmo apos excluir o usuario ou sair | Ate 60 min de acesso com um token vazado | Reduzir a validade ou checar revogacao (GlobalSignOut) na API |

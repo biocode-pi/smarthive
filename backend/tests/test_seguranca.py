@@ -136,3 +136,23 @@ def test_x_forwarded_for_falsificado_nao_burla_limite(client, settings, monkeypa
         cadeia = f"10.0.0.{i}, 203.0.113.7, 130.176.0.1"  # 1o item forjado pelo cliente; IP real fixo
         codigos.append(client.get("/api/colmeias", headers={**h, "X-Forwarded-For": cadeia}).status_code)
     assert codigos == [200, 200, 429]
+
+
+def test_ipv6_do_mesmo_bloco_64_conta_junto(client, settings, monkeypatch, limitador_limpo):
+    monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
+    monkeypatch.setattr(settings, "rate_limit_por_minuto", 2)
+    h = headers_de("user-rl-v6")
+    codigos = []
+    for i in range(3):
+        cadeia = f"2001:db8:abcd:12::{i + 1:x}, 130.176.0.1"  # enderecos diferentes, mesmo /64
+        codigos.append(client.get("/api/colmeias", headers={**h, "X-Forwarded-For": cadeia}).status_code)
+    assert codigos == [200, 200, 429]
+
+
+def test_teto_de_chaves_falha_fechado():
+    from app.rate_limit import LimitadorDeRequisicoes
+
+    limitador = LimitadorDeRequisicoes(max_chaves=3)
+    assert [limitador.registrar(f"10.0.0.{i}", "geral", 100) for i in range(3)] == [None, None, None]
+    assert limitador.registrar("10.0.0.99", "geral", 100) is not None  # chave nova acima do teto: bloqueada
+    assert limitador.registrar("10.0.0.1", "geral", 100) is None  # chave conhecida segue funcionando

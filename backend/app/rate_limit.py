@@ -11,6 +11,7 @@ segundo endereco a partir do fim, que e o que o CloudFront anotou.
 
 from __future__ import annotations
 
+import ipaddress
 import math
 import threading
 import time
@@ -24,34 +25,62 @@ JANELA_SEGUNDOS = 60
 ROTAS_DE_UPLOAD = ("/monitoramentos", "/sensor-celular/captura")
 
 
+# Teto de chaves distintas por janela. Acima dele, chaves novas sao bloqueadas (falha
+# fechada) em vez de crescer a memoria; chaves ja conhecidas seguem contando normalmente.
+MAX_CHAVES_POR_JANELA = 20_000
+
+
+def normalizar_ip(ip: str) -> str:
+    """IPv6 vira o prefixo /64: um so cliente costuma ter um /64 inteiro e poderia
+    trocar de endereco a cada requisicao para escapar do limite."""
+    try:
+        endereco = ipaddress.ip_address(ip)
+    except ValueError:
+        return ip
+    if endereco.version == 4:
+        return str(endereco)
+    if endereco.ipv4_mapped is not None:  # ::ffff:1.2.3.4 conta como o IPv4
+        return str(endereco.ipv4_mapped)
+    return str(ipaddress.ip_network(f"{endereco}/64", strict=False))
+
+
 def ip_do_cliente(request: Request, trusted_proxy_hops: int) -> str:
     if trusted_proxy_hops > 0:
         cadeia = [ip.strip() for ip in request.headers.get("x-forwarded-for", "").split(",") if ip.strip()]
         if len(cadeia) >= trusted_proxy_hops:
-            return cadeia[-trusted_proxy_hops]
-    return request.client.host if request.client else "desconhecido"
+            return normalizar_ip(cadeia[-trusted_proxy_hops])
+    return normalizar_ip(request.client.host) if request.client else "desconhecido"
 
 
 class LimitadorDeRequisicoes:
-    def __init__(self) -> None:
-        self._contadores: dict[tuple[str, str, int], int] = {}
+    def __init__(self, max_chaves: int = MAX_CHAVES_POR_JANELA) -> None:
+        self._contadores: dict[tuple[str, str], int] = {}
+        self._janela = -1
+        self._max_chaves = max_chaves
         self._lock = threading.Lock()
 
     def reset(self) -> None:
         with self._lock:
             self._contadores.clear()
+            self._janela = -1
 
     def registrar(self, chave: str, grupo: str, limite: int) -> int | None:
         """Conta a requisicao; devolve os segundos de espera se o limite foi excedido."""
         agora = time.time()
         janela = int(agora // JANELA_SEGUNDOS)
+        espera = max(1, math.ceil((janela + 1) * JANELA_SEGUNDOS - agora))
         with self._lock:
-            if len(self._contadores) > 10_000:
-                self._contadores = {k: v for k, v in self._contadores.items() if k[2] == janela}
-            k = (chave, grupo, janela)
-            self._contadores[k] = self._contadores.get(k, 0) + 1
+            # Ao virar a janela, descarta tudo de uma vez (O(1) amortizado, sem recopiar a cada requisicao).
+            if janela != self._janela:
+                self._contadores = {}
+                self._janela = janela
+            k = (chave, grupo)
+            atual = self._contadores.get(k)
+            if atual is None and len(self._contadores) >= self._max_chaves:
+                return espera
+            self._contadores[k] = (atual or 0) + 1
             if self._contadores[k] > limite:
-                return max(1, math.ceil((janela + 1) * JANELA_SEGUNDOS - agora))
+                return espera
         return None
 
 
