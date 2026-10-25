@@ -39,6 +39,7 @@ e criada na stack `smarthive`, regiao `us-east-1`.
 | S3 `SiteBucket` | Build do frontend, lido so pelo CloudFront (Origin Access Control) |
 | S3 `UploadsBucket` | Imagens e videos, privado, criptografado, versionado |
 | S3 `DeployBucket` | Pacotes de release do backend |
+| S3 `BackupBucket` | Backups diarios do Postgres, retidos por 30 dias |
 | CloudFront | HTTPS, cache do site, roteamento de `/api/*` para o EC2, cabecalhos de seguranca |
 | EC2 t4g.micro | Caddy + API + Postgres em Docker; sem SSH, administrado por SSM Session Manager |
 | Elastic IP | Endereco fixo da origem da API |
@@ -108,12 +109,30 @@ aws cloudformation describe-stacks --stack-name smarthive --query "Stacks[0].Out
 aws ssm start-session --target <InstanceId>
 ```
 
+## Backup do banco
+
+Um timer do systemd na instancia (`smarthive-backup.timer`) roda todo dia as 03:00 UTC
+(00:00 em Brasilia) e envia um `pg_dump` comprimido para o bucket `BackupBucket`, em
+`postgres/smarthive-<data>.dump`. Os backups ficam 30 dias e depois sao apagados
+automaticamente. Custo: centavos por mes.
+
+Comandos na instancia (`aws ssm start-session --target <InstanceId>`):
+
+```bash
+sudo systemctl list-timers smarthive-backup.timer      # proximo backup agendado
+sudo /opt/smarthive/current/backup.sh                  # backup na hora
+sudo /opt/smarthive/current/restore.sh latest --confirmar                              # restaura o mais recente
+sudo /opt/smarthive/current/restore.sh postgres/smarthive-<data>.dump --confirmar      # restaura um especifico
+```
+
+A restauracao **substitui** os dados atuais e para a API durante o processo.
+
 ## Pausar ou remover
 
 - **Pausar** (economiza ~US$ 6/mes): `aws ec2 stop-instances --instance-ids <InstanceId>`.
   O Elastic IP continua sendo cobrado. Volte com `start-instances`.
 - **Remover tudo**: esvazie os buckets e rode
-  `aws cloudformation delete-stack --stack-name smarthive`. O User Pool e o
-  bucket de midias tem `DeletionPolicy: Retain` e precisam ser apagados manualmente.
-  O banco vive no disco da instancia e e apagado junto com ela. Apague tambem o
+  `aws cloudformation delete-stack --stack-name smarthive`. O User Pool e os
+  buckets de midias e de backup tem `DeletionPolicy: Retain` e precisam ser apagados manualmente.
+  O banco vive no disco da instancia e e apagado junto com ela (os backups ficam no S3). Apague tambem o
   parametro `/smarthive/origin-secret` no SSM.

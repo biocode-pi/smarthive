@@ -30,6 +30,33 @@ cd /opt/smarthive/current
 docker compose -p smarthive --env-file /opt/smarthive/db.env up -d --build --remove-orphans
 docker image prune -f >/dev/null
 
+# Backup diario do Postgres para o S3 as 03:00 UTC (00:00 em Brasilia).
+chmod +x /opt/smarthive/current/backup.sh /opt/smarthive/current/restore.sh
+cat > /etc/systemd/system/smarthive-backup.service <<'UNIT'
+[Unit]
+Description=Backup do Postgres do SmartHive para o S3
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/smarthive/current/backup.sh
+UNIT
+cat > /etc/systemd/system/smarthive-backup.timer <<'UNIT'
+[Unit]
+Description=Backup diario do Postgres do SmartHive
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
+UNIT
+systemctl daemon-reload
+systemctl enable --now smarthive-backup.timer >/dev/null
+
 # Mantem apenas as 3 releases mais recentes.
 ls -1dt /opt/smarthive/releases/* | tail -n +4 | xargs -r rm -rf
 

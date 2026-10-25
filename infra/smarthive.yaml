@@ -253,6 +253,61 @@ Resources:
               Bool:
                 aws:SecureTransport: "false"
 
+  BackupBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: >-
+          Backups diarios do Postgres (pg_dump) feitos pelo timer da instancia. O banco
+          vive no disco do EC2; sem isso, substituir a instancia perde os dados.
+        must:
+          - Bucket sempre privado; manter Retain (e a unica copia fora da instancia).
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: retencao-30-dias
+            Status: Enabled
+            Prefix: postgres/
+            ExpirationInDays: 30
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 7
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+
+  BackupBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BackupBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SomenteHttps
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt BackupBucket.Arn
+              - !Sub "${BackupBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
   # ---------------------------------------------------------------- EC2 (API + Postgres)
   ApiSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -321,6 +376,19 @@ Resources:
                 Effect: Allow
                 Action: s3:GetObject
                 Resource: !Sub "${DeployBucket.Arn}/*"
+              - Sid: BackupsDoBanco
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub "${BackupBucket.Arn}/postgres/*"
+              - Sid: ListarBackups
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt BackupBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix: postgres/*
               - Sid: SegredoDeOrigem
                 Effect: Allow
                 Action: ssm:GetParameter
@@ -513,6 +581,8 @@ Outputs:
     Value: !Ref SiteBucket
   DeployBucketName:
     Value: !Ref DeployBucket
+  BackupBucketName:
+    Value: !Ref BackupBucket
   InstanceId:
     Value: !Ref ApiInstance
   Region:

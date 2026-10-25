@@ -26,6 +26,7 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/pkg/database"
 cp infra/ec2/docker-compose.prod.yml "$TMP/pkg/docker-compose.yml"
 cp infra/ec2/Caddyfile "$TMP/pkg/Caddyfile"
+cp infra/ec2/backup.sh infra/ec2/restore.sh "$TMP/pkg/"
 cp database/schema.sql "$TMP/pkg/database/"
 tar -C . -cf - \
   --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.venv' --exclude='.env' \
@@ -45,6 +46,7 @@ COGNITO_USER_POOL_ID=$(output UserPoolId)
 COGNITO_APP_CLIENT_ID=$(output UserPoolClientId)
 STORAGE_BACKEND=s3
 S3_BUCKET=$(output UploadsBucketName)
+BACKUP_BUCKET=$(output BackupBucketName)
 MAX_UPLOAD_MB=50
 ENV
 
