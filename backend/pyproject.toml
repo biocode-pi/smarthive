@@ -2,15 +2,15 @@
 name = "smarthive-backend"
 version = "0.2.0"
 description = "SmartHive FastAPI backend"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11"
 dependencies = [
-  "fastapi==0.115.6",
-  "uvicorn[standard]==0.34.0",
-  "pydantic==2.10.4",
-  "pydantic-settings==2.7.1",
-  "python-dotenv==1.0.1",
-  "python-multipart==0.0.20",
-  "PyJWT[crypto]==2.10.1",
-  "boto3==1.35.99",
-  "psycopg[binary]==3.2.3",
+  "fastapi==0.162.0",
+  "uvicorn[standard]==0.54.0",
+  "pydantic==2.14.1",
+  "pydantic-settings==2.16.1",
+  "python-dotenv==1.2.4",
+  "python-multipart==0.0.32",
+  "psycopg[binary]==3.3.6",
+  "PyJWT[crypto]==2.15.1",
+  "boto3==1.43.118",
 ]

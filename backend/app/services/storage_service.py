@@ -36,7 +36,7 @@ async def _ler_com_limite(file: UploadFile, limite_bytes: int) -> bytes:
         total += len(chunk)
         if total > limite_bytes:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"Arquivo maior que o limite de {limite_bytes // (1024 * 1024)} MB.",
             )
         partes.append(chunk)

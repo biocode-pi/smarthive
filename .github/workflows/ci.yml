@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Toda segunda as 09:00 UTC: reaudita dependencias mesmo sem commits novos.
+    - cron: "0 9 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend - testes de seguranca e auditoria
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt pip-audit
+
+      - name: Testes (autenticacao, isolamento por usuario, uploads, cabecalhos)
+        run: python -m pytest -v tests
+
+      - name: Auditoria de vulnerabilidades (pip-audit)
+        run: pip-audit -r requirements.txt --progress-spinner off
+
+  frontend:
+    name: Frontend - build e auditoria
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Typecheck e build
+        run: npm run build
+
+      - name: Auditoria de dependencias de producao (falha em high/critical)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Auditoria completa (informativa)
+        run: npm audit || true
+
+  infra:
+    name: Infra - validacao do CloudFormation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar cfn-lint
+        run: pip install cfn-lint==1.38.0
+
+      - name: cfn-lint
+        run: cfn-lint infra/smarthive.yaml
+
+      - name: Sintaxe dos scripts shell
+        run: for f in infra/*.sh infra/ec2/*.sh; do bash -n "$f"; done

@@ -36,7 +36,7 @@ function RouteFallback() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+      <BrowserRouter>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route index element={<Site />} />
