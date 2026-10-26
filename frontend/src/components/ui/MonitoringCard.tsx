@@ -26,9 +26,9 @@ export function MonitoringCard({ monitoramento }: { monitoramento: Monitoramento
           <p className="text-xs font-semibold text-slate-500">Fluxo</p>
           <p className="mt-1 text-xl font-bold text-slate-950">{formatNumber(monitoramento.fluxo_estimado)}</p>
         </div>
-        <div className="rounded-lg bg-emerald-50 p-3">
-          <p className="text-xs font-semibold text-emerald-700">Entrando</p>
-          <p className="mt-1 text-xl font-bold text-emerald-900">{formatNumber(monitoramento.abelhas_entrando)}</p>
+        <div className="rounded-lg bg-hive-50 p-3">
+          <p className="text-xs font-semibold text-hive-700">Entrando</p>
+          <p className="mt-1 text-xl font-bold text-hive-900">{formatNumber(monitoramento.abelhas_entrando)}</p>
         </div>
         <div className="rounded-lg bg-amber-50 p-3">
           <p className="text-xs font-semibold text-amber-700">Saindo</p>

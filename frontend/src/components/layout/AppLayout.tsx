@@ -27,9 +27,59 @@ const navItems = [
   { to: "/app/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-function Navigation({ onNavigate, compact = false }: { onNavigate?: () => void; compact?: boolean }) {
+// Barra inferior do celular: as telas de uso diario no campo. O resto fica no menu.
+const tabItems = [
+  { to: "/app", label: "Início", icon: Home },
+  { to: "/app/colmeias", label: "Colmeias", icon: Flower2 },
+  { to: "/app/sensor-celular", label: "Câmera", icon: Camera },
+  { to: "/app/alertas", label: "Alertas", icon: Bell },
+];
+
+function BottomTabs({ onMenu, menuAberto }: { onMenu: () => void; menuAberto: boolean }) {
+  const itemClass =
+    "focus-ring flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold";
   return (
-    <nav className={cn("gap-2", compact ? "flex overflow-x-auto px-4 pb-3" : "flex flex-col")}>
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+      aria-label="Navegação principal"
+    >
+      <div className="flex">
+        {tabItems.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === "/app"}
+            className={({ isActive }) => cn(itemClass, isActive ? "text-hive-700" : "text-slate-600")}
+          >
+            {({ isActive }) => (
+              <>
+                <span className={cn("rounded-full px-4 py-1", isActive && "bg-hive-100")}>
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                {label}
+              </>
+            )}
+          </NavLink>
+        ))}
+        <button
+          type="button"
+          className={cn(itemClass, menuAberto ? "text-hive-700" : "text-slate-600")}
+          onClick={onMenu}
+          aria-expanded={menuAberto}
+        >
+          <span className={cn("rounded-full px-4 py-1", menuAberto && "bg-hive-100")}>
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </span>
+          Menu
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+function Navigation({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <nav className="flex flex-col gap-2">
       {navItems.map(({ to, label, icon: Icon }) => (
         <NavLink
           key={to}
@@ -39,7 +89,6 @@ function Navigation({ onNavigate, compact = false }: { onNavigate?: () => void; 
           className={({ isActive }) =>
             cn(
               "focus-ring inline-flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition",
-              compact && "whitespace-nowrap",
               isActive
                 ? "bg-hive-600 text-white shadow-sm"
                 : "text-slate-600 hover:bg-hive-50 hover:text-slate-950",
@@ -61,7 +110,7 @@ function Brand() {
         <img src={logo} alt="SmartHive" className="h-9 w-9 object-contain" />
       </div>
       <div>
-        <p className="text-lg font-bold tracking-tight text-slate-950">SmartHive</p>
+        <p className="font-display text-lg font-semibold text-ink">SmartHive</p>
         <p className="text-xs font-medium text-slate-500">Meliponicultura inteligente</p>
       </div>
     </div>
@@ -85,7 +134,7 @@ export function AppLayout() {
 
         <div className="mt-8 space-y-6">
           <div>
-            <p className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-400">Principal</p>
+            <p className="mb-3 px-3 text-xs font-bold uppercase tracking-wider text-slate-500">Principal</p>
             <Navigation />
           </div>
         </div>
@@ -139,14 +188,14 @@ export function AppLayout() {
               </button>
             </div>
           </div>
-        ) : (
-          <Navigation compact />
-        )}
+        ) : null}
       </header>
 
-      <main className="px-4 py-6 sm:px-6 lg:ml-72 lg:px-10 lg:py-8">
+      <main className="px-4 pb-28 pt-6 sm:px-6 lg:ml-72 lg:px-10 lg:py-8">
         <Outlet />
       </main>
+
+      <BottomTabs onMenu={() => setOpen((value) => !value)} menuAberto={open} />
     </div>
   );
 }

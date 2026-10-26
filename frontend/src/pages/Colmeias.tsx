@@ -246,9 +246,9 @@ export function Colmeias() {
           )}
 
           {colmeias.some((colmeia) => colmeia.status === "risco") ? (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
-              <AlertTriangle className="h-4 w-4" />
-              Existem colmeias marcadas como risco.
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              Há colmeias em risco. Abra cada uma para ver os últimos monitoramentos.
             </div>
           ) : null}
         </div>

@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/ProtectedRoute";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AuthProvider } from "./context/AuthContext";
+// O site publico e a primeira pagina: carregado junto, sem a tela "Carregando".
+import { Site } from "./pages/Site";
 
 const Alertas = lazy(() => import("./pages/Alertas").then(({ Alertas }) => ({ default: Alertas })));
 const ColmeiaDetalhes = lazy(() =>
@@ -16,7 +18,6 @@ const Dashboard = lazy(() => import("./pages/Dashboard").then(({ Dashboard }) =>
 const Login = lazy(() => import("./pages/Login").then(({ Login }) => ({ default: Login })));
 const NotFound = lazy(() => import("./pages/NotFound").then(({ NotFound }) => ({ default: NotFound })));
 const Overview = lazy(() => import("./pages/Overview").then(({ Overview }) => ({ default: Overview })));
-const Site = lazy(() => import("./pages/Site").then(({ Site }) => ({ default: Site })));
 const Registros = lazy(() => import("./pages/Registros").then(({ Registros }) => ({ default: Registros })));
 const SensorCelular = lazy(() =>
   import("./pages/SensorCelular").then(({ SensorCelular }) => ({ default: SensorCelular })),

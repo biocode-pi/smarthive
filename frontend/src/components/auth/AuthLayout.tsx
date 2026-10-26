@@ -1,6 +1,18 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { AuthBrandConfig, AuthFooterConfig, AuthQuoteConfig } from "../../config/auth.config";
+import { FavoMap, type CelulaFavo } from "../ui/FavoMap";
+
+// Favo ilustrativo do painel lateral (decorativo).
+const favoIlustrativo: CelulaFavo[] = [
+  { id: "1", codigo: "JAT-001", nome: "Jataí", status: "ativa" },
+  { id: "2", codigo: "URU-004", nome: "Uruçu", status: "ativa" },
+  { id: "3", codigo: "MAN-003", nome: "Mandaçaia", status: "observacao" },
+  { id: "4", codigo: "IRA-006", nome: "Iraí", status: "ativa" },
+  { id: "5", codigo: "JAT-002", nome: "Jataí", status: "ativa" },
+  { id: "6", codigo: "TUB-007", nome: "Tubuna", status: "ativa" },
+  { id: "7", codigo: "MIR-005", nome: "Mirim", status: "ativa" },
+];
 
 interface AuthLayoutProps {
   brand: AuthBrandConfig;
@@ -16,7 +28,7 @@ export function AuthLayout({ brand, quote, footer, children }: AuthLayoutProps) 
         <header>
           <Link to="/" className="inline-flex items-center gap-2.5">
             <img src={brand.logoSrc} alt={brand.name} className="h-8 w-8 object-contain" />
-            <span className="text-base font-semibold tracking-tight text-slate-900">{brand.name}</span>
+            <span className="font-display text-base font-semibold text-ink">{brand.name}</span>
           </Link>
         </header>
 
@@ -25,7 +37,7 @@ export function AuthLayout({ brand, quote, footer, children }: AuthLayoutProps) 
         </div>
 
         {footer ? (
-          <footer className="flex flex-col gap-2 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <footer className="flex flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <p>{footer.copyright}</p>
             <div className="flex gap-5">
               {footer.links.map((link) => (
@@ -38,12 +50,15 @@ export function AuthLayout({ brand, quote, footer, children }: AuthLayoutProps) 
         ) : null}
       </section>
 
-      <aside className="relative hidden bg-hive-900 lg:flex lg:flex-col lg:justify-end lg:p-16 xl:p-20">
+      <aside className="relative hidden bg-hive-900 lg:flex lg:flex-col lg:justify-between lg:p-16 xl:p-20">
+        <div aria-hidden="true" className="flex flex-1 items-center justify-center">
+          <FavoMap celulas={favoIlustrativo} className="max-w-sm" corDoContorno="#10251b" />
+        </div>
         <blockquote className="max-w-md">
-          <p className="text-3xl font-medium leading-[1.25] tracking-tight text-white">
+          <p className="font-display text-3xl font-medium leading-[1.2] text-white">
             {quote.text}
           </p>
-          <footer className="mt-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+          <footer className="mt-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">
             {quote.attribution}
           </footer>
         </blockquote>

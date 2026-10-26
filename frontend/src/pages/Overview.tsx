@@ -14,12 +14,14 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { EmptyState } from "../components/ui/EmptyState";
+import { FavoMap, LegendaFavo, type CelulaFavo } from "../components/ui/FavoMap";
 import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
+import { listarColmeias } from "../services/colmeias";
 import { obterResumoDashboard } from "../services/dashboard";
-import type { DashboardResumo, Monitoramento } from "../types";
+import type { Colmeia, DashboardResumo, Monitoramento } from "../types";
 import { formatDateTime, formatNumber } from "../utils/formatters";
 
 type MetricCardProps = {
@@ -40,13 +42,18 @@ const chartHeight = 220;
 const chartPadding = 28;
 
 export function Overview() {
+  const navigate = useNavigate();
   const [resumo, setResumo] = useState<DashboardResumo | null>(null);
+  const [colmeias, setColmeias] = useState<Colmeia[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    obterResumoDashboard()
-      .then(setResumo)
+    Promise.all([obterResumoDashboard(), listarColmeias()])
+      .then(([dados, lista]) => {
+        setResumo(dados);
+        setColmeias(lista);
+      })
       .catch(() => setError("Não foi possível carregar os dados do SmartHive."))
       .finally(() => setLoading(false));
   }, []);
@@ -84,24 +91,26 @@ export function Overview() {
     );
   }
 
-  const statusItems: StatusItem[] = [
-    { label: "Ativas", value: resumo.colmeias_ativas, className: "bg-emerald-600" },
-    { label: "Observação", value: resumo.colmeias_em_observacao, className: "bg-sky-500" },
-    { label: "Risco", value: resumo.colmeias_em_risco, className: "bg-rose-500" },
-    {
-      label: "Inativas",
-      value: Math.max(
-        resumo.total_colmeias - resumo.colmeias_ativas - resumo.colmeias_em_observacao - resumo.colmeias_em_risco,
-        0,
-      ),
-      className: "bg-slate-400",
-    },
-  ].filter((item) => item.value > 0 || item.label !== "Inativas");
-
-  const totalStatus = Math.max(statusItems.reduce((total, item) => total + item.value, 0), 1);
   const fluxoTotal = Math.max(indicadores.entradas + indicadores.saidas, 1);
   const entradasPercent = Math.round((indicadores.entradas / fluxoTotal) * 100);
   const saidasPercent = Math.round((indicadores.saidas / fluxoTotal) * 100);
+  // Ultimo fluxo conhecido de cada colmeia (os monitoramentos vem do mais recente ao mais antigo).
+  const ultimoFluxo = new Map<string, number>();
+  for (const item of indicadores.registros) {
+    if (!ultimoFluxo.has(item.colmeia_id)) ultimoFluxo.set(item.colmeia_id, item.fluxo_estimado ?? 0);
+  }
+  const codigoDaColmeia = new Map(colmeias.map((colmeia) => [colmeia.id, colmeia.codigo || colmeia.nome]));
+  // Mais grave no centro do favo: e o que precisa chamar atencao primeiro.
+  const gravidade: Record<string, number> = { risco: 0, observacao: 1, ativa: 2, inativa: 3 };
+  const celulas: CelulaFavo[] = [...colmeias]
+    .sort((a, b) => gravidade[a.status] - gravidade[b.status])
+    .map((colmeia) => ({
+    id: colmeia.id,
+    codigo: colmeia.codigo || colmeia.nome.slice(0, 7),
+    nome: colmeia.nome,
+    status: colmeia.status,
+    detalhe: ultimoFluxo.has(colmeia.id) ? `${ultimoFluxo.get(colmeia.id)} mov.` : undefined,
+  }));
   const lineData = buildLineData(indicadores.registros);
   const barData = buildBarData(indicadores.registros);
 
@@ -129,7 +138,7 @@ export function Overview() {
         </div>
       </PageHeader>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <MetricCard
           label="Colmeias monitoradas"
           value={formatNumber(resumo.total_colmeias)}
@@ -174,33 +183,28 @@ export function Overview() {
 
         <div className="surface rounded-lg p-5">
           <div>
-            <h2 className="text-base font-bold text-slate-950">Status do meliponário</h2>
-            <p className="mt-1 text-sm text-slate-500">Distribuição atual das colmeias cadastradas.</p>
+            <h2 className="text-base font-bold text-slate-950">Meliponário</h2>
+            <p className="mt-1 text-sm text-slate-600">Cada hexágono é uma colmeia. Selecione uma para ver os detalhes.</p>
           </div>
-
-          <div className="mt-5 space-y-4">
-            {statusItems.map((item) => {
-              const percent = Math.round((item.value / totalStatus) * 100);
-              return (
-                <div key={item.label}>
-                  <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
-                    <span className="font-semibold text-slate-700">{item.label}</span>
-                    <span className="font-bold text-slate-950">
-                      {formatNumber(item.value)} <span className="font-medium text-slate-500">{percent}%</span>
-                    </span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                    <div className={`h-full rounded-full ${item.className}`} style={{ width: `${percent}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-5">
-            <CompactFigure label="Ativas" value={resumo.colmeias_ativas} tone="text-emerald-700" />
-            <CompactFigure label="Em risco" value={resumo.colmeias_em_risco} tone="text-rose-700" />
-          </div>
+          {celulas.length ? (
+            <>
+              <FavoMap
+                celulas={celulas}
+                onSelecionar={(id) => navigate(`/app/colmeias/${id}`)}
+                className="mx-auto mt-4 max-w-xs"
+              />
+              <div className="mt-4 border-t border-slate-100 pt-4">
+                <LegendaFavo celulas={celulas} />
+              </div>
+            </>
+          ) : (
+            <p className="mt-6 text-sm text-slate-600">
+              Nenhuma colmeia cadastrada ainda.{" "}
+              <Link to="/app/colmeias" className="font-semibold text-hive-700 hover:text-hive-900">
+                Cadastrar colmeia
+              </Link>
+            </p>
+          )}
         </div>
       </section>
 
@@ -226,14 +230,14 @@ export function Overview() {
               value={indicadores.entradas}
               percent={entradasPercent}
               icon={<ArrowDown className="h-4 w-4" />}
-              className="bg-emerald-600"
+              className="bg-chart-entrada"
             />
             <FlowRow
               label="Saindo"
               value={indicadores.saidas}
               percent={saidasPercent}
               icon={<ArrowUp className="h-4 w-4" />}
-              className="bg-sky-500"
+              className="bg-chart-saida"
             />
           </div>
 
@@ -266,13 +270,13 @@ export function Overview() {
           </div>
 
           {indicadores.registros.length ? (
-            <div className="overflow-hidden rounded-lg border border-slate-200">
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
               <table className="w-full border-collapse text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="px-4 py-3 text-left font-bold">Horário</th>
+                    <th className="px-4 py-3 text-left font-bold">Colmeia</th>
                     <th className="px-4 py-3 text-left font-bold">Fluxo</th>
-                    <th className="px-4 py-3 text-left font-bold">Mov.</th>
                     <th className="px-4 py-3 text-left font-bold">Origem</th>
                   </tr>
                 </thead>
@@ -280,8 +284,8 @@ export function Overview() {
                   {indicadores.registros.slice(0, 5).map((item) => (
                     <tr key={item.id} className="border-t border-slate-100">
                       <td className="px-4 py-3 text-slate-700">{formatDateTime(item.data_hora ?? item.criado_em)}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-slate-700">{codigoDaColmeia.get(item.colmeia_id) ?? "—"}</td>
                       <td className="px-4 py-3 font-semibold text-slate-950">{formatNumber(item.fluxo_estimado)}</td>
-                      <td className="px-4 py-3 text-slate-700">{formatNumber(item.movimentos_estimados)}</td>
                       <td className="px-4 py-3 text-slate-600">{originLabel(item.origem)}</td>
                     </tr>
                   ))}
@@ -320,10 +324,10 @@ export function Overview() {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4">
+            <div className="rounded-lg border border-hive-200 bg-hive-50 px-4 py-4">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-                <p className="text-sm font-semibold text-emerald-900">Nenhum alerta recente aberto.</p>
+                <CheckCircle2 className="h-5 w-5 text-hive-700" />
+                <p className="text-sm font-semibold text-hive-900">Nenhum alerta recente aberto.</p>
               </div>
             </div>
           )}
@@ -335,15 +339,15 @@ export function Overview() {
 
 function MetricCard({ label, value, detail, icon }: MetricCardProps) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-500">{label}</p>
-          <p className="mt-2 text-3xl font-bold text-slate-950">{value}</p>
+          <p className="text-sm font-semibold text-slate-600">{label}</p>
+          <p className="tabular mt-2 font-display text-3xl font-semibold text-ink">{value}</p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-hive-700">{icon}</div>
+        <div className="hidden rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-hive-700 sm:block">{icon}</div>
       </div>
-      <p className="mt-4 text-sm text-slate-500">{detail}</p>
+      <p className="mt-3 text-xs text-slate-600 sm:mt-4 sm:text-sm">{detail}</p>
     </div>
   );
 }
@@ -351,7 +355,7 @@ function MetricCard({ label, value, detail, icon }: MetricCardProps) {
 function CompactFigure({ label, value, tone }: { label: string; value: ReactNode; tone: string }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
       <p className={`mt-1 text-xl font-bold ${tone}`}>{value}</p>
     </div>
   );
@@ -415,11 +419,11 @@ function LineChart({ data }: { data: { label: string; value: number }[] }) {
           const y = chartPadding + (step / 3) * usableHeight;
           return <line key={step} x1={chartPadding} x2={chartWidth - chartPadding} y1={y} y2={y} stroke="#e2e8f0" />;
         })}
-        <path d={area} fill="#dcfce7" opacity="0.65" />
-        <path d={path} fill="none" stroke="#166534" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+        <path d={area} fill="#2e7d52" opacity="0.12" />
+        <path d={path} fill="none" stroke="#2e7d52" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
         {points.map((point) => (
           <g key={`${point.label}-${point.x}`}>
-            <circle cx={point.x} cy={point.y} r="4.5" fill="#ffffff" stroke="#166534" strokeWidth="2" />
+            <circle cx={point.x} cy={point.y} r="4.5" fill="#ffffff" stroke="#2e7d52" strokeWidth="2" />
             <text x={point.x} y={chartHeight - 8} textAnchor="middle" className="fill-slate-500 text-[11px]">
               {point.label}
             </text>
@@ -452,7 +456,7 @@ function BarChart({ data }: { data: { label: string; value: number }[] }) {
           <div key={item.label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
             <div className="flex h-40 w-full items-end rounded-t-md bg-slate-50">
               <div
-                className="w-full rounded-t-md bg-slate-700"
+                className="w-full rounded-t-md bg-chart-entrada"
                 style={{ height: `${height}%` }}
                 title={`${item.label}: ${formatNumber(item.value)}`}
               />
@@ -505,6 +509,6 @@ function originLabel(value: string) {
 
 function alertTone(severidade: string) {
   if (severidade === "alta") return "bg-rose-50 text-rose-700";
-  if (severidade === "media") return "bg-sky-50 text-sky-700";
+  if (severidade === "media") return "bg-honey-50 text-honey-700";
   return "bg-slate-100 text-slate-700";
 }

@@ -263,7 +263,7 @@ export function Login() {
           <label className="flex select-none items-center gap-2 text-sm text-slate-600">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300"
+              className="h-4 w-4 rounded border-slate-300 text-hive-600 focus:ring-hive-200"
               checked={manterConectado}
               onChange={(event) => setManterConectado(event.target.checked)}
             />
@@ -274,7 +274,7 @@ export function Login() {
         <button
           type="submit"
           disabled={enviando || !configurado}
-          className="h-11 w-full rounded-md bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 w-full rounded-md bg-hive-600 text-sm font-semibold text-white transition hover:bg-hive-700 focus:outline-none focus:ring-4 focus:ring-hive-200 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {enviando ? "Aguarde..." : current.submit}
         </button>

@@ -4,15 +4,15 @@ import type { StatusColmeia } from "../../types";
 const statusMap: Record<StatusColmeia, { label: string; className: string }> = {
   ativa: {
     label: "Ativa",
-    className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    className: "bg-hive-50 text-hive-700 ring-hive-200",
   },
   observacao: {
     label: "Em observação",
-    className: "bg-amber-50 text-amber-700 ring-amber-200",
+    className: "bg-honey-50 text-honey-700 ring-honey-200",
   },
   risco: {
-    label: "Risco",
-    className: "bg-rose-50 text-rose-700 ring-rose-200",
+    label: "Em risco",
+    className: "bg-orange-50 text-orange-800 ring-orange-200",
   },
   inativa: {
     label: "Inativa",
@@ -23,7 +23,7 @@ const statusMap: Record<StatusColmeia, { label: string; className: string }> = {
 export function StatusBadge({ status }: { status: StatusColmeia }) {
   const item = statusMap[status];
   return (
-    <span className={cn("inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1", item.className)}>
+    <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1", item.className)}>
       {item.label}
     </span>
   );

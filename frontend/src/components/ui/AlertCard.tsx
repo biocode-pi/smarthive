@@ -5,7 +5,7 @@ import { formatDateTime } from "../../utils/formatters";
 import { Button } from "./Button";
 
 const severityClass = {
-  baixa: "bg-sky-50 text-sky-700 ring-sky-200",
+  baixa: "bg-honey-50 text-honey-700 ring-sky-200",
   media: "bg-amber-50 text-amber-700 ring-amber-200",
   alta: "bg-rose-50 text-rose-700 ring-rose-200",
 };
@@ -26,7 +26,7 @@ export function AlertCard({ alerta, onResolve }: AlertCardProps) {
               {alerta.severidade}
             </span>
             {alerta.resolvido ? (
-              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+              <span className="rounded-full bg-hive-50 px-3 py-1 text-xs font-semibold text-hive-700 ring-1 ring-hive-200">
                 Resolvido
               </span>
             ) : null}
