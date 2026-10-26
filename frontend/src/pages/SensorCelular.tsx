@@ -64,7 +64,7 @@ function pickTargetPrediction(predictions: Prediction[]): TargetPrediction | nul
     .map((prediction): TargetPrediction | null => {
       if (prediction.probability < TARGET_CONFIDENCE) return null;
       if (isBeePrediction(prediction)) return { kind: "bee", label: "Abelha", prediction };
-      if (isInvaderPrediction(prediction)) return { kind: "invader", label: "Possivel invasor", prediction };
+      if (isInvaderPrediction(prediction)) return { kind: "invader", label: "Possível invasor", prediction };
       return null;
     })
     .filter((item): item is TargetPrediction => item !== null)
@@ -135,7 +135,7 @@ export function SensorCelular() {
     setMessage(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError("Camera indisponivel neste navegador.");
+      setCameraError("Câmera indisponível neste navegador.");
       return;
     }
 
@@ -162,8 +162,8 @@ export function SensorCelular() {
       const permissionDenied = error instanceof DOMException && error.name === "NotAllowedError";
       setCameraError(
         permissionDenied
-          ? "Permissao da camera negada."
-          : "Nao foi possivel abrir a camera. Em celular, use HTTPS ou localhost.",
+          ? "Permissão da câmera negada."
+          : "Não foi possível abrir a câmera. Em celular, use HTTPS ou localhost.",
       );
     }
   }
@@ -210,14 +210,14 @@ export function SensorCelular() {
       const image = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error("Imagem invalida."));
+        img.onerror = () => reject(new Error("Imagem inválida."));
         img.src = URL.createObjectURL(file);
       });
       const result = (await model.classify(image, 8)) as Prediction[];
       applyPredictions(result);
       URL.revokeObjectURL(image.src);
     } catch {
-      setCameraError("Nao foi possivel analisar esta imagem.");
+      setCameraError("Não foi possível analisar esta imagem.");
     }
   }
 
@@ -237,7 +237,7 @@ export function SensorCelular() {
         const result = (await model.classify(video, 5)) as Prediction[];
         applyPredictions(result);
       } catch {
-        setCameraError("Falha ao classificar o frame da camera.");
+        setCameraError("Falha ao classificar o frame da câmera.");
       } finally {
         timerRef.current = window.setTimeout(analyze, 1200);
       }
@@ -294,7 +294,7 @@ export function SensorCelular() {
       [
         form.observacoes,
         currentTarget
-          ? `IA: ${currentTarget.label.toLowerCase()} identificado como "${currentTarget.prediction.className}" com ${confidenceLabel(currentTarget.prediction.probability)} de confianca.`
+          ? `IA: ${currentTarget.label.toLowerCase()} identificado como "${currentTarget.prediction.className}" com ${confidenceLabel(currentTarget.prediction.probability)} de confiança.`
           : "IA: nenhum alvo relevante identificado. Classes fora de abelha/invasor foram ignoradas.",
       ]
         .filter(Boolean)
@@ -309,7 +309,7 @@ export function SensorCelular() {
       setMessage(response.mensagem);
       navigate(`/app/colmeias/${form.colmeia_id}`);
     } catch {
-      setMessage("Nao foi possivel salvar a captura experimental.");
+      setMessage("Não foi possível salvar a captura experimental.");
     } finally {
       setSaving(false);
     }
@@ -330,8 +330,8 @@ export function SensorCelular() {
   return (
     <>
       <PageHeader
-        title="Camera IA"
-        description="Captura visual pelo celular com classificacao local de abelhas."
+        title="Câmera IA"
+        description="Captura visual pelo celular com classificação local de abelhas."
       />
 
       {colmeias.length === 0 ? (
@@ -357,8 +357,8 @@ export function SensorCelular() {
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-hive-600 text-white">
                       {modelLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Camera className="h-8 w-8" />}
                     </div>
-                    <p className="text-lg font-bold text-white">Camera pronta</p>
-                    <p className="mt-2 text-sm text-slate-300">MobileNet sera carregado antes da captura.</p>
+                    <p className="text-lg font-bold text-white">Câmera pronta</p>
+                    <p className="mt-2 text-sm text-slate-300">MobileNet será carregado antes da captura.</p>
                   </div>
                 </div>
               ) : null}
@@ -391,7 +391,7 @@ export function SensorCelular() {
                 disabled={modelLoading}
                 icon={modelLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
               >
-                {cameraActive ? "Parar camera" : modelLoading ? "Carregando IA..." : "Abrir camera"}
+                {cameraActive ? "Parar câmera" : modelLoading ? "Carregando IA..." : "Abrir câmera"}
               </Button>
               <Button
                 type="button"
@@ -420,12 +420,12 @@ export function SensorCelular() {
             ) : null}
 
             <div className="mb-5">
-              <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Classificacao</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Classificação</p>
               <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm font-bold text-slate-700">Abelha detectada</span>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${beeDetected ? "bg-hive-50 text-hive-700" : "bg-slate-100 text-slate-500"}`}>
-                    {beeDetected ? "Sim" : "Nao"}
+                    {beeDetected ? "Sim" : "Não"}
                   </span>
                 </div>
                 <p className="mt-3 text-3xl font-black text-slate-950">{detections}</p>
@@ -435,7 +435,7 @@ export function SensorCelular() {
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-sm font-bold text-slate-700">Invasor detectado</span>
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${invaderDetected ? "bg-rose-50 text-rose-700" : "bg-slate-100 text-slate-500"}`}>
-                    {invaderDetected ? "Sim" : "Nao"}
+                    {invaderDetected ? "Sim" : "Não"}
                   </span>
                 </div>
                 <p className="mt-3 text-3xl font-black text-slate-950">{invaderDetections}</p>
@@ -461,7 +461,7 @@ export function SensorCelular() {
               </label>
 
               <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Duracao da observacao
+                Duração da observação
                 <input
                   type="number"
                   min="1"
@@ -497,11 +497,11 @@ export function SensorCelular() {
                   checked={form.possivel_invasor}
                   onChange={(event) => setField("possivel_invasor", event.target.checked)}
                 />
-                <span className="text-sm font-semibold text-slate-700">Possivel invasor</span>
+                <span className="text-sm font-semibold text-slate-700">Possível invasor</span>
               </label>
 
               <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Observacoes
+                Observações
                 <textarea
                   className="focus-ring min-h-28 rounded-lg border border-slate-200 bg-white px-3 py-2"
                   value={form.observacoes}
@@ -522,7 +522,7 @@ export function SensorCelular() {
                 ))
               ) : (
                 <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500">
-                  Classes irrelevantes sao ignoradas.
+                  Classes irrelevantes são ignoradas.
                 </div>
               )}
             </div>

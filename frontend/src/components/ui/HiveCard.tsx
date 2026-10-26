@@ -29,7 +29,7 @@ export function HiveCard({ colmeia, onEdit, onDelete }: HiveCardProps) {
       <div className="mt-4 space-y-2 text-sm text-slate-600">
         <p className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-hive-700" />
-          {colmeia.localizacao || "Localizacao nao informada"}
+          {colmeia.localizacao || "Localização não informada"}
         </p>
         <p>Instalada em: {formatDate(colmeia.instalada_em)}</p>
         {colmeia.descricao ? <p className="line-clamp-2">{colmeia.descricao}</p> : null}

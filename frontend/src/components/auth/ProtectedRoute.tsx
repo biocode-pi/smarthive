@@ -9,7 +9,7 @@ export function ProtectedRoute() {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
         <div className="surface rounded-xl p-6 text-center">
-          <p className="text-sm font-semibold text-slate-500">Verificando sessao</p>
+          <p className="text-sm font-semibold text-slate-500">Verificando sessão</p>
           <p className="mt-2 text-lg font-bold text-slate-950">SmartHive</p>
         </div>
       </div>

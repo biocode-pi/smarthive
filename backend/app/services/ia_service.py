@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from typing import Any
 
 
@@ -33,7 +34,7 @@ def analisar_fluxo_experimental(
         "nivel_atividade": nivel,
         "fluxo_total": fluxo_total,
         "saldo_fluxo": entrando - saindo,
-        "observacao": "Analise experimental sem modelo de IA real nesta versao.",
+        "observacao": "Análise experimental sem modelo de IA real nesta versão.",
     }
 
 
@@ -46,7 +47,9 @@ def detectar_possivel_invasor(possivel_invasor_manual: bool, observacoes: str | 
 
     if possivel_invasor_manual:
         return True
-    texto = (observacoes or "").lower()
+    # Compara sem acentos: "ameaça" e "forídeo" digitados corretamente tambem contam.
+    texto = unicodedata.normalize("NFKD", (observacoes or "").lower())
+    texto = "".join(c for c in texto if not unicodedata.combining(c))
     palavras_chave = ("invasor", "formiga", "forideo", "aranha", "mosca", "ameaca", "ataque")
     return any(palavra in texto for palavra in palavras_chave)
 

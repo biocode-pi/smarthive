@@ -26,7 +26,7 @@ class Usuario:
     email: str | None = None
 
 
-def _nao_autorizado(detalhe: str = "Token invalido ou ausente.") -> HTTPException:
+def _nao_autorizado(detalhe: str = "Token inválido ou ausente.") -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detalhe,

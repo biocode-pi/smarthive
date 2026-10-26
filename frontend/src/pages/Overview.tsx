@@ -47,7 +47,7 @@ export function Overview() {
   useEffect(() => {
     obterResumoDashboard()
       .then(setResumo)
-      .catch(() => setError("Nao foi possivel carregar os dados do SmartHive."))
+      .catch(() => setError("Não foi possível carregar os dados do SmartHive."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -78,7 +78,7 @@ export function Overview() {
     return (
       <EmptyState
         icon={<AlertTriangle className="h-6 w-6" />}
-        title="API indisponivel"
+        title="API indisponível"
         description={error ?? "Sem dados para exibir."}
       />
     );
@@ -86,7 +86,7 @@ export function Overview() {
 
   const statusItems: StatusItem[] = [
     { label: "Ativas", value: resumo.colmeias_ativas, className: "bg-emerald-600" },
-    { label: "Observacao", value: resumo.colmeias_em_observacao, className: "bg-sky-500" },
+    { label: "Observação", value: resumo.colmeias_em_observacao, className: "bg-sky-500" },
     { label: "Risco", value: resumo.colmeias_em_risco, className: "bg-rose-500" },
     {
       label: "Inativas",
@@ -108,8 +108,8 @@ export function Overview() {
   return (
     <>
       <PageHeader
-        title="Visao geral"
-        description="Operacao das colmeias, fluxo visual recente e pendencias de campo."
+        title="Visão geral"
+        description="Operação das colmeias, fluxo visual recente e pendências de campo."
       >
         <div className="flex flex-wrap gap-2">
           <Link
@@ -117,7 +117,7 @@ export function Overview() {
             className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
           >
             <Clock3 className="h-4 w-4" />
-            Historico
+            Histórico
           </Link>
           <Link
             to="/app/sensor-celular"
@@ -143,15 +143,15 @@ export function Overview() {
           icon={<BarChart3 className="h-5 w-5" />}
         />
         <MetricCard
-          label="Fluxo medio recente"
+          label="Fluxo médio recente"
           value={formatNumber(indicadores.mediaFluxo)}
-          detail={`Saldo ${formatSigned(indicadores.saldoFluxo)} no periodo`}
+          detail={`Saldo ${formatSigned(indicadores.saldoFluxo)} no período`}
           icon={<Gauge className="h-5 w-5" />}
         />
         <MetricCard
           label="Alertas abertos"
           value={formatNumber(resumo.alertas_abertos)}
-          detail={resumo.alertas_abertos ? "Requer revisao de campo" : "Sem pendencia critica"}
+          detail={resumo.alertas_abertos ? "Requer revisão de campo" : "Sem pendência crítica"}
           icon={<ShieldAlert className="h-5 w-5" />}
         />
       </section>
@@ -161,7 +161,7 @@ export function Overview() {
           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-950">Atividade recente</h2>
-              <p className="mt-1 text-sm text-slate-500">Fluxo estimado nos ultimos monitoramentos recebidos.</p>
+              <p className="mt-1 text-sm text-slate-500">Fluxo estimado nos últimos monitoramentos recebidos.</p>
             </div>
             <div className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">
               <Activity className="h-3.5 w-3.5" />
@@ -174,8 +174,8 @@ export function Overview() {
 
         <div className="surface rounded-lg p-5">
           <div>
-            <h2 className="text-base font-bold text-slate-950">Status do meliponario</h2>
-            <p className="mt-1 text-sm text-slate-500">Distribuicao atual das colmeias cadastradas.</p>
+            <h2 className="text-base font-bold text-slate-950">Status do meliponário</h2>
+            <p className="mt-1 text-sm text-slate-500">Distribuição atual das colmeias cadastradas.</p>
           </div>
 
           <div className="mt-5 space-y-4">
@@ -208,8 +208,8 @@ export function Overview() {
         <div className="surface rounded-lg p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-bold text-slate-950">Entrada e saida</h2>
-              <p className="mt-1 text-sm text-slate-500">Balanco agregado dos ultimos registros.</p>
+              <h2 className="text-base font-bold text-slate-950">Entrada e saída</h2>
+              <p className="mt-1 text-sm text-slate-500">Balanço agregado dos últimos registros.</p>
             </div>
             <Link
               to="/app/monitoramentos/novo"
@@ -257,8 +257,8 @@ export function Overview() {
         <div className="surface rounded-lg p-5">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-base font-bold text-slate-950">Ultimos eventos</h2>
-              <p className="mt-1 text-sm text-slate-500">Leituras recentes ja normalizadas pelo backend.</p>
+              <h2 className="text-base font-bold text-slate-950">Últimos eventos</h2>
+              <p className="mt-1 text-sm text-slate-500">Leituras recentes já normalizadas pelo backend.</p>
             </div>
             <Link className="text-sm font-semibold text-hive-700 hover:text-hive-900" to="/app/registros">
               Ver todos
@@ -270,7 +270,7 @@ export function Overview() {
               <table className="w-full border-collapse text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-4 py-3 text-left font-bold">Horario</th>
+                    <th className="px-4 py-3 text-left font-bold">Horário</th>
                     <th className="px-4 py-3 text-left font-bold">Fluxo</th>
                     <th className="px-4 py-3 text-left font-bold">Mov.</th>
                     <th className="px-4 py-3 text-left font-bold">Origem</th>
@@ -299,7 +299,7 @@ export function Overview() {
 
         <div className="surface rounded-lg p-5">
           <div className="mb-4">
-            <h2 className="text-base font-bold text-slate-950">Pendencias</h2>
+            <h2 className="text-base font-bold text-slate-950">Pendências</h2>
             <p className="mt-1 text-sm text-slate-500">Alertas recentes que ainda orientam a rotina.</p>
           </div>
 
@@ -310,7 +310,7 @@ export function Overview() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-slate-950">{alerta.titulo}</p>
-                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{alerta.mensagem ?? "Sem descricao."}</p>
+                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{alerta.mensagem ?? "Sem descrição."}</p>
                     </div>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${alertTone(alerta.severidade)}`}>
                       {alerta.severidade}
@@ -390,7 +390,7 @@ function LineChart({ data }: { data: { label: string; value: number }[] }) {
   if (!data.length) {
     return (
       <div className="mt-6 flex h-56 items-center justify-center rounded-lg border border-dashed border-slate-200 text-sm font-semibold text-slate-400">
-        Sem dados suficientes para plotar a serie.
+        Sem dados suficientes para plotar a série.
       </div>
     );
   }
@@ -410,7 +410,7 @@ function LineChart({ data }: { data: { label: string; value: number }[] }) {
 
   return (
     <div className="mt-5">
-      <svg className="h-64 w-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Serie de fluxo">
+      <svg className="h-64 w-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Série de fluxo">
         {[0, 1, 2, 3].map((step) => {
           const y = chartPadding + (step / 3) * usableHeight;
           return <line key={step} x1={chartPadding} x2={chartWidth - chartPadding} y1={y} y2={y} stroke="#e2e8f0" />;

@@ -18,7 +18,7 @@ export function Dashboard() {
   useEffect(() => {
     obterResumoDashboard()
       .then(setResumo)
-      .catch(() => setError("Nao foi possivel carregar o dashboard."))
+      .catch(() => setError("Não foi possível carregar o dashboard."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,7 +42,7 @@ export function Dashboard() {
     return (
       <EmptyState
         icon={<AlertTriangle className="h-6 w-6" />}
-        title="Dashboard indisponivel"
+        title="Dashboard indisponível"
         description={error ?? "Sem dados para exibir."}
       />
     );
@@ -56,22 +56,22 @@ export function Dashboard() {
     <>
       <PageHeader
         title="Dashboard"
-        description="Metricas de atividade, fluxo visual e alertas do SmartHive."
+        description="Métricas de atividade, fluxo visual e alertas do SmartHive."
       >
         <Link
           to="/app/registros"
           className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
         >
           <LineChart className="h-4 w-4" />
-          Ver historico
+          Ver histórico
         </Link>
       </PageHeader>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Entradas" value={fluxo.entradas} icon={<ArrowDown className="h-5 w-5" />} />
-        <StatCard label="Saidas" value={fluxo.saidas} icon={<ArrowUp className="h-5 w-5" />} />
+        <StatCard label="Saídas" value={fluxo.saidas} icon={<ArrowUp className="h-5 w-5" />} />
         <StatCard label="Movimentos" value={fluxo.movimentos} icon={<LineChart className="h-5 w-5" />} />
-        <StatCard label="Possiveis invasores" value={fluxo.invasores} icon={<AlertTriangle className="h-5 w-5" />} />
+        <StatCard label="Possíveis invasores" value={fluxo.invasores} icon={<AlertTriangle className="h-5 w-5" />} />
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -79,14 +79,14 @@ export function Dashboard() {
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-slate-950">Resumo de atividade</h2>
-              <p className="mt-1 text-sm text-slate-500">Ultimos registros processados pelo backend.</p>
+              <p className="mt-1 text-sm text-slate-500">Últimos registros processados pelo backend.</p>
             </div>
             <Link
               to="/app/sensor-celular"
               className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
             >
               <Camera className="h-4 w-4" />
-              Camera IA
+              Câmera IA
             </Link>
           </div>
 
@@ -102,7 +102,7 @@ export function Dashboard() {
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
-                <span>Saidas</span>
+                <span>Saídas</span>
                 <span>{fluxo.saidas}</span>
               </div>
               <div className="h-4 overflow-hidden rounded-full bg-slate-100">
@@ -117,7 +117,7 @@ export function Dashboard() {
           <div className="mt-5 grid gap-3">
             {[
               ["Ativas", resumo.colmeias_ativas, "bg-hive-50 text-hive-700"],
-              ["Observacao", resumo.colmeias_em_observacao, "bg-amber-50 text-amber-700"],
+              ["Observação", resumo.colmeias_em_observacao, "bg-amber-50 text-amber-700"],
               ["Risco", resumo.colmeias_em_risco, "bg-rose-50 text-rose-700"],
             ].map(([label, value, className]) => (
               <div key={label} className={`flex items-center justify-between rounded-lg px-4 py-3 ${className}`}>
@@ -146,7 +146,7 @@ export function Dashboard() {
               <EmptyState
                 icon={<LineChart className="h-6 w-6" />}
                 title="Nenhum monitoramento registrado"
-                description="Crie o primeiro registro para iniciar o historico."
+                description="Crie o primeiro registro para iniciar o histórico."
               />
             )}
           </div>
@@ -161,7 +161,7 @@ export function Dashboard() {
               <EmptyState
                 icon={<AlertTriangle className="h-6 w-6" />}
                 title="Sem alertas recentes"
-                description="Riscos e observacoes aparecem aqui."
+                description="Riscos e observações aparecem aqui."
               />
             )}
           </div>

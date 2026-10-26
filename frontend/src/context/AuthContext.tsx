@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [atualizarUsuario]);
 
   async function executar(acao: () => Promise<AuthResult | void>): Promise<AuthResult> {
-    if (!hasCognitoConfig) return { erro: "Login nao configurado no frontend." };
+    if (!hasCognitoConfig) return { erro: "Login não configurado no frontend." };
     try {
       return (await withAuthTimeout(acao())) ?? {};
     } catch (error) {
@@ -107,14 +107,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { precisaConfirmar: true };
       }
       if (nextStep.signInStep === "CONFIRM_SIGN_IN_WITH_TOTP_CODE") return { precisaMfa: true };
-      if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login nao suportada." };
+      if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login não suportada." };
       await atualizarUsuario();
     });
 
   const confirmarMfa = (codigo: string) =>
     executar(async () => {
       const { nextStep } = await confirmSignIn({ challengeResponse: codigo });
-      if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login nao suportada." };
+      if (nextStep.signInStep !== "DONE") return { erro: "Etapa de login não suportada." };
       await atualizarUsuario();
     });
 
@@ -183,7 +183,7 @@ export function useAuth() {
 
 export function userDisplayName(user: Usuario | null): string {
   if (user?.nome?.trim()) return user.nome.trim();
-  return user?.email || "Usuario";
+  return user?.email || "Usuário";
 }
 
 function withAuthTimeout<T>(promise: Promise<T>): Promise<T> {
@@ -201,29 +201,29 @@ function traduzirErro(error: unknown): string {
   const mensagem = error instanceof Error ? error.message : "";
 
   if (mensagem === "auth_timeout") {
-    return "A autenticacao demorou demais para responder. Verifique sua conexao e tente novamente.";
+    return "A autenticação demorou demais para responder. Verifique sua conexão e tente novamente.";
   }
   switch (nome) {
     case "NotAuthorizedException":
       return "E-mail ou senha incorretos.";
     case "UsernameExistsException":
-      return "Este e-mail ja esta cadastrado.";
+      return "Este e-mail já está cadastrado.";
     case "InvalidPasswordException":
-      return "A senha precisa ter 8 caracteres, com letra maiuscula, minuscula e numero.";
+      return "A senha precisa ter 8 caracteres, com letra maiúscula, minúscula e número.";
     case "EnableSoftwareTokenMFAException":
     case "CodeMismatchException":
-      return "Codigo incorreto. Confira e tente novamente.";
+      return "Código incorreto. Confira e tente novamente.";
     case "ExpiredCodeException":
-      return "Codigo expirado. Solicite um novo.";
+      return "Código expirado. Solicite um novo.";
     case "LimitExceededException":
     case "TooManyRequestsException":
     case "TooManyFailedAttemptsException":
       return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
     case "UserAlreadyAuthenticatedException":
-      return "Voce ja esta conectado.";
+      return "Você já está conectado.";
     case "InvalidParameterException":
-      return "Dados invalidos. Confira o e-mail e a senha.";
+      return "Dados inválidos. Confira o e-mail e a senha.";
     default:
-      return "Nao foi possivel concluir a autenticacao. Tente novamente.";
+      return "Não foi possível concluir a autenticação. Tente novamente.";
   }
 }

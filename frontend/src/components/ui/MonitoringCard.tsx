@@ -16,7 +16,7 @@ export function MonitoringCard({ monitoramento }: { monitoramento: Monitoramento
         </div>
         {monitoramento.possivel_invasor ? (
           <span className="inline-flex rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-200">
-            Possivel invasor
+            Possível invasor
           </span>
         ) : null}
       </div>
@@ -46,7 +46,7 @@ export function MonitoringCard({ monitoramento }: { monitoramento: Monitoramento
         {url ? (
           <a className="inline-flex items-center gap-2 font-semibold text-hive-700 hover:text-hive-800" href={url} target="_blank" rel="noreferrer">
             <Camera className="h-4 w-4" />
-            Ver midia
+            Ver mídia
           </a>
         ) : null}
       </div>

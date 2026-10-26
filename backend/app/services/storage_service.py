@@ -49,7 +49,7 @@ def _validar_tipo(file: UploadFile) -> str:
     if extension is None or ALLOWED_CONTENT_TYPES.get(extension) != content_type:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Tipo de arquivo nao permitido. Envie JPG, PNG, WEBP, MP4, MOV ou WEBM.",
+            detail="Tipo de arquivo não permitido. Envie JPG, PNG, WEBP, MP4, MOV ou WEBM.",
         )
     return extension
 
@@ -76,7 +76,7 @@ async def salvar_upload(usuario_id: str, file: UploadFile | None) -> str | None:
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Falha ao enviar a midia para o armazenamento.",
+                detail="Falha ao enviar a mídia para o armazenamento.",
             ) from exc
         return f"{S3_PREFIX}{key}"
 

@@ -50,14 +50,14 @@ export function Login() {
 
   function validar(): string | null {
     if (pedeEmail.includes(mode) && !emailRegex.test(email.trim())) {
-      return "Informe um e-mail valido. Exemplo: nome@dominio.com";
+      return "Informe um e-mail válido. Exemplo: nome@domínio.com";
     }
     if (mode === "cadastro" && !nome.trim()) return "Informe seu nome.";
     if (mode === "login" && !senha) return "Informe sua senha.";
     if ((mode === "cadastro" || mode === "novaSenha") && !senhaForteRegex.test(senha)) {
-      return "A senha precisa ter 8 caracteres, com letra maiuscula, minuscula e numero.";
+      return "A senha precisa ter 8 caracteres, com letra maiúscula, minúscula e número.";
     }
-    if (pedeCodigo.includes(mode) && !/^\d{6}$/.test(codigo.trim())) return "Informe o codigo de 6 digitos.";
+    if (pedeCodigo.includes(mode) && !/^\d{6}$/.test(codigo.trim())) return "Informe o código de 6 dígitos.";
     return null;
   }
 
@@ -85,7 +85,7 @@ export function Login() {
       if (mode === "login") {
         const result = await login(emailLimpo, senha, manterConectado);
         if (result.erro) return setErro(result.erro);
-        if (result.precisaConfirmar) return irPara("confirmar", "Confirme seu e-mail: enviamos um novo codigo.");
+        if (result.precisaConfirmar) return irPara("confirmar", "Confirme seu e-mail: enviamos um novo código.");
         if (result.precisaMfa) return irPara("mfa");
         navigate(redirectTo, { replace: true });
         return;
@@ -101,7 +101,7 @@ export function Login() {
       if (mode === "cadastro") {
         const result = await registrar(emailLimpo, senha, nome.trim());
         if (result.erro) return setErro(result.erro);
-        if (result.precisaConfirmar) return irPara("confirmar", `Enviamos um codigo para ${emailLimpo}.`);
+        if (result.precisaConfirmar) return irPara("confirmar", `Enviamos um código para ${emailLimpo}.`);
         return irPara("login", "Conta criada. Entre para continuar.");
       }
 
@@ -124,7 +124,7 @@ export function Login() {
         const result = await recuperarSenha(emailLimpo);
         if (result.erro) return setErro(result.erro);
         setSenha("");
-        return irPara("novaSenha", `Se ${emailLimpo} estiver cadastrado, voce recebera um codigo.`);
+        return irPara("novaSenha", `Se ${emailLimpo} estiver cadastrado, você receberá um código.`);
       }
 
       const result = await redefinirSenha(emailLimpo, codigo.trim(), senha);
@@ -140,7 +140,7 @@ export function Login() {
     setErro(null);
     const result = await reenviarCodigo(email.trim());
     if (result.erro) setErro(result.erro);
-    else setSucesso("Codigo reenviado.");
+    else setSucesso("Código reenviado.");
   }
 
   return (

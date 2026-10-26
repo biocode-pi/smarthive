@@ -177,3 +177,11 @@ def test_apagar_colmeia_remove_alertas_e_monitoramentos(client):
     assert client.delete(f"/api/colmeias/{colmeia_id}", headers=h).status_code == 204
     assert client.get("/api/alertas", headers=h).json() == []
     assert client.get("/api/monitoramentos", headers=h).json() == []
+
+
+def test_deteccao_de_invasor_ignora_acentos():
+    from app.services.ia_service import detectar_possivel_invasor
+
+    assert detectar_possivel_invasor(False, "Possível ameaça na entrada")
+    assert detectar_possivel_invasor(False, "Vi um FORÍDEO perto do tubo")
+    assert not detectar_possivel_invasor(False, "Entrada tranquila, fluxo normal")

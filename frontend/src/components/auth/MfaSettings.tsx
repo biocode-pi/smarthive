@@ -34,7 +34,7 @@ export function MfaSettings({ email }: { email: string }) {
       setSegredo(detalhes.sharedSecret);
       setEstado("configurando");
     } catch {
-      setErro("Nao foi possivel iniciar a configuracao. Entre novamente e tente de novo.");
+      setErro("Não foi possível iniciar a configuração. Entre novamente e tente de novo.");
     } finally {
       setEnviando(false);
     }
@@ -43,7 +43,7 @@ export function MfaSettings({ email }: { email: string }) {
   async function confirmar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!/^\d{6}$/.test(codigo)) {
-      setErro("Informe o codigo de 6 digitos do aplicativo.");
+      setErro("Informe o código de 6 dígitos do aplicativo.");
       return;
     }
     setErro(null);
@@ -56,7 +56,7 @@ export function MfaSettings({ email }: { email: string }) {
       setSegredo(null);
       setCodigo("");
     } catch {
-      setErro("Codigo incorreto ou expirado. Confira o horario do celular e tente novamente.");
+      setErro("Código incorreto ou expirado. Confira o horário do celular e tente novamente.");
     } finally {
       setEnviando(false);
     }
@@ -69,7 +69,7 @@ export function MfaSettings({ email }: { email: string }) {
       await updateMFAPreference({ totp: "DISABLED" });
       setEstado("desativado");
     } catch {
-      setErro("Nao foi possivel desativar. Tente novamente.");
+      setErro("Não foi possível desativar. Tente novamente.");
     } finally {
       setEnviando(false);
     }
@@ -85,7 +85,7 @@ export function MfaSettings({ email }: { email: string }) {
             {ativado ? <ShieldCheck className="h-6 w-6" /> : <ShieldOff className="h-6 w-6" />}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-500">Verificacao em duas etapas</p>
+            <p className="text-sm font-semibold text-slate-500">Verificação em duas etapas</p>
             <p className="mt-1 text-lg font-bold text-slate-950">
               {estado === "carregando" ? "Verificando..." : ativado ? "Ativada" : "Desativada"}
             </p>
@@ -114,7 +114,7 @@ export function MfaSettings({ email }: { email: string }) {
             <p>
               Sem camera? Digite a chave: <code className="break-all font-mono text-slate-900">{segredo}</code>
             </p>
-            <p>2. Digite o codigo de 6 digitos gerado pelo aplicativo:</p>
+            <p>2. Digite o código de 6 dígitos gerado pelo aplicativo:</p>
             <div className="flex flex-wrap gap-3">
               <input
                 className={inputClass}
@@ -123,7 +123,7 @@ export function MfaSettings({ email }: { email: string }) {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 placeholder="000000"
-                aria-label="Codigo do aplicativo autenticador"
+                aria-label="Código do aplicativo autenticador"
               />
               <Button type="submit" disabled={enviando}>
                 Confirmar

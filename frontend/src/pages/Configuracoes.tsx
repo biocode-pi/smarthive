@@ -12,13 +12,13 @@ const settings = [
     icon: Database,
   },
   {
-    title: "Camera mobile",
+    title: "Câmera mobile",
     value: "HTTPS ou localhost",
     icon: Smartphone,
   },
   {
-    title: "Deteccao",
-    value: "Visao local com circulos",
+    title: "Detecção",
+    value: "Visão local com círculos",
     icon: Camera,
   },
   {
@@ -34,8 +34,8 @@ export function Configuracoes() {
   return (
     <>
       <PageHeader
-        title="Configuracoes"
-        description="Conta, sessao e parametros tecnicos usados pelo SmartHive."
+        title="Configurações"
+        description="Conta, sessão e parâmetros técnicos usados pelo SmartHive."
       />
 
       <section className="surface mb-6 rounded-xl p-6">

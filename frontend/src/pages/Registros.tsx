@@ -19,7 +19,7 @@ export function Registros() {
     try {
       setRegistros(await listarMonitoramentos());
     } catch {
-      setError("Nao foi possivel carregar o historico.");
+      setError("Não foi possível carregar o histórico.");
     } finally {
       setLoading(false);
     }
@@ -40,8 +40,8 @@ export function Registros() {
   return (
     <>
       <PageHeader
-        title="Historico"
-        description="Registros manuais, capturas de camera e leituras experimentais."
+        title="Histórico"
+        description="Registros manuais, capturas de câmera e leituras experimentais."
       />
 
       {error ? (
@@ -55,7 +55,7 @@ export function Registros() {
           <EmptyState
             icon={<FileText className="h-6 w-6" />}
             title="Nenhum registro encontrado"
-            description="Os monitoramentos criados pelo formulario ou camera aparecem aqui."
+            description="Os monitoramentos criados pelo formulário ou câmera aparecem aqui."
           />
         ) : (
           <div className="table-shell">
@@ -65,9 +65,9 @@ export function Registros() {
                   <th>Data</th>
                   <th>Origem</th>
                   <th>Fluxo</th>
-                  <th>Entradas/Saidas</th>
+                  <th>Entradas/Saídas</th>
                   <th>Invasor</th>
-                  <th className="text-right">Acoes</th>
+                  <th className="text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,7 +90,7 @@ export function Registros() {
                           Sim
                         </span>
                       ) : (
-                        <span className="text-slate-400">Nao</span>
+                        <span className="text-slate-400">Não</span>
                       )}
                     </td>
                     <td>

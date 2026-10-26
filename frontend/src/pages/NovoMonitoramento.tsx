@@ -67,7 +67,7 @@ export function NovoMonitoramento() {
       await criarMonitoramento(formData);
       navigate(`/app/colmeias/${form.colmeia_id}`);
     } catch {
-      setError("Nao foi possivel registrar o monitoramento.");
+      setError("Não foi possível registrar o monitoramento.");
     } finally {
       setSaving(false);
     }
@@ -79,7 +79,7 @@ export function NovoMonitoramento() {
     <>
       <PageHeader
         title="Novo monitoramento"
-        description="Registre observacoes de campo, fluxo estimado e midia capturada pelo celular para manter o historico da colmeia."
+        description="Registre observações de campo, fluxo estimado e mídia capturada pelo celular para manter o histórico da colmeia."
       />
 
       <form onSubmit={handleSubmit} className="rounded-xl border border-white/80 bg-white/90 p-5 shadow-soft">
@@ -100,7 +100,7 @@ export function NovoMonitoramento() {
               ))}
             </select>
           </FormField>
-          <FormField label="Duracao da observacao (segundos)">
+          <FormField label="Duração da observação (segundos)">
             <input
               type="number"
               min="0"
@@ -166,7 +166,7 @@ export function NovoMonitoramento() {
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <FormField label="Imagem ou video do celular">
+          <FormField label="Imagem ou vídeo do celular">
             <input
               type="file"
               accept="image/*,video/*"
@@ -182,11 +182,11 @@ export function NovoMonitoramento() {
               checked={form.possivel_invasor}
               onChange={(event) => setField("possivel_invasor", event.target.checked)}
             />
-            <span className="text-sm font-semibold text-slate-700">Possivel invasor observado</span>
+            <span className="text-sm font-semibold text-slate-700">Possível invasor observado</span>
           </label>
         </div>
 
-        <FormField label="Observacoes">
+        <FormField label="Observações">
           <textarea
             className="focus-ring mt-4 min-h-28 w-full rounded-lg border border-slate-200 bg-white px-3 py-2"
             value={form.observacoes}

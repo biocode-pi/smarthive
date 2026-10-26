@@ -18,13 +18,13 @@ import { useAuth, userDisplayName } from "../../context/AuthContext";
 import { cn } from "../../utils/classNames";
 
 const navItems = [
-  { to: "/app", label: "Visao geral", icon: Home },
+  { to: "/app", label: "Visão geral", icon: Home },
   { to: "/app/dashboard", label: "Dashboard", icon: BarChart3 },
   { to: "/app/colmeias", label: "Colmeias", icon: Flower2 },
-  { to: "/app/sensor-celular", label: "Camera IA", icon: Camera },
-  { to: "/app/registros", label: "Historico", icon: FileText },
+  { to: "/app/sensor-celular", label: "Câmera IA", icon: Camera },
+  { to: "/app/registros", label: "Histórico", icon: FileText },
   { to: "/app/alertas", label: "Alertas", icon: Bell },
-  { to: "/app/configuracoes", label: "Configuracoes", icon: Settings },
+  { to: "/app/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 function Navigation({ onNavigate, compact = false }: { onNavigate?: () => void; compact?: boolean }) {
@@ -116,7 +116,7 @@ export function AppLayout() {
             type="button"
             className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700"
             onClick={() => setOpen((value) => !value)}
-            aria-label="Abrir navegacao"
+            aria-label="Abrir navegação"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

@@ -7,7 +7,7 @@ const statusMap: Record<StatusColmeia, { label: string; className: string }> = {
     className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   },
   observacao: {
-    label: "Em observacao",
+    label: "Em observação",
     className: "bg-amber-50 text-amber-700 ring-amber-200",
   },
   risco: {

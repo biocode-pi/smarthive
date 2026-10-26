@@ -116,7 +116,7 @@ def seed_data(usuario_id: str) -> Dict[str, List[Dict[str, Any]]]:
                 "tipo": "observacao",
                 "severidade": "baixa",
                 "titulo": "Validar posicionamento do celular",
-                "mensagem": "Revisar enquadramento da entrada da colmeia nas proximas capturas.",
+                "mensagem": "Revisar enquadramento da entrada da colmeia nas próximas capturas.",
                 "resolvido": False,
                 "criado_em": now_iso(),
                 "resolvido_em": None,

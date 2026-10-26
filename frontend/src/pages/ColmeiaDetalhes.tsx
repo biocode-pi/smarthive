@@ -39,12 +39,12 @@ export function ColmeiaDetalhes() {
   if (loading) return <LoadingState />;
 
   if (!colmeia) {
-    return <EmptyState title="Colmeia nao encontrada" description="O registro solicitado nao existe ou foi removido." />;
+    return <EmptyState title="Colmeia não encontrada" description="O registro solicitado não existe ou foi removido." />;
   }
 
   return (
     <>
-      <PageHeader title={colmeia.nome} description="Detalhes operacionais, historico de monitoramentos e indicadores iniciais de atividade.">
+      <PageHeader title={colmeia.nome} description="Detalhes operacionais, histórico de monitoramentos e indicadores iniciais de atividade.">
         <Link
           to="/app/colmeias"
           className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
@@ -68,7 +68,7 @@ export function ColmeiaDetalhes() {
               <h2 className="text-xl font-bold text-slate-950">{colmeia.especie}</h2>
               <StatusBadge status={colmeia.status} />
             </div>
-            <p className="mt-2 text-sm text-slate-600">{colmeia.localizacao || "Localizacao nao informada"}</p>
+            <p className="mt-2 text-sm text-slate-600">{colmeia.localizacao || "Localização não informada"}</p>
             <p className="mt-1 text-sm text-slate-500">Instalada em {formatDate(colmeia.instalada_em)}</p>
           </div>
           {colmeia.codigo ? <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">{colmeia.codigo}</p> : null}
@@ -78,18 +78,18 @@ export function ColmeiaDetalhes() {
 
       <section className="mb-6 grid gap-4 md:grid-cols-3">
         <StatCard label="Monitoramentos" value={indicadores.total} icon={<LineChart className="h-5 w-5" />} />
-        <StatCard label="Fluxo medio" value={formatNumber(indicadores.fluxoMedio)} icon={<LineChart className="h-5 w-5" />} />
+        <StatCard label="Fluxo médio" value={formatNumber(indicadores.fluxoMedio)} icon={<LineChart className="h-5 w-5" />} />
         <StatCard label="Registros com invasor" value={indicadores.invasores} icon={<LineChart className="h-5 w-5" />} />
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold text-slate-950">Historico de monitoramentos</h2>
+        <h2 className="mb-3 text-lg font-bold text-slate-950">Histórico de monitoramentos</h2>
         <div className="space-y-4">
           {monitoramentos.length ? (
             monitoramentos.map((monitoramento) => <MonitoringCard key={monitoramento.id} monitoramento={monitoramento} />)
           ) : (
             <EmptyState
-              title="Sem historico"
+              title="Sem histórico"
               description="Registre o primeiro monitoramento para criar a linha do tempo da colmeia."
             />
           )}

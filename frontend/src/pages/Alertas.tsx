@@ -25,7 +25,7 @@ export function Alertas() {
     try {
       setAlertas(await listarAlertas());
     } catch {
-      setError("Nao foi possivel carregar alertas.");
+      setError("Não foi possível carregar alertas.");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export function Alertas() {
     <>
       <PageHeader
         title="Alertas"
-        description="Eventos criticos, baixa atividade e possiveis invasores observados."
+        description="Eventos críticos, baixa atividade e possíveis invasores observados."
       />
 
       {error ? (
@@ -74,7 +74,7 @@ export function Alertas() {
             <EmptyState
               icon={<AlertTriangle className="h-6 w-6" />}
               title="Nenhum alerta aberto"
-              description="A operacao nao possui alertas pendentes."
+              description="A operação não possui alertas pendentes."
             />
           ) : (
             <div className="space-y-3">

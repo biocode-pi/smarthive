@@ -7,7 +7,7 @@ export function formatDateTime(value?: string | null): string {
 }
 
 export function formatDate(value?: string | null): string {
-  if (!value) return "Nao informado";
+  if (!value) return "Não informado";
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(value));
 }
 

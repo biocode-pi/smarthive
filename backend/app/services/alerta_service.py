@@ -34,7 +34,7 @@ def criar_alerta(usuario_id: str, payload: AlertaCreate | dict) -> dict:
 def resolver_alerta(usuario_id: str, alerta_id: str) -> dict:
     alerta = get_store().get(TABLE, alerta_id)
     if not alerta or alerta.get("usuario_id") != usuario_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerta nao encontrado.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerta não encontrado.")
     return get_store().update(
         TABLE,
         alerta_id,

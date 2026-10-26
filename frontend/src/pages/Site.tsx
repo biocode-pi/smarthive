@@ -26,28 +26,28 @@ const navLinks = [
 const features = [
   {
     icon: Flower2,
-    title: "Gestao de colmeias",
-    text: "Cadastro de colmeias de abelhas nativas com especie, localizacao e historico completo.",
+    title: "Gestão de colmeias",
+    text: "Cadastro de colmeias de abelhas nativas com espécie, localização e histórico completo.",
   },
   {
     icon: Camera,
     title: "Captura em campo",
-    text: "Registro de imagens e videos da entrada da colmeia direto pelo celular.",
+    text: "Registro de imagens e vídeos da entrada da colmeia direto pelo celular.",
   },
   {
     icon: Activity,
-    title: "Analise automatizada",
-    text: "Interpretacao das capturas para estimar o nivel de atividade de cada colmeia.",
+    title: "Análise automatizada",
+    text: "Interpretação das capturas para estimar o nível de atividade de cada colmeia.",
   },
   {
     icon: Bell,
     title: "Alertas",
-    text: "Avisos sobre baixa atividade ou comportamento fora do padrao.",
+    text: "Avisos sobre baixa atividade ou comportamento fora do padrão.",
   },
   {
     icon: LineChart,
     title: "Dashboard",
-    text: "Indicadores e historico para acompanhar a saude do meliponario ao longo do tempo.",
+    text: "Indicadores e histórico para acompanhar a saúde do meliponário ao longo do tempo.",
   },
   {
     icon: Smartphone,
@@ -58,9 +58,9 @@ const features = [
 
 const steps = [
   { title: "Capturar", text: "O meliponicultor registra a entrada da colmeia pelo celular ou dispositivo IoT." },
-  { title: "Enviar", text: "Os dados sao enviados com seguranca para a nuvem." },
+  { title: "Enviar", text: "Os dados são enviados com segurança para a nuvem." },
   { title: "Analisar", text: "A plataforma processa as capturas e calcula indicadores de atividade." },
-  { title: "Agir", text: "Dashboard e alertas apoiam decisoes de manejo." },
+  { title: "Agir", text: "Dashboard e alertas apoiam decisões de manejo." },
 ];
 
 const team = [
@@ -79,7 +79,7 @@ export function Site() {
     <div className="min-h-screen text-slate-800">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <a href="#inicio" className="flex items-center gap-2.5">
+          <a href="#início" className="flex items-center gap-2.5">
             <img src={logo} alt="" className="h-9 w-9 object-contain" />
             <span className="text-lg font-bold text-hive-900">SmartHive</span>
           </a>
@@ -138,8 +138,8 @@ export function Site() {
               Monitoramento de colmeias de abelhas nativas, do campo a nuvem.
             </h1>
             <p className="mt-5 text-lg text-slate-600">
-              O SmartHive reune captura em campo, analise automatizada e alertas em uma plataforma unica para
-              meliponicultores e pesquisadores acompanharem a saude de suas colmeias.
+              O SmartHive reúne captura em campo, análise automatizada e alertas em uma plataforma única para
+              meliponicultores e pesquisadores acompanharem a saúde de suas colmeias.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -168,11 +168,11 @@ export function Site() {
             </div>
             <div className="space-y-4 text-slate-600 md:col-span-2">
               <p>
-                As abelhas nativas sem ferrao sao essenciais para a polinizacao e a biodiversidade, mas o
-                acompanhamento das colmeias ainda depende quase sempre de observacao manual.
+                As abelhas nativas sem ferrão são essenciais para a polinização e a biodiversidade, mas o
+                acompanhamento das colmeias ainda depende quase sempre de observação manual.
               </p>
               <p>
-                O SmartHive automatiza esse acompanhamento: registra a atividade das colmeias, organiza o historico e
+                O SmartHive automatiza esse acompanhamento: registra a atividade das colmeias, organiza o histórico e
                 avisa o meliponicultor quando algo foge do normal, facilitando o manejo e a pesquisa.
               </p>
             </div>
@@ -219,7 +219,7 @@ export function Site() {
 
         <section id="equipe" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <h2 className="text-3xl font-bold text-hive-900">Equipe</h2>
-          <p className="mt-2 text-slate-600">Projeto Integrador do 5o semestre - DSM, FATEC.</p>
+          <p className="mt-2 text-slate-600">Projeto Integrador do 5º semestre - DSM, FATEC.</p>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {team.map((member) => (
               <div key={member.name} className="rounded-xl border border-border bg-white p-6 text-center shadow-soft">
@@ -239,7 +239,7 @@ export function Site() {
 
       <footer className="border-t border-border bg-white/70">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-500 sm:flex-row sm:px-6">
-          <span>(c) {new Date().getFullYear()} SmartHive</span>
+          <span>© {new Date().getFullYear()} SmartHive</span>
           <a href="https://github.com/biocode-pi/smarthive" target="_blank" rel="noreferrer" className="hover:text-hive-700">
             GitHub
           </a>

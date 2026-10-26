@@ -29,7 +29,7 @@ def listar_monitoramentos(usuario_id: str) -> list[dict]:
 def _obter_bruto(usuario_id: str, monitoramento_id: str) -> dict:
     monitoramento = get_store().get(TABLE, monitoramento_id)
     if not monitoramento or monitoramento.get("usuario_id") != usuario_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitoramento nao encontrado.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitoramento não encontrado.")
     return monitoramento
 
 
@@ -79,8 +79,8 @@ def criar_monitoramento(usuario_id: str, dados: dict[str, Any]) -> dict:
                 "monitoramento_id": monitoramento["id"],
                 "tipo": "possivel_invasor",
                 "severidade": "alta",
-                "titulo": "Possivel invasor registrado",
-                "mensagem": "O monitoramento indicou possivel presenca de invasor na entrada da colmeia.",
+                "titulo": "Possível invasor registrado",
+                "mensagem": "O monitoramento indicou possível presença de invasor na entrada da colmeia.",
                 "resolvido": False,
             },
         )
@@ -93,11 +93,11 @@ def atualizar_monitoramento(usuario_id: str, monitoramento_id: str, payload: Mon
     dados = payload.model_dump(exclude_unset=True, mode="json")
     monitoramento = get_store().update(TABLE, monitoramento_id, dados)
     if not monitoramento:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitoramento nao encontrado.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitoramento não encontrado.")
     return _com_midia_resolvida(usuario_id, monitoramento)
 
 
 def excluir_monitoramento(usuario_id: str, monitoramento_id: str) -> None:
     _obter_bruto(usuario_id, monitoramento_id)
     if not get_store().delete(TABLE, monitoramento_id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitoramento nao encontrado.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitoramento não encontrado.")

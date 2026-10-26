@@ -25,6 +25,6 @@ def verificar_banco(_: Usuario = Depends(get_usuario_atual)):
         logger.exception("Falha ao verificar o banco")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Banco de dados indisponivel.",
+            detail="Banco de dados indisponível.",
         ) from exc
     return {"status": "ok", "store": {"mode": store_status["mode"], "status": store_status["status"]}}

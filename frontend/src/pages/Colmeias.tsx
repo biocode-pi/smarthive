@@ -12,7 +12,7 @@ import type { Colmeia, StatusColmeia } from "../types";
 const initialForm = {
   nome: "",
   codigo: "",
-  especie: "Jatai",
+  especie: "Jataí",
   localizacao: "",
   descricao: "",
   status: "ativa" as StatusColmeia,
@@ -32,7 +32,7 @@ export function Colmeias() {
     try {
       setColmeias(await listarColmeias());
     } catch {
-      setError("Nao foi possivel carregar as colmeias.");
+      setError("Não foi possível carregar as colmeias.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export function Colmeias() {
       setForm(initialForm);
       await loadData();
     } catch {
-      setError("Nao foi possivel criar a colmeia.");
+      setError("Não foi possível criar a colmeia.");
     } finally {
       setSaving(false);
     }
@@ -82,7 +82,7 @@ export function Colmeias() {
     <>
       <PageHeader
         title="Colmeias"
-        description="Cadastro das colonias monitoradas pelo SmartHive."
+        description="Cadastro das colônias monitoradas pelo SmartHive."
       />
 
       {error ? (
@@ -99,7 +99,7 @@ export function Colmeias() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-950">Nova colmeia</h2>
-              <p className="text-sm text-slate-500">Identificacao e localizacao da colonia.</p>
+              <p className="text-sm text-slate-500">Identificação e localização da colônia.</p>
             </div>
           </div>
 
@@ -115,7 +115,7 @@ export function Colmeias() {
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Codigo
+                Código
                 <input
                   className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
                   value={form.codigo}
@@ -123,7 +123,7 @@ export function Colmeias() {
                 />
               </label>
               <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Especie
+                Espécie
                 <input
                   className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
                   value={form.especie}
@@ -133,7 +133,7 @@ export function Colmeias() {
               </label>
             </div>
             <label className="grid gap-1 text-sm font-semibold text-slate-700">
-              Localizacao
+              Localização
               <input
                 className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
                 value={form.localizacao}
@@ -149,7 +149,7 @@ export function Colmeias() {
                   onChange={(event) => updateField("status", event.target.value)}
                 >
                   <option value="ativa">Ativa</option>
-                  <option value="observacao">Observacao</option>
+                  <option value="observacao">Observação</option>
                   <option value="risco">Risco</option>
                   <option value="inativa">Inativa</option>
                 </select>
@@ -165,7 +165,7 @@ export function Colmeias() {
               </label>
             </div>
             <label className="grid gap-1 text-sm font-semibold text-slate-700">
-              Descricao
+              Descrição
               <textarea
                 className="focus-ring min-h-24 rounded-lg border border-slate-200 bg-white px-3 py-2"
                 value={form.descricao}
@@ -201,10 +201,10 @@ export function Colmeias() {
                 <thead>
                   <tr>
                     <th>Colmeia</th>
-                    <th>Especie</th>
+                    <th>Espécie</th>
                     <th>Status</th>
-                    <th>Localizacao</th>
-                    <th className="text-right">Acoes</th>
+                    <th>Localização</th>
+                    <th className="text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody>

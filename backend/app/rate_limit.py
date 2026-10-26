@@ -109,6 +109,6 @@ async def aplicar_limite(request: Request, settings: Settings) -> JSONResponse |
         return None
     return JSONResponse(
         status_code=429,
-        content={"detail": "Muitas requisicoes. Aguarde alguns segundos e tente novamente."},
+        content={"detail": "Muitas requisições. Aguarde alguns segundos e tente novamente."},
         headers={"Retry-After": str(espera)},
     )
