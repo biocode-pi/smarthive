@@ -23,7 +23,8 @@ export VITE_AWS_REGION="$(output Region)"
 export VITE_COGNITO_USER_POOL_ID="$(output UserPoolId)"
 export VITE_COGNITO_CLIENT_ID="$(output UserPoolClientId)"
 
-(cd frontend && npm ci --silent && npm run build)
+# Sem --silent: um erro no npm ci (ex.: arquivo travado por outro processo) precisa aparecer.
+(cd frontend && npm ci --no-audit --no-fund --loglevel=error && npm run build)
 
 # Arquivos com hash no nome podem ficar em cache por 1 ano; index.html nunca.
 "$AWS" s3 sync frontend/dist "s3://$SITE_BUCKET" --delete --only-show-errors \
