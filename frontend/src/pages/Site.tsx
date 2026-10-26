@@ -1,4 +1,4 @@
-import { Activity, ArrowRight, Bell, Camera, Cloud, Flower2, LineChart, Menu, ShieldCheck, Smartphone, X } from "lucide-react";
+import { Activity, ArrowRight, Bell, Camera, Flower2, LineChart, Menu, Smartphone, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
@@ -231,14 +231,6 @@ export function Site() {
                 </li>
               ))}
             </ol>
-            <div className="mt-10 flex flex-wrap gap-6 text-sm text-white/80">
-              <span className="inline-flex items-center gap-2">
-                <Cloud className="h-4 w-4 text-honey-400" aria-hidden="true" /> Hospedado na AWS
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-honey-400" aria-hidden="true" /> Acesso com login e tráfego criptografado
-              </span>
-            </div>
           </div>
         </section>
 
@@ -263,16 +255,8 @@ export function Site() {
       </main>
 
       <footer className="border-t border-border bg-white/70">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-slate-600 sm:flex-row sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center px-4 py-6 text-sm text-slate-600 sm:px-6">
           <span>© {new Date().getFullYear()} SmartHive</span>
-          <a
-            href="https://github.com/biocode-pi/smarthive"
-            target="_blank"
-            rel="noreferrer"
-            className="focus-ring rounded hover:text-hive-700"
-          >
-            Código no GitHub
-          </a>
         </div>
       </footer>
     </div>
