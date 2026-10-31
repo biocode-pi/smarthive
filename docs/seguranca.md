@@ -36,6 +36,7 @@ Fronteiras de confianca:
 | `midia_url` nao e aceito do cliente (evita apontar para arquivos de terceiros) | [schemas/monitoramento.py](../backend/app/schemas/monitoramento.py) | revisao de codigo |
 | Arquivos no S3 ficam em `usuarios/<sub>/...`; a API so assina URLs dentro da pasta do proprio usuario | `url_de_leitura` em [storage_service.py](../backend/app/services/storage_service.py) | verificado em producao |
 | Buckets S3 com bloqueio total de acesso publico; site lido so pelo CloudFront (Origin Access Control) | [smarthive.yaml](../infra/smarthive.yaml) | URL do S3 sem assinatura responde 403 |
+| "Excluir minha conta" apaga so os dados do proprio usuario (banco e pasta `usuarios/<id>/` no S3) | [conta_service.py](../backend/app/services/conta_service.py), [storage_service.py](../backend/app/services/storage_service.py) | `test_excluir_conta_nao_afeta_outros_usuarios`, `test_exclusao_no_s3_fica_restrita_a_pasta_do_usuario` |
 
 ## A02 - Falhas criptograficas
 
@@ -71,6 +72,10 @@ recusada.
 - **Backup somente escrita**: a credencial da instancia (compartilhada com a API) grava
   backups, mas nao le, nao lista e nao apaga. Uma API comprometida nao consegue roubar nem
   destruir os backups. Verificado em producao (listar/ler/apagar: acesso negado).
+- **Exclusao de conta sem perda irreversivel por ataque**: a API pode apagar midias
+  (`s3:DeleteObject`), mas nao versoes. No bucket versionado a exclusao vira marcador e as
+  versoes expiram em 30 dias: cumpre a LGPD e impede que uma API comprometida destrua
+  midias de todos de forma definitiva.
 - **Restauracao pelo operador**: so com credenciais de administrador, URL pre-assinada de
   15 minutos, chave explicita e `--confirmar`.
 - **Limite de requisicoes por IP** (janela de 60 s): 120 requisicoes gerais e 20 uploads,

@@ -137,6 +137,10 @@ export function Privacidade() {
           As cópias de segurança do banco de dados são guardadas por até 30 dias e depois apagadas automaticamente.
         </li>
         <li>
+          Ao excluir a conta, os dados saem da plataforma na hora. Cópias de segurança e versões antigas de fotos e
+          vídeos são eliminadas automaticamente em até 30 dias.
+        </li>
+        <li>
           Por ser um projeto acadêmico, a plataforma pode ser encerrada ao fim do projeto. Nesse caso, avisaremos antes e
           os dados serão excluídos.
         </li>
@@ -149,7 +153,9 @@ export function Privacidade() {
         <li>correção de dados incompletos ou desatualizados (nome, telefone e preferências podem ser alterados direto em
           Configurações);</li>
         <li>revogação do consentimento para notificações, em Configurações;</li>
-        <li>exclusão dos seus dados e da sua conta;</li>
+        <li>
+          exclusão dos seus dados e da sua conta, que você mesmo pode fazer em Configurações, em “Excluir minha conta”;
+        </li>
         <li>portabilidade dos dados para outro serviço;</li>
         <li>informações sobre com quem compartilhamos os dados.</li>
       </ul>

@@ -53,6 +53,13 @@ Nome, e-mail e senha continuam no Cognito (`signUp` com os atributos `email` e `
 O telefone e o aceite de notificacoes sao enviados ao `/perfil` logo apos o primeiro login,
 porque a API so aceita usuarios autenticados.
 
+## Excluir conta (LGPD)
+
+`DELETE /conta` apaga todos os dados do usuario na plataforma (meliponarios, colmeias,
+monitoramentos, alertas, capturas, perfil e midias no S3) e responde 204. Em seguida o app
+deve excluir a conta no Cognito com o token do proprio usuario (Amplify `deleteUser()`) e
+encerrar a sessao. Peca confirmacao antes (o web exige digitar o e-mail).
+
 ## Outras rotas
 
 - `POST /monitoramentos` (multipart, com `arquivo` opcional) e `POST /sensor-celular/captura`.

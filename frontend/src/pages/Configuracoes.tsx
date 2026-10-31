@@ -1,4 +1,5 @@
 import { Camera, Database, Lock, LogOut, Smartphone, UserCircle } from "lucide-react";
+import { ExcluirConta } from "../components/auth/ExcluirConta";
 import { MfaSettings } from "../components/auth/MfaSettings";
 import { PerfilSettings } from "../components/auth/PerfilSettings";
 import { PageHeader } from "../components/ui/PageHeader";
@@ -75,6 +76,8 @@ export function Configuracoes() {
           </div>
         ))}
       </section>
+
+      {user ? <ExcluirConta email={user.email} /> : null}
     </>
   );
 }

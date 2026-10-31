@@ -100,3 +100,35 @@ def url_de_leitura(usuario_id: str, referencia: str | None) -> str | None:
         Params={"Bucket": settings.s3_bucket, "Key": key},
         ExpiresIn=settings.s3_url_expiracao_segundos,
     )
+
+
+def excluir_midias_do_usuario(usuario_id: str, referencias: list[str]) -> int:
+    """Apaga as midias do usuario. No S3, tudo sob usuarios/<id>/; no modo local, os arquivos citados.
+
+    No S3 a remocao cria um marcador de exclusao: o bucket e versionado e as versoes antigas
+    expiram em 30 dias pela regra de ciclo de vida. A credencial da API nao tem permissao para
+    apagar versoes, entao uma API comprometida nao destroi midias de forma irreversivel.
+    """
+    settings = get_settings()
+    if settings.storage_backend == "s3":
+        prefixo = f"usuarios/{usuario_id}/"
+        cliente = _s3_client()
+        total = 0
+        for pagina in cliente.get_paginator("list_objects_v2").paginate(Bucket=settings.s3_bucket, Prefix=prefixo):
+            chaves = [{"Key": obj["Key"]} for obj in pagina.get("Contents", []) if obj["Key"].startswith(prefixo)]
+            if chaves:
+                cliente.delete_objects(Bucket=settings.s3_bucket, Delete={"Objects": chaves, "Quiet": True})
+                total += len(chaves)
+        return total
+
+    total = 0
+    pasta = Path(settings.upload_dir).resolve()
+    for referencia in referencias:
+        if not referencia.startswith("/uploads/"):
+            continue
+        arquivo = (pasta / Path(referencia).name).resolve()
+        # Nome vem do banco, mas garantimos que nao sai da pasta de uploads.
+        if arquivo.parent == pasta and arquivo.is_file():
+            arquivo.unlink()
+            total += 1
+    return total

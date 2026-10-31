@@ -369,12 +369,23 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
+              # DeleteObject atende o "Excluir minha conta" (LGPD). Sem DeleteObjectVersion: no
+              # bucket versionado a exclusao vira marcador e as versoes expiram em 30 dias, entao
+              # uma API comprometida nao consegue destruir midias de forma irreversivel.
               - Sid: MidiasDosUsuarios
                 Effect: Allow
                 Action:
                   - s3:PutObject
                   - s3:GetObject
+                  - s3:DeleteObject
                 Resource: !Sub "${UploadsBucket.Arn}/usuarios/*"
+              - Sid: ListarMidiasParaExclusao
+                Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt UploadsBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix: usuarios/*
               - Sid: PacotesDeDeploy
                 Effect: Allow
                 Action: s3:GetObject

@@ -68,7 +68,8 @@ export function Termos() {
 
       <h2>7. Encerramento da conta</h2>
       <p>
-        Você pode pedir a exclusão da sua conta e dos seus dados a qualquer momento falando com <Contato />.
+        Você pode excluir sua conta e todos os seus dados a qualquer momento em Configurações, em “Excluir minha conta”.
+        Se preferir, fale com <Contato />.
       </p>
 
       <h2>8. Alterações nestes termos</h2>
