@@ -9,7 +9,6 @@ const navLinks = [
   { href: "#sobre", label: "Sobre" },
   { href: "#funcionalidades", label: "Funcionalidades" },
   { href: "#como-funciona", label: "Como funciona" },
-  { href: "#equipe", label: "Equipe" },
 ];
 
 // Exemplo ilustrativo do mapa do meliponario. Como na plataforma, a colmeia mais grave fica no centro.
@@ -63,20 +62,6 @@ const steps = [
   { title: "Analisar", text: "A plataforma estima o fluxo de abelhas e compara com o histórico da colmeia." },
   { title: "Agir", text: "Dashboard e alertas mostram onde o manejo é necessário." },
 ];
-
-const team = [
-  { name: "Mauricio Rafael", role: "Desenvolvedor" },
-  { name: "Bruno Davies", role: "Desenvolvedor" },
-  { name: "Bruno Eduardo", role: "Desenvolvedor" },
-  { name: "Leonardo Ribeiro", role: "Desenvolvedor" },
-];
-
-function iniciais(nome: string) {
-  return nome
-    .split(" ")
-    .map((parte) => parte.charAt(0))
-    .join("");
-}
 
 export function Site() {
   const { user } = useAuth();
@@ -235,27 +220,9 @@ export function Site() {
           </div>
         </section>
 
-        <section id="equipe" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 className="text-3xl font-bold text-ink">Equipe</h2>
-          <p className="mt-2 text-slate-600">Projeto Integrador do 5º semestre de Desenvolvimento de Software Multiplataforma, FATEC.</p>
-          <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map((member) => (
-              <li key={member.name} className="rounded-card bg-white p-6 text-center shadow-app">
-                <div
-                  className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-honey-100 text-xl font-bold text-honey-700"
-                  aria-hidden="true"
-                >
-                  {iniciais(member.name)}
-                </div>
-                <p className="mt-4 font-bold text-ink">{member.name}</p>
-                <p className="text-sm text-slate-600">{member.role}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
       </main>
 
-      <footer className="bg-ink text-white">
+      <footer className="border-t border-white/15 bg-ink text-white">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-white/80 sm:flex-row sm:px-6">
           <span>© {new Date().getFullYear()} Smart Hive</span>
           <nav className="flex gap-5" aria-label="Documentos">
