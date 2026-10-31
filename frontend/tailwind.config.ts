@@ -1,77 +1,73 @@
 import type { Config } from "tailwindcss";
 
+// Tokens alinhados ao app mobile (Figma "SMART HIVE"): amarelo + preto + laranja, Lato.
+// Onde a cor do Figma nao atingia contraste AA (verde "Em dia", vermelho de alertas,
+// cinza do endereco), usamos o mesmo tom mais escuro.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Bricolage Grotesque Variable"', "ui-sans-serif", "system-ui", "sans-serif"],
-        sans: ['"Figtree Variable"', "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
+        // Titulos e texto em Lato, como no app.
+        display: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
+        // Marca: "Smart Hive" em Poppins Bold e "PROJECT" em Inter SemiBold.
+        brand: ['"Poppins"', "ui-sans-serif", "system-ui", "sans-serif"],
+        tagline: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
-        ink: "#17241c",
-        border: "#dfe8dd",
-        background: "#f6faf3",
-        foreground: "#10251b",
-        primary: {
-          DEFAULT: "#1f7a4c",
-          foreground: "#ffffff",
-        },
-        accent: {
-          DEFAULT: "#d99a14",
-          foreground: "#10251b",
-        },
-        destructive: {
-          DEFAULT: "#dc2626",
-          foreground: "#ffffff",
-        },
-        muted: {
-          DEFAULT: "#edf4ea",
-          foreground: "#657568",
-        },
+        ink: "#121515",
+        border: "#f0e2a6",
+        background: "#fff5c5",
+        foreground: "#121515",
         sidebar: {
-          DEFAULT: "#ffffff",
-          foreground: "#26382d",
-          primary: "#1f653f",
-          accent: "#ecf7ee",
-          border: "#dfe8dd",
+          border: "#f0e2a6",
         },
+        // "hive" = cor de acao/marca. 600 e o laranja dos botoes do app (texto escuro em cima).
         hive: {
-          50: "#f2fbf4",
-          100: "#dff6e5",
-          200: "#bfe9ca",
-          500: "#2e9f5f",
-          600: "#23814c",
-          700: "#1f653f",
-          900: "#10251b",
+          50: "#fff2bd",
+          100: "#fae596",
+          200: "#f5c618",
+          500: "#f5c618",
+          600: "#e58d0c",
+          700: "#8f4f00",
+          800: "#7a4300",
+          900: "#121515",
         },
         honey: {
-          50: "#fffaeb",
-          100: "#fff4cf",
-          200: "#ffe59a",
-          400: "#f6bf3a",
-          500: "#e0a526",
-          600: "#b37d0e",
-          // Texto sobre fundos mel (contraste AA: 6,5:1 sobre honey-100).
-          700: "#7a4f00",
+          50: "#fff5c5",
+          100: "#fae596",
+          200: "#fff2bd",
+          400: "#f5c618",
+          500: "#ffcc00",
+          600: "#e58d0c",
+          700: "#645f46",
         },
-        // Paleta unica dos graficos: entrada (verde), saida (mel), referencia (neutro).
         chart: {
-          entrada: "#2e7d52",
-          saida: "#e0a526",
-          neutro: "#cbd5cf",
+          entrada: "#c97200",
+          saida: "#645f46",
+          neutro: "#e9e1bf",
         },
         status: {
-          ativa: "#2e7d52",
-          observacao: "#e0a526",
-          risco: "#c2410c",
-          inativa: "#94a3b8",
+          ativa: "#cff8cc",
+          "ativa-texto": "#1a6b12",
+          observacao: "#fae596",
+          "observacao-texto": "#645f46",
+          risco: "#f6c0c0",
+          "risco-texto": "#a40000",
+          inativa: "#d9d9d9",
         },
       },
+      borderRadius: {
+        card: "20px",
+        field: "10px",
+      },
       boxShadow: {
-        soft: "0 18px 50px rgba(18, 38, 32, 0.08)",
-        panel: "0 24px 70px rgba(16, 37, 27, 0.12)",
+        // Sombra dos cards e campos do app.
+        app: "0 4px 4px rgba(0, 0, 0, 0.25)",
+        soft: "0 4px 4px rgba(0, 0, 0, 0.12)",
+        panel: "0 4px 4px rgba(0, 0, 0, 0.25)",
       },
     },
   },

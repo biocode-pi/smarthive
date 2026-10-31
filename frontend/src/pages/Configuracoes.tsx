@@ -1,5 +1,6 @@
 import { Camera, Database, Lock, LogOut, Smartphone, UserCircle } from "lucide-react";
 import { MfaSettings } from "../components/auth/MfaSettings";
+import { PerfilSettings } from "../components/auth/PerfilSettings";
 import { PageHeader } from "../components/ui/PageHeader";
 import { Button } from "../components/ui/Button";
 import { useAuth, userDisplayName } from "../context/AuthContext";
@@ -35,7 +36,7 @@ export function Configuracoes() {
     <>
       <PageHeader
         title="Configurações"
-        description="Conta, sessão e parâmetros técnicos usados pelo SmartHive."
+        description="Conta, sessão e parâmetros técnicos usados pelo Smart Hive."
       />
 
       <section className="surface mb-6 rounded-xl p-6">
@@ -56,11 +57,12 @@ export function Configuracoes() {
         </div>
       </section>
 
+      {user ? <PerfilSettings /> : null}
       {user ? <MfaSettings email={user.email} /> : null}
 
       <section className="grid gap-4 md:grid-cols-2">
         {settings.map((item) => (
-          <div key={item.title} className="surface rounded-xl p-6">
+          <div key={item.title} className="surface p-6">
             <div className="flex items-start gap-4">
               <div className="rounded-lg bg-hive-50 p-3 text-hive-700">
                 <item.icon className="h-5 w-5" />

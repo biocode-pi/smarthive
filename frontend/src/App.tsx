@@ -19,6 +19,10 @@ const Login = lazy(() => import("./pages/Login").then(({ Login }) => ({ default:
 const NotFound = lazy(() => import("./pages/NotFound").then(({ NotFound }) => ({ default: NotFound })));
 const Privacidade = lazy(() => import("./pages/Privacidade").then(({ Privacidade }) => ({ default: Privacidade })));
 const Termos = lazy(() => import("./pages/Termos").then(({ Termos }) => ({ default: Termos })));
+const Meliponarios = lazy(() => import("./pages/Meliponarios").then(({ Meliponarios }) => ({ default: Meliponarios })));
+const MeliponarioDetalhes = lazy(() =>
+  import("./pages/MeliponarioDetalhes").then(({ MeliponarioDetalhes }) => ({ default: MeliponarioDetalhes })),
+);
 const Overview = lazy(() => import("./pages/Overview").then(({ Overview }) => ({ default: Overview })));
 const Registros = lazy(() => import("./pages/Registros").then(({ Registros }) => ({ default: Registros })));
 const SensorCelular = lazy(() =>
@@ -28,9 +32,9 @@ const SensorCelular = lazy(() =>
 function RouteFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center px-6">
-      <div className="surface rounded-xl p-6 text-center">
+      <div className="surface p-6 text-center">
         <p className="text-sm font-semibold text-slate-500">Carregando</p>
-        <p className="mt-2 text-lg font-bold text-slate-950">SmartHive</p>
+        <p className="mt-2 text-lg font-bold text-slate-950">Smart Hive</p>
       </div>
     </div>
   );
@@ -54,6 +58,8 @@ export default function App() {
               <Route path="app" element={<AppLayout />}>
                 <Route index element={<Overview />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="meliponarios" element={<Meliponarios />} />
+                <Route path="meliponarios/:id" element={<MeliponarioDetalhes />} />
                 <Route path="colmeias" element={<Colmeias />} />
                 <Route path="colmeias/:id" element={<ColmeiaDetalhes />} />
                 <Route path="colmeias/:id/monitoramentos/novo" element={<Navigate to="/app/sensor-celular" replace />} />

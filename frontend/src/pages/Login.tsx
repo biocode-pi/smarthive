@@ -1,40 +1,65 @@
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowLeft, Eye, EyeOff, KeyRound, Lock, Mail, Phone, User } from "lucide-react";
+import { FormEvent, useState, type ReactNode } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { authConfig } from "../config/auth.config";
 import { useAuth } from "../context/AuthContext";
+import { enviarPerfilPendente, guardarPerfilPendente, mascaraTelefone } from "../services/perfil";
 
 type Mode = "login" | "mfa" | "cadastro" | "confirmar" | "recuperar" | "novaSenha";
-
-const inputClass =
-  "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:bg-slate-50";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Mesma politica do User Pool do Cognito.
 const senhaForteRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-const pedeEmail: Mode[] = ["login", "cadastro", "recuperar"];
-const pedeSenha: Mode[] = ["login", "cadastro", "novaSenha"];
-const pedeCodigo: Mode[] = ["mfa", "confirmar", "novaSenha"];
+/** Campo no padrao do app: branco, cantos de 10px, sombra e icone a esquerda. */
+function Campo({
+  id,
+  label,
+  icone,
+  acao,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { id: string; label: string; icone: ReactNode; acao?: ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <div className="flex h-[50px] items-center gap-4 rounded-field bg-white pl-4 pr-3 shadow-app focus-within:ring-2 focus-within:ring-ink">
+        <span className="text-ink" aria-hidden="true">
+          {icone}
+        </span>
+        <input
+          id={id}
+          className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-slate-600 focus:outline-none"
+          placeholder={label}
+          {...props}
+        />
+        {acao}
+      </div>
+    </div>
+  );
+}
+
+const botaoPrincipal =
+  "focus-ring h-[50px] w-full rounded-field bg-hive-600 text-sm font-bold text-ink shadow-app transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60";
+const botaoSecundario =
+  "focus-ring h-[50px] w-full rounded-field bg-white text-sm font-bold text-ink shadow-app transition hover:bg-honey-50";
+const linkTexto = "focus-ring rounded font-bold text-ink underline underline-offset-4";
 
 export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    confirmarCadastro,
-    confirmarMfa,
-    configurado,
-    login,
-    recuperarSenha,
-    redefinirSenha,
-    reenviarCodigo,
-    registrar,
-  } = useAuth();
+  const { confirmarCadastro, confirmarMfa, configurado, login, recuperarSenha, redefinirSenha, reenviarCodigo, registrar } =
+    useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [confirmacao, setConfirmacao] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [notificacoes, setNotificacoes] = useState(false);
+  const [aceiteTermos, setAceiteTermos] = useState(false);
   const [codigo, setCodigo] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [manterConectado, setManterConectado] = useState(true);
@@ -42,22 +67,28 @@ export function Login() {
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
 
-  const { texts, brand, quote, footer } = authConfig;
-
+  const { texts, footer } = authConfig;
+  const current = texts[mode];
   const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/app";
 
-  const current = useMemo(() => texts[mode], [mode, texts]);
-
   function validar(): string | null {
-    if (pedeEmail.includes(mode) && !emailRegex.test(email.trim())) {
-      return "Informe um e-mail válido. Exemplo: nome@domínio.com";
+    const emailLimpo = email.trim();
+    if (["login", "cadastro", "recuperar"].includes(mode) && !emailRegex.test(emailLimpo)) {
+      return "Informe um e-mail válido. Exemplo: nome@dominio.com";
     }
-    if (mode === "cadastro" && !nome.trim()) return "Informe seu nome.";
+    if (mode === "cadastro" && nome.trim().length < 2) return "Informe seu nome completo.";
     if (mode === "login" && !senha) return "Informe sua senha.";
     if ((mode === "cadastro" || mode === "novaSenha") && !senhaForteRegex.test(senha)) {
       return "A senha precisa ter 8 caracteres, com letra maiúscula, minúscula e número.";
     }
-    if (pedeCodigo.includes(mode) && !/^\d{6}$/.test(codigo.trim())) return "Informe o código de 6 dígitos.";
+    if (mode === "cadastro" && senha !== confirmacao) return "As senhas não conferem.";
+    if (mode === "cadastro" && telefone && telefone.replace(/\D/g, "").length < 10) {
+      return "Informe o telefone com DDD, por exemplo (11) 91234-5678.";
+    }
+    if (mode === "cadastro" && !aceiteTermos) return "Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.";
+    if (["mfa", "confirmar", "novaSenha"].includes(mode) && !/^\d{6}$/.test(codigo.trim())) {
+      return "Informe o código de 6 dígitos.";
+    }
     return null;
   }
 
@@ -66,6 +97,11 @@ export function Login() {
     setErro(null);
     setSucesso(mensagem);
     setCodigo("");
+  }
+
+  async function entrarNaPlataforma(emailLimpo: string) {
+    await enviarPerfilPendente(emailLimpo);
+    navigate(redirectTo, { replace: true });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -87,20 +123,19 @@ export function Login() {
         if (result.erro) return setErro(result.erro);
         if (result.precisaConfirmar) return irPara("confirmar", "Confirme seu e-mail: enviamos um novo código.");
         if (result.precisaMfa) return irPara("mfa");
-        navigate(redirectTo, { replace: true });
-        return;
+        return entrarNaPlataforma(emailLimpo);
       }
 
       if (mode === "mfa") {
         const result = await confirmarMfa(codigo.trim());
         if (result.erro) return setErro(result.erro);
-        navigate(redirectTo, { replace: true });
-        return;
+        return entrarNaPlataforma(emailLimpo);
       }
 
       if (mode === "cadastro") {
         const result = await registrar(emailLimpo, senha, nome.trim());
         if (result.erro) return setErro(result.erro);
+        guardarPerfilPendente({ email: emailLimpo, telefone: telefone || null, notificacoes_email: notificacoes });
         if (result.precisaConfirmar) return irPara("confirmar", `Enviamos um código para ${emailLimpo}.`);
         return irPara("login", "Conta criada. Entre para continuar.");
       }
@@ -111,10 +146,7 @@ export function Login() {
         // Logo apos o cadastro a senha ainda esta no formulario: entra direto.
         if (senha) {
           const entrada = await login(emailLimpo, senha, manterConectado);
-          if (!entrada.erro && !entrada.precisaConfirmar) {
-            navigate(redirectTo, { replace: true });
-            return;
-          }
+          if (!entrada.erro && !entrada.precisaConfirmar && !entrada.precisaMfa) return entrarNaPlataforma(emailLimpo);
         }
         setSenha("");
         return irPara("login", "E-mail confirmado. Entre com sua senha.");
@@ -143,195 +175,165 @@ export function Login() {
     else setSucesso("Código reenviado.");
   }
 
+  const botaoOlho = (
+    <button
+      type="button"
+      onClick={() => setMostrarSenha((valor) => !valor)}
+      className="focus-ring flex h-9 w-9 items-center justify-center rounded-lg text-ink"
+      aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+    >
+      {mostrarSenha ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+    </button>
+  );
+
   return (
-    <AuthLayout brand={brand} quote={quote} footer={footer}>
-      <div>
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-slate-900">{current.title}</h1>
-        <p className="mt-2 text-sm text-slate-500">{current.subtitle}</p>
-      </div>
+    <AuthLayout footer={footer} comMarca={mode === "login"}>
+      {mode !== "login" ? (
+        <div className="mb-6">
+          <button type="button" onClick={() => irPara("login")} className="focus-ring inline-flex items-center gap-1 rounded text-sm font-bold">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Entrar
+          </button>
+          <h1 className="mt-3 text-3xl font-bold">{current.title}</h1>
+          <p className="mt-2 text-sm">{current.subtitle}</p>
+        </div>
+      ) : (
+        // No celular a marca grande ja identifica a tela; no computador o formulario ganha titulo.
+        <div className="mb-6">
+          <h1 className="sr-only lg:not-sr-only lg:text-3xl lg:font-bold">Entrar</h1>
+          <p className="hidden text-sm lg:mt-2 lg:block">{texts.login.subtitle}</p>
+        </div>
+      )}
 
       {!configurado ? (
-        <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-900">
-          Configure VITE_COGNITO_USER_POOL_ID e VITE_COGNITO_CLIENT_ID no .env do frontend.
-        </div>
+        <p className="mb-4 rounded-field bg-white px-4 py-3 text-sm font-bold shadow-app">
+          Login não configurado: defina VITE_COGNITO_USER_POOL_ID e VITE_COGNITO_CLIENT_ID.
+        </p>
       ) : null}
 
       {erro ? (
-        <div className="mt-6 flex items-start gap-2.5 rounded-md border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700">
-          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-          <span>{erro}</span>
-        </div>
+        <p role="alert" className="mb-4 flex items-start gap-2 rounded-field bg-white px-4 py-3 text-sm font-bold text-status-risco-texto shadow-app">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          {erro}
+        </p>
       ) : null}
 
       {sucesso ? (
-        <div className="mt-6 rounded-md border border-hive-200 bg-hive-50 px-3.5 py-3 text-sm font-medium text-hive-700">
+        <p role="status" className="mb-4 rounded-field bg-white px-4 py-3 text-sm font-bold text-status-ativa-texto shadow-app">
           {sucesso}
-        </div>
+        </p>
       ) : null}
 
-      <form className="mt-8 space-y-5" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-3" onSubmit={handleSubmit} noValidate>
         {mode === "cadastro" ? (
-          <div>
-            <label htmlFor="nome" className="mb-1.5 block text-sm font-medium text-slate-700">
-              {texts.labels.nome}
-            </label>
-            <input
-              id="nome"
-              className={inputClass}
-              value={nome}
-              onChange={(event) => setNome(event.target.value)}
-              autoComplete="name"
-              placeholder={texts.placeholders.nome}
-            />
-          </div>
+          <Campo id="nome" label="Nome completo" icone={<User className="h-5 w-5" />} value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="name" />
         ) : null}
 
-        {pedeEmail.includes(mode) ? (
-          <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
-              {texts.labels.email}
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={inputClass}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
-              placeholder={texts.placeholders.email}
-            />
-          </div>
+        {["login", "cadastro", "recuperar"].includes(mode) ? (
+          <Campo id="email" type="email" label="E-mail" icone={<Mail className="h-5 w-5" />} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
         ) : null}
 
-        {pedeCodigo.includes(mode) ? (
-          <div>
-            <label htmlFor="codigo" className="mb-1.5 block text-sm font-medium text-slate-700">
-              {texts.labels.codigo}
-            </label>
-            <input
-              id="codigo"
-              className={`${inputClass} tracking-[0.3em]`}
-              value={codigo}
-              onChange={(event) => setCodigo(event.target.value.replace(/\D/g, "").slice(0, 6))}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              placeholder={texts.placeholders.codigo}
-            />
-          </div>
+        {["mfa", "confirmar", "novaSenha"].includes(mode) ? (
+          <Campo
+            id="codigo"
+            label="Código de 6 dígitos"
+            icone={<KeyRound className="h-5 w-5" />}
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            className="tracking-[0.3em]"
+          />
         ) : null}
 
-        {pedeSenha.includes(mode) ? (
-          <div>
-            <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="senha" className="block text-sm font-medium text-slate-700">
-                {texts.labels.senha}
-              </label>
-              {mode === "login" ? (
-                <button
-                  type="button"
-                  onClick={() => irPara("recuperar")}
-                  className="text-xs font-medium text-slate-500 transition hover:text-slate-900"
-                >
-                  {texts.login.forgotLabel}
-                </button>
-              ) : null}
-            </div>
-            <div className="relative">
-              <input
-                id="senha"
-                type={mostrarSenha ? "text" : "password"}
-                className={`${inputClass} pr-11`}
-                value={senha}
-                onChange={(event) => setSenha(event.target.value)}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                placeholder={texts.placeholders.senha}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarSenha((value) => !value)}
-                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-slate-400 transition hover:text-slate-700"
-                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
-                tabIndex={-1}
-              >
-                {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
+        {["login", "cadastro", "novaSenha"].includes(mode) ? (
+          <Campo
+            id="senha"
+            type={mostrarSenha ? "text" : "password"}
+            label={mode === "novaSenha" ? "Nova senha" : "Senha"}
+            icone={<Lock className="h-5 w-5" />}
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            acao={botaoOlho}
+          />
+        ) : null}
+
+        {mode === "cadastro" ? (
+          <>
+            <Campo
+              id="confirmacao"
+              type={mostrarSenha ? "text" : "password"}
+              label="Confirmar senha"
+              icone={<Lock className="h-5 w-5" />}
+              value={confirmacao}
+              onChange={(e) => setConfirmacao(e.target.value)}
+              autoComplete="new-password"
+            />
+            <p className="px-1 text-xs">Mínimo de 8 caracteres, com letra maiúscula, minúscula e número.</p>
+            <Campo
+              id="telefone"
+              type="tel"
+              label="Telefone (opcional)"
+              icone={<Phone className="h-5 w-5" />}
+              value={telefone}
+              onChange={(e) => setTelefone(mascaraTelefone(e.target.value))}
+              autoComplete="tel-national"
+              inputMode="tel"
+            />
+            <label className="flex items-start gap-3 px-1 pt-2 text-sm">
+              <input type="checkbox" className="mt-0.5 h-5 w-5 flex-shrink-0 accent-ink" checked={notificacoes} onChange={(e) => setNotificacoes(e.target.checked)} />
+              <span>Desejo receber notificações no meu e-mail. Você pode desativar quando quiser em Configurações.</span>
+            </label>
+            <label className="flex items-start gap-3 px-1 text-sm">
+              <input type="checkbox" className="mt-0.5 h-5 w-5 flex-shrink-0 accent-ink" checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} />
+              <span>
+                Li e aceito os{" "}
+                <Link to="/termos" target="_blank" className={linkTexto}>
+                  Termos de Uso
+                </Link>{" "}
+                e a{" "}
+                <Link to="/privacidade" target="_blank" className={linkTexto}>
+                  Política de Privacidade
+                </Link>
+                .
+              </span>
+            </label>
+          </>
         ) : null}
 
         {mode === "login" ? (
-          <label className="flex select-none items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 text-hive-600 focus:ring-hive-200"
-              checked={manterConectado}
-              onChange={(event) => setManterConectado(event.target.checked)}
-            />
-            <span>{texts.login.rememberLabel}</span>
-          </label>
+          <div className="flex items-center justify-between px-1 pt-1 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="h-4 w-4 accent-ink" checked={manterConectado} onChange={(e) => setManterConectado(e.target.checked)} />
+              Manter conectado
+            </label>
+            <button type="button" onClick={() => irPara("recuperar")} className={linkTexto}>
+              Esqueci minha senha
+            </button>
+          </div>
         ) : null}
 
-        <button
-          type="submit"
-          disabled={enviando || !configurado}
-          className="h-11 w-full rounded-md bg-hive-600 text-sm font-semibold text-white transition hover:bg-hive-700 focus:outline-none focus:ring-4 focus:ring-hive-200 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {enviando ? "Aguarde..." : current.submit}
-        </button>
+        <div className="pt-3">
+          <button type="submit" disabled={enviando || !configurado} className={botaoPrincipal}>
+            {enviando ? "Aguarde..." : mode === "cadastro" ? "Registrar-se" : current.submit}
+          </button>
+        </div>
       </form>
 
-      <div className="mt-8 text-center text-sm text-slate-500">
-        {mode === "login" ? (
-          <>
-            {texts.login.noAccountPrefix}{" "}
-            <button
-              type="button"
-              className="font-medium text-slate-900 underline-offset-4 hover:underline"
-              onClick={() => irPara("cadastro")}
-            >
-              {texts.login.noAccountAction}
-            </button>
-          </>
-        ) : mode === "cadastro" ? (
-          <>
-            {texts.cadastro.hasAccountPrefix}{" "}
-            <button
-              type="button"
-              className="font-medium text-slate-900 underline-offset-4 hover:underline"
-              onClick={() => irPara("login")}
-            >
-              {texts.cadastro.hasAccountAction}
-            </button>
-          </>
-        ) : mode === "recuperar" ? (
-          <button
-            type="button"
-            className="font-medium text-slate-900 underline-offset-4 hover:underline"
-            onClick={() => irPara("login")}
-          >
-            {texts.recuperar.backAction}
+      {mode === "login" ? (
+        <>
+          <p className="my-4 text-center text-sm font-bold">ou</p>
+          <button type="button" onClick={() => irPara("cadastro")} className={botaoSecundario}>
+            Registrar-se
           </button>
-        ) : (
-          <div className="flex flex-col items-center gap-2">
-            {mode === "confirmar" ? (
-              <button
-                type="button"
-                className="font-medium text-slate-900 underline-offset-4 hover:underline"
-                onClick={handleReenviar}
-              >
-                {texts.confirmar.resendAction}
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="font-medium text-slate-500 underline-offset-4 hover:underline"
-              onClick={() => irPara("login")}
-            >
-              {texts.recuperar.backAction}
-            </button>
-          </div>
-        )}
-      </div>
+        </>
+      ) : null}
+
+      {mode === "confirmar" ? (
+        <button type="button" onClick={handleReenviar} className={`${linkTexto} mx-auto mt-5 block text-sm`}>
+          Reenviar código
+        </button>
+      ) : null}
     </AuthLayout>
   );
 }

@@ -12,6 +12,20 @@ export interface Colmeia {
   descricao?: string | null;
   status: StatusColmeia;
   instalada_em?: string | null;
+  meliponario_id?: string | null;
+  criado_em: string;
+  atualizado_em?: string | null;
+}
+
+export interface Meliponario {
+  id: string;
+  nome: string;
+  endereco?: string | null;
+  cidade?: string | null;
+  uf?: string | null;
+  descricao?: string | null;
+  total_colmeias: number;
+  alertas_abertos: number;
   criado_em: string;
   atualizado_em?: string | null;
 }

@@ -322,7 +322,7 @@ export function SensorCelular() {
     : "Nenhuma abelha ou invasor identificado";
   const overlayClass =
     targetPrediction?.kind === "bee"
-      ? "bg-hive-600/90 text-white"
+      ? "bg-hive-600/90 text-ink"
       : targetPrediction?.kind === "invader"
         ? "bg-rose-600/90 text-white"
         : "bg-black/55 text-white";
@@ -342,7 +342,7 @@ export function SensorCelular() {
         />
       ) : (
         <section className="grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
-          <div className="surface rounded-xl p-4 sm:p-6">
+          <div className="surface p-4 sm:p-6">
             <div className="relative overflow-hidden rounded-xl bg-slate-950">
               <video
                 ref={videoRef}
@@ -354,7 +354,7 @@ export function SensorCelular() {
               {!cameraActive ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-950/92 p-6 text-center">
                   <div>
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-hive-600 text-white">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-hive-600 text-ink">
                       {modelLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Camera className="h-8 w-8" />}
                     </div>
                     <p className="text-lg font-bold text-white">Câmera pronta</p>
@@ -414,7 +414,7 @@ export function SensorCelular() {
             <canvas ref={canvasRef} className="hidden" />
           </div>
 
-          <form onSubmit={handleSubmit} className="surface rounded-xl p-6">
+          <form onSubmit={handleSubmit} className="surface p-6">
             {message ? (
               <p className="mb-4 rounded-lg bg-hive-50 px-4 py-3 text-sm font-semibold text-hive-700">{message}</p>
             ) : null}

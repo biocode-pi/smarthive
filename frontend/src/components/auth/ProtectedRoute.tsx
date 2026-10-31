@@ -8,9 +8,9 @@ export function ProtectedRoute() {
   if (carregando) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
-        <div className="surface rounded-xl p-6 text-center">
+        <div className="surface p-6 text-center">
           <p className="text-sm font-semibold text-slate-500">Verificando sessão</p>
-          <p className="mt-2 text-lg font-bold text-slate-950">SmartHive</p>
+          <p className="mt-2 text-lg font-bold text-slate-950">Smart Hive</p>
         </div>
       </div>
     );
@@ -31,9 +31,9 @@ export function PublicOnlyRoute() {
   if (carregando) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
-        <div className="surface rounded-xl p-6 text-center">
+        <div className="surface p-6 text-center">
           <p className="text-sm font-semibold text-slate-500">Preparando login</p>
-          <p className="mt-2 text-lg font-bold text-slate-950">SmartHive</p>
+          <p className="mt-2 text-lg font-bold text-slate-950">Smart Hive</p>
         </div>
       </div>
     );

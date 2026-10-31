@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AlertTriangle, Eye, Flower2, Plus, Trash2 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -7,7 +7,8 @@ import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { criarColmeia, excluirColmeia, listarColmeias } from "../services/colmeias";
-import type { Colmeia, StatusColmeia } from "../types";
+import { listarMeliponarios } from "../services/meliponarios";
+import type { Colmeia, Meliponario, StatusColmeia } from "../types";
 
 const initialForm = {
   nome: "",
@@ -17,11 +18,15 @@ const initialForm = {
   descricao: "",
   status: "ativa" as StatusColmeia,
   instalada_em: "",
+  meliponario_id: "",
 };
 
 export function Colmeias() {
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);
-  const [form, setForm] = useState(initialForm);
+  const [searchParams] = useSearchParams();
+  // Vindo de "Adicionar colmeia" num meliponario, o campo ja vem selecionado.
+  const [form, setForm] = useState({ ...initialForm, meliponario_id: searchParams.get("meliponario") ?? "" });
+  const [meliponarios, setMeliponarios] = useState<Meliponario[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +45,9 @@ export function Colmeias() {
 
   useEffect(() => {
     loadData();
+    listarMeliponarios()
+      .then(setMeliponarios)
+      .catch(() => setMeliponarios([]));
   }, []);
 
   function updateField(key: keyof typeof form, value: string) {
@@ -60,8 +68,9 @@ export function Colmeias() {
         descricao: form.descricao || null,
         status: form.status,
         instalada_em: form.instalada_em || null,
+        meliponario_id: form.meliponario_id || null,
       });
-      setForm(initialForm);
+      setForm({ ...initialForm, meliponario_id: form.meliponario_id });
       await loadData();
     } catch {
       setError("Não foi possível criar a colmeia.");
@@ -82,7 +91,7 @@ export function Colmeias() {
     <>
       <PageHeader
         title="Colmeias"
-        description="Cadastro das colônias monitoradas pelo SmartHive."
+        description="Cadastro das colônias monitoradas pelo Smart Hive."
       />
 
       {error ? (
@@ -92,7 +101,7 @@ export function Colmeias() {
       ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[0.95fr_1.55fr]">
-        <form onSubmit={handleSubmit} className="surface rounded-xl p-6">
+        <form onSubmit={handleSubmit} className="surface p-6">
           <div className="mb-5 flex items-center gap-3">
             <div className="rounded-lg bg-hive-50 p-3 text-hive-700">
               <Plus className="h-5 w-5" />
@@ -133,7 +142,22 @@ export function Colmeias() {
               </label>
             </div>
             <label className="grid gap-1 text-sm font-semibold text-slate-700">
-              Localização
+              Meliponário
+              <select
+                className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                value={form.meliponario_id}
+                onChange={(event) => updateField("meliponario_id", event.target.value)}
+              >
+                <option value="">Sem meliponário</option>
+                {meliponarios.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nome}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-sm font-semibold text-slate-700">
+              Localização na área
               <input
                 className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
                 value={form.localizacao}
@@ -181,7 +205,7 @@ export function Colmeias() {
           </div>
         </form>
 
-        <div className="surface rounded-xl p-6">
+        <div className="surface p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-slate-950">Lista de colmeias</h2>

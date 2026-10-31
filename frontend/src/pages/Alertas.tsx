@@ -59,7 +59,7 @@ export function Alertas() {
       ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="surface rounded-xl p-6">
+        <div className="surface p-6">
           <div className="mb-5 flex items-center gap-3">
             <div className="rounded-lg bg-rose-50 p-3 text-rose-700">
               <ShieldAlert className="h-5 w-5" />
@@ -104,7 +104,7 @@ export function Alertas() {
           )}
         </div>
 
-        <div className="surface rounded-xl p-6">
+        <div className="surface p-6">
           <h2 className="text-xl font-bold text-slate-950">Resolvidos</h2>
           <div className="mt-5 space-y-3">
             {resolvidos.length ? (

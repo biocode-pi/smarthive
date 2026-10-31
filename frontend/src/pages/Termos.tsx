@@ -6,11 +6,11 @@ export function Termos() {
   return (
     <LegalLayout
       titulo="Termos de Uso"
-      resumo="O SmartHive é um projeto acadêmico gratuito para acompanhar colmeias de abelhas nativas. Ao criar uma conta, você concorda em usá-lo de forma responsável e entende que a plataforma é oferecida sem garantia de funcionamento contínuo."
+      resumo="O Smart Hive é um projeto acadêmico gratuito para acompanhar colmeias de abelhas nativas. Ao criar uma conta, você concorda em usá-lo de forma responsável e entende que a plataforma é oferecida sem garantia de funcionamento contínuo."
     >
       <h2>1. Sobre o serviço</h2>
       <p>
-        O SmartHive é uma plataforma de monitoramento de colmeias de abelhas nativas sem ferrão, desenvolvida como
+        O Smart Hive é uma plataforma de monitoramento de colmeias de abelhas nativas sem ferrão, desenvolvida como
         Projeto Integrador do curso de {legalConfig.curso} da {legalConfig.instituicao}. Permite cadastrar colmeias,
         registrar capturas de fotos e vídeos, acompanhar indicadores de atividade e receber alertas.
       </p>
@@ -34,7 +34,7 @@ export function Termos() {
       </ul>
 
       <h2>4. Uso adequado</h2>
-      <p>Ao usar o SmartHive, você se compromete a não:</p>
+      <p>Ao usar o Smart Hive, você se compromete a não:</p>
       <ul>
         <li>tentar acessar dados de outras contas ou burlar os mecanismos de segurança;</li>
         <li>enviar arquivos com vírus, conteúdo ilegal ou que não tenha relação com o monitoramento das colmeias;</li>

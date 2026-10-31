@@ -54,7 +54,7 @@ export function Overview() {
         setResumo(dados);
         setColmeias(lista);
       })
-      .catch(() => setError("Não foi possível carregar os dados do SmartHive."))
+      .catch(() => setError("Não foi possível carregar os dados do Smart Hive."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -130,7 +130,7 @@ export function Overview() {
           </Link>
           <Link
             to="/app/sensor-celular"
-            className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-700 bg-hive-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-900"
+            className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
           >
             <Camera className="h-4 w-4" />
             Nova captura
@@ -166,7 +166,7 @@ export function Overview() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
-        <div className="surface rounded-lg p-5">
+        <div className="surface p-5">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-950">Atividade recente</h2>
@@ -181,7 +181,7 @@ export function Overview() {
           <LineChart data={lineData} />
         </div>
 
-        <div className="surface rounded-lg p-5">
+        <div className="surface p-5">
           <div>
             <h2 className="text-base font-bold text-slate-950">Meliponário</h2>
             <p className="mt-1 text-sm text-slate-600">Cada hexágono é uma colmeia. Selecione uma para ver os detalhes.</p>
@@ -209,7 +209,7 @@ export function Overview() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="surface rounded-lg p-5">
+        <div className="surface p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-base font-bold text-slate-950">Entrada e saída</h2>
@@ -248,7 +248,7 @@ export function Overview() {
           </div>
         </div>
 
-        <div className="surface rounded-lg p-5">
+        <div className="surface p-5">
           <div>
             <h2 className="text-base font-bold text-slate-950">Registros por captura</h2>
             <p className="mt-1 text-sm text-slate-500">Comparativo de movimentos por monitoramento recente.</p>
@@ -258,7 +258,7 @@ export function Overview() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="surface rounded-lg p-5">
+        <div className="surface p-5">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-base font-bold text-slate-950">Últimos eventos</h2>
@@ -301,7 +301,7 @@ export function Overview() {
           )}
         </div>
 
-        <div className="surface rounded-lg p-5">
+        <div className="surface p-5">
           <div className="mb-4">
             <h2 className="text-base font-bold text-slate-950">Pendências</h2>
             <p className="mt-1 text-sm text-slate-500">Alertas recentes que ainda orientam a rotina.</p>

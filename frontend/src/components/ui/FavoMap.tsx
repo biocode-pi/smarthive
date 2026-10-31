@@ -19,11 +19,12 @@ export interface CelulaFavo {
 const RAIO = 46;
 const LARGURA = Math.sqrt(3) * RAIO;
 
+// Mesmos tons pastel dos selos de status do app mobile (com texto escuro, contraste AA).
 const CORES: Record<StatusColmeia, { fill: string; texto: string; rotulo: string }> = {
-  ativa: { fill: "#2e7d52", texto: "#ffffff", rotulo: "Ativa" },
-  observacao: { fill: "#e0a526", texto: "#17241c", rotulo: "Em observação" },
-  risco: { fill: "#c2410c", texto: "#ffffff", rotulo: "Em risco" },
-  inativa: { fill: "#cbd5cf", texto: "#17241c", rotulo: "Inativa" },
+  ativa: { fill: "#cff8cc", texto: "#1a6b12", rotulo: "Em dia" },
+  observacao: { fill: "#fae596", texto: "#645f46", rotulo: "Em observação" },
+  risco: { fill: "#f6c0c0", texto: "#a40000", rotulo: "Em risco" },
+  inativa: { fill: "#d9d9d9", texto: "#121515", rotulo: "Inativa" },
 };
 
 const DIRECOES: Array<[number, number]> = [
@@ -117,7 +118,7 @@ export function FavoMap({
               key={`vazia-${indice}`}
               points={pontosHexagono(p.x, p.y, RAIO - 3)}
               fill="none"
-              stroke="#cbd5cf"
+              stroke="#e0d39a"
               strokeDasharray="4 5"
               strokeWidth={1.5}
               aria-hidden="true"
@@ -154,7 +155,7 @@ export function FavoMap({
               y={p.y + (celula.detalhe ? -4 : 4)}
               textAnchor="middle"
               fill={cor.texto}
-              className="font-mono text-[12.5px] font-medium"
+              className="font-sans text-[12.5px] font-bold"
             >
               {celula.codigo}
             </text>

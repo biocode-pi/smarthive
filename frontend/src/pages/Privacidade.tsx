@@ -6,11 +6,11 @@ export function Privacidade() {
   return (
     <LegalLayout
       titulo="Política de Privacidade"
-      resumo="Coletamos apenas o necessário para você usar o SmartHive: seu nome e e-mail para a conta, e os dados das colmeias que você cadastra. Não vendemos dados, não usamos anúncios nem rastreadores, e você pode pedir a exclusão das suas informações a qualquer momento."
+      resumo="Coletamos apenas o necessário para você usar o Smart Hive: nome e e-mail para a conta, telefone se você quiser informar, e os dados dos meliponários e colmeias que você cadastra. Não vendemos dados, não usamos anúncios nem rastreadores, e você pode pedir a exclusão das suas informações a qualquer momento."
     >
       <h2>1. Quem somos</h2>
       <p>
-        O SmartHive é uma plataforma de monitoramento de colmeias de abelhas nativas sem ferrão, desenvolvida como
+        O Smart Hive é uma plataforma de monitoramento de colmeias de abelhas nativas sem ferrão, desenvolvida como
         Projeto Integrador do curso de {legalConfig.curso} da {legalConfig.instituicao}. A equipe do projeto é a
         controladora dos dados pessoais tratados na plataforma, nos termos da Lei Geral de Proteção de Dados (Lei nº
         13.709/2018, LGPD).
@@ -23,6 +23,14 @@ export function Privacidade() {
           <strong>Nome e e-mail</strong>, informados no cadastro.
         </li>
         <li>
+          <strong>Telefone</strong>, opcional. Pode ser informado no cadastro ou em Configurações e removido a qualquer
+          momento.
+        </li>
+        <li>
+          <strong>Preferência de notificações por e-mail</strong>, com a data em que você aceitou e, se for o caso, a
+          data em que desativou.
+        </li>
+        <li>
           <strong>Senha</strong>: fica sob guarda do serviço de autenticação (Amazon Cognito). A equipe não tem acesso a
           ela, nem em texto nem cifrada.
         </li>
@@ -33,6 +41,7 @@ export function Privacidade() {
       </ul>
       <h3>Dados que você cadastra</h3>
       <ul>
+        <li>Meliponários: nome, endereço, cidade e estado do local onde ficam as colmeias.</li>
         <li>Colmeias: nome, código, espécie, localização e descrição.</li>
         <li>Monitoramentos: data e hora, contagens de abelhas, observações e a indicação de possível invasor.</li>
         <li>
@@ -67,7 +76,10 @@ export function Privacidade() {
         <li>Estimar o nível de atividade das colmeias a partir dos registros enviados.</li>
         <li>Garantir a segurança da plataforma e investigar falhas.</li>
         <li>
-          Enviar e-mails de serviço, como o código de confirmação do cadastro e o de recuperação de senha. Não enviamos
+          Enviar e-mails de serviço, como o código de confirmação do cadastro e o de recuperação de senha.
+        </li>
+        <li>
+          Enviar avisos sobre alertas das suas colmeias, somente se você ativar as notificações por e-mail. Não enviamos
           e-mails de marketing.
         </li>
       </ul>
@@ -77,6 +89,10 @@ export function Privacidade() {
         <li>
           <strong>Execução de contrato</strong> (art. 7º, V, da LGPD): para oferecer o serviço que você solicitou ao
           criar a conta.
+        </li>
+        <li>
+          <strong>Consentimento</strong> (art. 7º, I): para as notificações por e-mail. Você pode revogar quando quiser
+          em Configurações, sem afetar o restante do serviço.
         </li>
         <li>
           <strong>Legítimo interesse</strong> (art. 7º, IX): para a segurança da plataforma, como o limite de
@@ -112,7 +128,10 @@ export function Privacidade() {
 
       <h2>7. Por quanto tempo guardamos</h2>
       <ul>
-        <li>Os dados da conta e das colmeias ficam guardados enquanto a conta existir.</li>
+        <li>Os dados da conta, dos meliponários e das colmeias ficam guardados enquanto a conta existir.</li>
+        <li>
+          Ao excluir um meliponário, as colmeias dele continuam cadastradas, apenas sem vínculo com o local.
+        </li>
         <li>Quando você apaga uma colmeia, seus monitoramentos e alertas são apagados junto.</li>
         <li>
           As cópias de segurança do banco de dados são guardadas por até 30 dias e depois apagadas automaticamente.
@@ -127,7 +146,9 @@ export function Privacidade() {
       <p>Pela LGPD (art. 18), você pode pedir a qualquer momento:</p>
       <ul>
         <li>confirmação de que tratamos seus dados e acesso a eles;</li>
-        <li>correção de dados incompletos ou desatualizados;</li>
+        <li>correção de dados incompletos ou desatualizados (nome, telefone e preferências podem ser alterados direto em
+          Configurações);</li>
+        <li>revogação do consentimento para notificações, em Configurações;</li>
         <li>exclusão dos seus dados e da sua conta;</li>
         <li>portabilidade dos dados para outro serviço;</li>
         <li>informações sobre com quem compartilhamos os dados.</li>

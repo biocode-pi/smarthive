@@ -1,4 +1,5 @@
 import {
+  Archive,
   BarChart3,
   Bell,
   Camera,
@@ -13,13 +14,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import { Marca } from "../ui/Marca";
 import { useAuth, userDisplayName } from "../../context/AuthContext";
 import { cn } from "../../utils/classNames";
 
 const navItems = [
   { to: "/app", label: "Visão geral", icon: Home },
   { to: "/app/dashboard", label: "Dashboard", icon: BarChart3 },
+  { to: "/app/meliponarios", label: "Meliponários", icon: Archive },
   { to: "/app/colmeias", label: "Colmeias", icon: Flower2 },
   { to: "/app/sensor-celular", label: "Câmera IA", icon: Camera },
   { to: "/app/registros", label: "Histórico", icon: FileText },
@@ -30,7 +32,7 @@ const navItems = [
 // Barra inferior do celular: as telas de uso diario no campo. O resto fica no menu.
 const tabItems = [
   { to: "/app", label: "Início", icon: Home },
-  { to: "/app/colmeias", label: "Colmeias", icon: Flower2 },
+  { to: "/app/meliponarios", label: "Meliponários", icon: Archive },
   { to: "/app/sensor-celular", label: "Câmera", icon: Camera },
   { to: "/app/alertas", label: "Alertas", icon: Bell },
 ];
@@ -90,8 +92,8 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
             cn(
               "focus-ring inline-flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition",
               isActive
-                ? "bg-hive-600 text-white shadow-sm"
-                : "text-slate-600 hover:bg-hive-50 hover:text-slate-950",
+                ? "bg-honey-400 text-ink"
+                : "text-slate-700 hover:bg-honey-50 hover:text-ink",
             )
           }
         >
@@ -105,15 +107,7 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
 
 function Brand() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-hive-100">
-        <img src={logo} alt="SmartHive" className="h-9 w-9 object-contain" />
-      </div>
-      <div>
-        <p className="font-display text-lg font-semibold text-ink">SmartHive</p>
-        <p className="text-xs font-medium text-slate-500">Meliponicultura inteligente</p>
-      </div>
-    </div>
+    <Marca comTagline />
   );
 }
 
@@ -158,7 +152,7 @@ export function AppLayout() {
         </div>
       </aside>
 
-      <header className="sticky top-0 z-40 border-b border-white/70 bg-white/90 shadow-sm backdrop-blur-xl lg:hidden">
+      <header className="sticky top-0 z-40 bg-honey-400 lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <Brand />
           <button

@@ -29,7 +29,7 @@ export function MfaSettings({ email }: { email: string }) {
     setEnviando(true);
     try {
       const detalhes = await setUpTOTP();
-      const uri = detalhes.getSetupUri("SmartHive", email);
+      const uri = detalhes.getSetupUri("Smart Hive", email);
       setQrCode(await QRCode.toDataURL(uri.toString(), { margin: 1, width: 192 }));
       setSegredo(detalhes.sharedSecret);
       setEstado("configurando");
@@ -81,7 +81,7 @@ export function MfaSettings({ email }: { email: string }) {
     <section className="surface mb-6 rounded-xl p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <div className={`rounded-lg p-3 ${ativado ? "bg-hive-50 text-hive-700" : "bg-amber-50 text-amber-700"}`}>
+          <div className={`rounded-lg p-3 ${ativado ? "bg-status-ativa text-status-ativa-texto" : "bg-status-observacao text-status-observacao-texto"}`}>
             {ativado ? <ShieldCheck className="h-6 w-6" /> : <ShieldOff className="h-6 w-6" />}
           </div>
           <div className="min-w-0">

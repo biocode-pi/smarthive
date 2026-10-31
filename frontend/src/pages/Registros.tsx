@@ -50,7 +50,7 @@ export function Registros() {
         </div>
       ) : null}
 
-      <section className="surface rounded-xl p-6">
+      <section className="surface p-6">
         {registros.length === 0 ? (
           <EmptyState
             icon={<FileText className="h-6 w-6" />}

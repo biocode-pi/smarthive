@@ -83,14 +83,14 @@ export interface AuthConfig {
 export const authConfig: AuthConfig = {
   brand: {
     logoSrc: logo,
-    name: "SmartHive",
+    name: "Smart Hive",
   },
   quote: {
     text: "Meliponicultura conectada, do campo aos dados.",
-    attribution: "SmartHive",
+    attribution: "Smart Hive",
   },
   footer: {
-    copyright: `© ${new Date().getFullYear()} SmartHive`,
+    copyright: `© ${new Date().getFullYear()} Smart Hive`,
     links: [
       { label: "Termos de Uso", href: "/termos" },
       { label: "Privacidade", href: "/privacidade" },
@@ -107,8 +107,8 @@ export const authConfig: AuthConfig = {
       noAccountAction: "Criar conta",
     },
     cadastro: {
-      title: "Criar conta",
-      subtitle: "Use a mesma conta no aplicativo web e mobile.",
+      title: "Registro",
+      subtitle: "Insira suas informações. A mesma conta vale no site e no aplicativo.",
       submit: "Criar conta",
       hasAccountPrefix: "Já tem conta?",
       hasAccountAction: "Entrar",

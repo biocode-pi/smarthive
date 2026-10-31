@@ -56,7 +56,7 @@ export function Dashboard() {
     <>
       <PageHeader
         title="Dashboard"
-        description="Métricas de atividade, fluxo visual e alertas do SmartHive."
+        description="Métricas de atividade, fluxo visual e alertas do Smart Hive."
       >
         <Link
           to="/app/registros"
@@ -75,7 +75,7 @@ export function Dashboard() {
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="surface rounded-xl p-6">
+        <div className="surface p-6">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-slate-950">Resumo de atividade</h2>
@@ -83,7 +83,7 @@ export function Dashboard() {
             </div>
             <Link
               to="/app/sensor-celular"
-              className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
+              className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
             >
               <Camera className="h-4 w-4" />
               Câmera IA
@@ -112,13 +112,13 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="surface rounded-xl p-6">
+        <div className="surface p-6">
           <h2 className="text-xl font-bold text-slate-950">Status das colmeias</h2>
           <div className="mt-5 grid gap-3">
             {[
-              ["Ativas", resumo.colmeias_ativas, "bg-hive-50 text-hive-700"],
-              ["Observação", resumo.colmeias_em_observacao, "bg-amber-50 text-amber-700"],
-              ["Risco", resumo.colmeias_em_risco, "bg-rose-50 text-rose-700"],
+              ["Em dia", resumo.colmeias_ativas, "bg-status-ativa text-status-ativa-texto"],
+              ["Em observação", resumo.colmeias_em_observacao, "bg-status-observacao text-status-observacao-texto"],
+              ["Em risco", resumo.colmeias_em_risco, "bg-status-risco text-status-risco-texto"],
             ].map(([label, value, className]) => (
               <div key={label} className={`flex items-center justify-between rounded-lg px-4 py-3 ${className}`}>
                 <span className="text-sm font-bold">{label}</span>
