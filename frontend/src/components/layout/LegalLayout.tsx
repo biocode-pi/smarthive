@@ -44,11 +44,9 @@ export function LegalLayout({ titulo, resumo, children }: LegalLayoutProps) {
 }
 
 export function Contato() {
-  return legalConfig.emailContato ? (
+  return (
     <a href={`mailto:${legalConfig.emailContato}`} className="font-semibold text-hive-700 underline-offset-4 hover:underline">
       {legalConfig.emailContato}
     </a>
-  ) : (
-    <span>os integrantes da equipe, listados na página inicial</span>
   );
 }
