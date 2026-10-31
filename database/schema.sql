@@ -74,7 +74,36 @@ create table if not exists capturas_sensor_celular (
   criado_em timestamptz not null default now()
 );
 
+-- Meliponarios: locais (com endereco) que agrupam colmeias. Colmeias sem meliponario sao permitidas.
+create table if not exists meliponarios (
+  id text primary key default gen_random_uuid()::text,
+  usuario_id text not null,
+  nome text not null,
+  endereco text,
+  cidade text,
+  uf text check (uf is null or length(uf) = 2),
+  descricao text,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+alter table colmeias add column if not exists meliponario_id text references meliponarios(id) on delete set null;
+
+-- Perfil do usuario: telefone e consentimento de notificacoes (com datas, como prova para a LGPD).
+create table if not exists perfis (
+  id text primary key,
+  usuario_id text not null unique,
+  telefone text check (telefone is null or telefone ~ '^[0-9]{10,11}$'),
+  notificacoes_email boolean not null default false,
+  consentimento_em timestamptz,
+  revogado_em timestamptz,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
 create index if not exists idx_colmeias_usuario on colmeias (usuario_id);
+create index if not exists idx_colmeias_meliponario on colmeias (meliponario_id);
+create index if not exists idx_meliponarios_usuario on meliponarios (usuario_id);
 create index if not exists idx_monitoramentos_usuario_data on monitoramentos (usuario_id, data_hora desc);
 create index if not exists idx_monitoramentos_colmeia_data on monitoramentos (colmeia_id, data_hora desc);
 create index if not exists idx_alertas_usuario on alertas (usuario_id, resolvido, criado_em desc);
@@ -102,6 +131,18 @@ create trigger trg_monitoramentos_atualizado_em
 before update on monitoramentos
 for each row execute function set_atualizado_em();
 
+drop trigger if exists trg_meliponarios_atualizado_em on meliponarios;
+create trigger trg_meliponarios_atualizado_em
+before update on meliponarios
+for each row execute function set_atualizado_em();
+
+drop trigger if exists trg_perfis_atualizado_em on perfis;
+create trigger trg_perfis_atualizado_em
+before update on perfis
+for each row execute function set_atualizado_em();
+
+comment on table meliponarios is 'Locais (com endereco) que agrupam colmeias.';
+comment on table perfis is 'Telefone e consentimento de notificacoes do usuario (LGPD).';
 comment on table colmeias is 'Colmeias de abelhas nativas monitoradas pelo SmartHive.';
 comment on table monitoramentos is 'Historico de monitoramentos manuais, por celular e futuramente IoT.';
 comment on table alertas is 'Alertas manuais ou gerados por heuristicas/IA.';

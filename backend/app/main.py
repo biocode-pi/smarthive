@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.rate_limit import aplicar_limite
-from app.routers import alertas, colmeias, dashboard, health, monitoramentos, sensor_celular
+from app.routers import alertas, colmeias, dashboard, health, meliponarios, monitoramentos, perfil, sensor_celular
 
 
 settings = get_settings()
@@ -52,7 +52,9 @@ if settings.storage_backend == "local":
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 
+app.include_router(meliponarios.router, prefix=settings.api_prefix)
 app.include_router(colmeias.router, prefix=settings.api_prefix)
+app.include_router(perfil.router, prefix=settings.api_prefix)
 app.include_router(monitoramentos.router, prefix=settings.api_prefix)
 app.include_router(sensor_celular.router, prefix=settings.api_prefix)
 app.include_router(alertas.router, prefix=settings.api_prefix)

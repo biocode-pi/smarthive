@@ -19,6 +19,7 @@ class ColmeiaBase(BaseModel):
     descricao: str | None = None
     status: StatusColmeia = StatusColmeia.ativa
     instalada_em: date | None = None
+    meliponario_id: str | None = None
 
 
 class ColmeiaCreate(ColmeiaBase):
@@ -33,6 +34,7 @@ class ColmeiaUpdate(BaseModel):
     descricao: str | None = None
     status: StatusColmeia | None = None
     instalada_em: date | None = None
+    meliponario_id: str | None = None
 
 
 class Colmeia(ColmeiaBase):

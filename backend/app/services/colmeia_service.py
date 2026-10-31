@@ -22,12 +22,18 @@ def obter_colmeia(usuario_id: str, colmeia_id: str) -> dict:
 
 
 def criar_colmeia(usuario_id: str, payload: ColmeiaCreate) -> dict:
+    from app.services import meliponario_service
+
+    meliponario_service.validar_dono(usuario_id, payload.meliponario_id)
     return get_store().create(TABLE, {**payload.model_dump(mode="json"), "usuario_id": usuario_id})
 
 
 def atualizar_colmeia(usuario_id: str, colmeia_id: str, payload: ColmeiaUpdate | dict) -> dict:
+    from app.services import meliponario_service
+
     obter_colmeia(usuario_id, colmeia_id)
     dados = payload if isinstance(payload, dict) else payload.model_dump(exclude_unset=True, mode="json")
+    meliponario_service.validar_dono(usuario_id, dados.get("meliponario_id"))
     colmeia = get_store().update(TABLE, colmeia_id, dados)
     if not colmeia:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Colmeia não encontrada.")

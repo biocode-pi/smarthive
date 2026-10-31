@@ -11,7 +11,7 @@ from uuid import uuid4
 from app.config import get_settings
 
 
-TABLES = ("colmeias", "monitoramentos", "alertas", "capturas_sensor_celular")
+TABLES = ("meliponarios", "colmeias", "monitoramentos", "alertas", "capturas_sensor_celular", "perfis")
 
 
 def now_iso() -> str:
