@@ -88,3 +88,24 @@ h3 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Paginas de texto legal: hierarquia clara e linha confortavel para leitura longa. */
+.legal h2 {
+  @apply mt-10 text-2xl font-semibold text-hive-900;
+}
+.legal h3 {
+  @apply mt-6 text-lg font-semibold text-hive-900;
+}
+.legal p,
+.legal li {
+  @apply leading-relaxed text-slate-700;
+}
+.legal p {
+  @apply mt-3;
+}
+.legal ul {
+  @apply mt-3 list-disc space-y-2 pl-6;
+}
+.legal strong {
+  @apply font-semibold text-ink;
+}

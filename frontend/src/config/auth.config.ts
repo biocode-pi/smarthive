@@ -92,8 +92,8 @@ export const authConfig: AuthConfig = {
   footer: {
     copyright: `© ${new Date().getFullYear()} SmartHive`,
     links: [
-      { label: "Termos", href: "#" },
-      { label: "Privacidade", href: "#" },
+      { label: "Termos de Uso", href: "/termos" },
+      { label: "Privacidade", href: "/privacidade" },
     ],
   },
   texts: {

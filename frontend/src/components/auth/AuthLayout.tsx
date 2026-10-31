@@ -41,9 +41,9 @@ export function AuthLayout({ brand, quote, footer, children }: AuthLayoutProps) 
             <p>{footer.copyright}</p>
             <div className="flex gap-5">
               {footer.links.map((link) => (
-                <a key={link.label} href={link.href} className="transition hover:text-slate-700">
+                <Link key={link.label} to={link.href} className="focus-ring rounded transition hover:text-slate-700">
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           </footer>

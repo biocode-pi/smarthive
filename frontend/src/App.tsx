@@ -17,6 +17,8 @@ const Configuracoes = lazy(() =>
 const Dashboard = lazy(() => import("./pages/Dashboard").then(({ Dashboard }) => ({ default: Dashboard })));
 const Login = lazy(() => import("./pages/Login").then(({ Login }) => ({ default: Login })));
 const NotFound = lazy(() => import("./pages/NotFound").then(({ NotFound }) => ({ default: NotFound })));
+const Privacidade = lazy(() => import("./pages/Privacidade").then(({ Privacidade }) => ({ default: Privacidade })));
+const Termos = lazy(() => import("./pages/Termos").then(({ Termos }) => ({ default: Termos })));
 const Overview = lazy(() => import("./pages/Overview").then(({ Overview }) => ({ default: Overview })));
 const Registros = lazy(() => import("./pages/Registros").then(({ Registros }) => ({ default: Registros })));
 const SensorCelular = lazy(() =>
@@ -41,6 +43,8 @@ export default function App() {
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route index element={<Site />} />
+            <Route path="termos" element={<Termos />} />
+            <Route path="privacidade" element={<Privacidade />} />
 
             <Route element={<PublicOnlyRoute />}>
               <Route path="login" element={<Login />} />
