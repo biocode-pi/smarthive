@@ -2,6 +2,7 @@
 # Executado na instancia pelo SSM (infra/deploy-backend.sh). Recebe o prefixo S3 da release.
 set -euo pipefail
 RELEASE_URI="$1"   # s3://bucket/releases/<id>
+DOMINIO="${2:-}"   # dominio proprio (ex.: smarthive.app.br), opcional
 RELEASE_ID="$(basename "$RELEASE_URI")"
 DIR="/opt/smarthive/releases/$RELEASE_ID"
 
@@ -39,6 +40,13 @@ ORIGIN_SECRET="$(aws ssm get-parameter --name /smarthive/origin-secret --with-de
 umask 077
 printf 'ORIGIN_DOMAIN=%s\nORIGIN_SECRET=%s\n' "$ORIGIN_DOMAIN" "$ORIGIN_SECRET" > /opt/smarthive/origin.env
 umask 022
+
+# Dominio raiz -> www (o site fica no CloudFront, em www.<dominio>).
+if [[ "$DOMINIO" =~ ^[a-z0-9.-]+$ ]]; then
+  printf '%s {\n\tredir https://www.%s{uri} permanent\n}\n' "$DOMINIO" "$DOMINIO" > /opt/smarthive/sites.caddy
+else
+  : > /opt/smarthive/sites.caddy
+fi
 
 cd /opt/smarthive/current
 docker compose -p smarthive --env-file /opt/smarthive/db.env up -d --build --remove-orphans

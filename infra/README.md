@@ -87,12 +87,14 @@ aws cloudformation create-stack --stack-name smarthive \
                  --name /smarthive/origin-secret --with-decryption \
                  --query Parameter.Value --output text)"
 
-# Atualizar a stack depois de mudar o template
+# Atualizar a stack depois de mudar o template (gere um change set antes; veja abaixo)
 aws cloudformation update-stack --stack-name smarthive \
   --template-body file://infra/smarthive.yaml --capabilities CAPABILITY_IAM \
   --parameters ParameterKey=VpcId,UsePreviousValue=true \
                ParameterKey=SubnetId,UsePreviousValue=true \
-               ParameterKey=OriginSecret,UsePreviousValue=true
+               ParameterKey=OriginSecret,UsePreviousValue=true \
+               ParameterKey=Dominio,UsePreviousValue=true \
+               ParameterKey=CertificadoArn,UsePreviousValue=true
 
 # Publicar o backend (API + banco) no EC2
 bash infra/deploy-backend.sh        # Git Bash
@@ -108,6 +110,26 @@ aws cloudformation describe-stacks --stack-name smarthive --query "Stacks[0].Out
 # Acessar o terminal da instancia (sem SSH)
 aws ssm start-session --target <InstanceId>
 ```
+
+## Dominio proprio (smarthive.app.br)
+
+O DNS continua no registro.br (gratuito). O site fica em `www.smarthive.app.br`, servido
+pelo CloudFront; o dominio raiz aponta para o Elastic IP e o Caddy redireciona para o `www`
+(o registro.br nao permite CNAME no dominio raiz). A origem da API segue em `<ip>.sslip.io`.
+
+1. Certificado gratuito do ACM, obrigatoriamente em `us-east-1`:
+   `aws acm request-certificate --region us-east-1 --domain-name www.smarthive.app.br --validation-method DNS`
+2. No registro.br, em "Editar zona" (modo avancado), crie:
+
+   | Nome | Tipo | Valor |
+   |---|---|---|
+   | (validacao do ACM) | CNAME | valor mostrado em `aws acm describe-certificate` |
+   | `www` | CNAME | dominio `*.cloudfront.net` da distribuicao |
+   | (raiz) | A | Elastic IP da instancia |
+
+3. Com o certificado `ISSUED`, atualize a stack com `Dominio=smarthive.app.br` e
+   `CertificadoArn=<arn>` (via change set), depois rode o deploy do backend e do frontend.
+   Sem esses parametros, a stack usa so o endereco `*.cloudfront.net`.
 
 ## Backup do banco
 

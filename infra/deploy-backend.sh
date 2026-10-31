@@ -16,6 +16,7 @@ output() {
 DEPLOY_BUCKET="$(output DeployBucketName)"
 INSTANCE_ID="$(output InstanceId)"
 SITE_URL="$(output SiteUrl)"
+DOMINIO="$(output Dominio)"
 REGION="$(output Region)"
 RELEASE_ID="$(date +%Y%m%d-%H%M%S)"
 RELEASE_URI="s3://$DEPLOY_BUCKET/releases/$RELEASE_ID"
@@ -59,7 +60,7 @@ ENV
 "$AWS" s3 cp infra/ec2/install.sh "$RELEASE_URI/install.sh" --only-show-errors
 
 cat > "$TMP/params.json" <<JSON
-{"commands": ["set -e", "aws s3 cp $RELEASE_URI/install.sh /tmp/smarthive-install.sh --only-show-errors", "bash /tmp/smarthive-install.sh $RELEASE_URI"], "executionTimeout": ["1200"]}
+{"commands": ["set -e", "aws s3 cp $RELEASE_URI/install.sh /tmp/smarthive-install.sh --only-show-errors", "bash /tmp/smarthive-install.sh $RELEASE_URI $DOMINIO"], "executionTimeout": ["1200"]}
 JSON
 
 PARAMS_FILE="$TMP/params.json"

@@ -43,6 +43,21 @@ Parameters:
   OriginSecretParameterName:
     Type: String
     Default: /smarthive/origin-secret
+  # Dominio proprio (opcional). O site fica em www.<Dominio> no CloudFront; o dominio raiz
+  # aponta para o Elastic IP e o Caddy redireciona para o www (DNS do registro.br).
+  Dominio:
+    Type: String
+    Default: ""
+    AllowedPattern: "^([a-z0-9-]+\\.)+[a-z]{2,}$|^$"
+  CertificadoArn:
+    Type: String
+    Default: ""
+    Description: Certificado ACM (us-east-1) emitido para www.<Dominio>.
+
+Conditions:
+  TemDominio: !And
+    - !Not [!Equals [!Ref Dominio, ""]]
+    - !Not [!Equals [!Ref CertificadoArn, ""]]
 
 Resources:
   # ---------------------------------------------------------------- Cognito
@@ -335,6 +350,14 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0
           Description: HTTPS - CloudFront e validacao TLS-ALPN do Lets Encrypt
+        - !If
+          - TemDominio
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+            Description: HTTP - so redireciona o dominio raiz para https www
+          - !Ref AWS::NoValue
       SecurityGroupEgress:
         - IpProtocol: tcp
           FromPort: 443
@@ -527,6 +550,13 @@ Resources:
       DistributionConfig:
         Enabled: true
         Comment: SmartHive
+        Aliases: !If [TemDominio, [!Sub "www.${Dominio}"], !Ref AWS::NoValue]
+        ViewerCertificate: !If
+          - TemDominio
+          - AcmCertificateArn: !Ref CertificadoArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - !Ref AWS::NoValue
         HttpVersion: http2and3
         IPV6Enabled: true
         PriceClass: PriceClass_100
@@ -579,7 +609,13 @@ Resources:
 
 Outputs:
   SiteUrl:
-    Value: !Sub "https://${Distribution.DomainName}"
+    Value: !If
+      - TemDominio
+      - !Sub "https://www.${Dominio}"
+      - !Sub "https://${Distribution.DomainName}"
+  Dominio:
+    Condition: TemDominio
+    Value: !Ref Dominio
   DistributionId:
     Value: !Ref Distribution
   UserPoolId:
