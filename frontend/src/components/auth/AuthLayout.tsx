@@ -27,7 +27,7 @@ export function AuthLayout({ footer, comMarca = true, children }: AuthLayoutProp
           <p className="mt-4 text-5xl font-black leading-[1.05]">Cada colmeia do meliponário, acompanhada de perto.</p>
           <p className="mt-5 text-lg text-ink/80">A mesma conta vale no site e no aplicativo do celular.</p>
         </div>
-        <p className="text-sm font-bold">Projeto Integrador · FATEC</p>
+        <p className="text-sm font-bold">Projeto Integrador · Fatec Registro</p>
       </aside>
 
       <section className="flex min-h-screen flex-col px-6 py-10 lg:bg-honey-50 lg:px-16">
