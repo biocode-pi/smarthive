@@ -39,8 +39,10 @@ export function ExcluirConta({ email }: { email: string }) {
       setExcluindo(false);
       return;
     }
-    await logout().catch(() => undefined);
+    // Vai para a pagina inicial antes de encerrar a sessao; senao a rota protegida
+    // redireciona para o login.
     navigate("/", { replace: true });
+    await logout().catch(() => undefined);
   }
 
   return (

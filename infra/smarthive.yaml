@@ -27,9 +27,12 @@ Parameters:
     Type: String
     Default: t4g.micro
     AllowedValues: [t4g.micro, t4g.small]
+  # AMI fixa: com o parametro SSM "latest", toda atualizacao da stack apos a AWS publicar
+  # uma imagem nova SUBSTITUIA a instancia (e o banco, que fica no disco dela). Isso ocorreu
+  # em 31/10/2026. Para atualizar a imagem, troque este valor de proposito, com backup antes.
   AmiId:
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+    Type: AWS::EC2::Image::Id
+    Default: ami-0951c836c26e34fc8
   OriginSecret:
     Type: String
     NoEcho: true

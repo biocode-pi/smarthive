@@ -12,6 +12,20 @@ export AWS_DEFAULT_REGION="$(imds placement/region)"
 PUBLIC_IP="$(imds public-ipv4)"
 ORIGIN_DOMAIN="${PUBLIC_IP//./-}.sslip.io"
 
+# Garante os pre-requisitos mesmo se o user data da instancia nao terminou (aconteceu em
+# 31/10/2026, quando a instancia foi recriada): plugin do Compose e senha do banco.
+if ! docker compose version >/dev/null 2>&1; then
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  curl -fsSL "https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-aarch64" \
+    -o /usr/local/lib/docker/cli-plugins/docker-compose
+  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+fi
+if [ ! -f /opt/smarthive/db.env ]; then
+  umask 077
+  echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)" > /opt/smarthive/db.env
+  umask 022
+fi
+
 mkdir -p "$DIR" /opt/smarthive/caddy/data /opt/smarthive/caddy/config
 aws s3 cp "$RELEASE_URI/app.tgz" /tmp/smarthive-app.tgz --only-show-errors
 aws s3 cp "$RELEASE_URI/app.env" /opt/smarthive/app.env --only-show-errors

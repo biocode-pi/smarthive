@@ -139,6 +139,26 @@ uma URL pre-assinada de 15 minutos e manda a instancia restaurar:
 
 A restauracao **substitui** os dados atuais e para a API durante o processo.
 
+## Cuidado: atualizacoes que recriam a instancia
+
+O banco vive no disco do EC2. Qualquer mudanca no template que **substitua** a instancia
+(imagem/AMI, tipo, user data, subnet) apaga o banco. Por isso:
+
+- A AMI e fixa (parametro `AmiId`). Antes ela seguia "a mais recente" e, em 31/10/2026, uma
+  atualizacao da stack recriou a instancia sozinha (sem perda real: nao havia dados).
+- Antes de `update-stack`, gere um change set e confira que `ApiInstance` nao aparece com
+  `Replacement: True`:
+
+```bash
+aws cloudformation create-change-set --stack-name smarthive --change-set-name revisao   --template-body file://infra/smarthive.yaml --capabilities CAPABILITY_IAM   --parameters ParameterKey=VpcId,UsePreviousValue=true ParameterKey=SubnetId,UsePreviousValue=true                ParameterKey=OriginSecret,UsePreviousValue=true
+aws cloudformation describe-change-set --stack-name smarthive --change-set-name revisao   --query "Changes[].ResourceChange.[LogicalResourceId,Action,Replacement]" --output table
+```
+
+- Se a substituicao for necessaria: faca backup (`backup.sh`), aplique, rode o deploy do
+  backend (o `install.sh` instala o que faltar) e restaure com `restore-db`. Restaurar um
+  backup anterior a uma migracao recria as tabelas no formato antigo: rode o `schema.sql` de
+  novo em seguida (ele e idempotente).
+
 ## Pausar ou remover
 
 - **Pausar** (economiza ~US$ 6/mes): `aws ec2 stop-instances --instance-ids <InstanceId>`.
