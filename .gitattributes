@@ -1,0 +1,8 @@
+# Arquivos executados no Linux (EC2/containers) precisam de LF mesmo quando o repo e clonado no Windows.
+*.sh                text eol=lf
+infra/ec2/Caddyfile text eol=lf
+Dockerfile          text eol=lf
+*.yml               text eol=lf
+*.yaml              text eol=lf
+# Scripts do Windows usam CRLF.
+*.cmd               text eol=crlf

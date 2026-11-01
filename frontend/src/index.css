@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #121515;
+  background: #fff5c5;
+  font-family:
+    "Lato", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  /* Creme da lista do app mobile. */
+  background: #fff5c5;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Campos tem largura minima intrinseca; sem isso, numa coluna estreita de grid eles
+   empurram o card para fora (ex.: "Especie" no formulario de colmeias). */
+label,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+a {
+  color: inherit;
+}
+
+.focus-ring {
+  /* Foco em preto: o amarelo da marca nao aparece sobre o creme. */
+  @apply focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 focus:ring-offset-white;
+}
+
+.surface {
+  /* Card do app: branco, cantos de 20px e sombra 0 4 4. */
+  @apply min-w-0 rounded-card bg-white shadow-app;
+}
+
+.table-shell {
+  @apply overflow-hidden rounded-xl border border-slate-200 bg-white;
+}
+
+.table-shell table {
+  @apply w-full border-collapse text-sm;
+}
+
+.table-shell th {
+  @apply bg-slate-50 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500;
+}
+
+.table-shell td {
+  @apply border-t border-slate-100 px-4 py-3 text-slate-700;
+}
+
+/* Titulos em Lato Bold, como no app mobile. */
+h1,
+h2,
+h3 {
+  font-family: "Lato", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+/* Numeros de dados alinhados em colunas (KPIs, tabelas). */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Paginas de texto legal: hierarquia clara e linha confortavel para leitura longa. */
+.legal h2 {
+  @apply mt-10 text-2xl font-semibold text-hive-900;
+}
+.legal h3 {
+  @apply mt-6 text-lg font-semibold text-hive-900;
+}
+.legal p,
+.legal li {
+  @apply leading-relaxed text-slate-700;
+}
+.legal p {
+  @apply mt-3;
+}
+.legal ul {
+  @apply mt-3 list-disc space-y-2 pl-6;
+}
+.legal strong {
+  @apply font-semibold text-ink;
+}
