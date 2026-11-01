@@ -98,7 +98,7 @@ recusada.
 | Cabecalhos: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Cache-Control: no-store` | [main.py](../backend/app/main.py) | `test_cabecalhos_de_seguranca` |
 | Swagger/OpenAPI desligados em producao | [main.py](../backend/app/main.py) | `/api/docs` responde 404 em producao |
 | Healthcheck publico sem detalhes internos; erros de banco nao expoem mensagens internas | [routers/health.py](../backend/app/routers/health.py) | revisao de codigo |
-| Security Group: so a 443; portas 22 e 80 fechadas; sem SSH (administracao via SSM Session Manager) | [smarthive.yaml](../infra/smarthive.yaml) | porta 80 sem resposta |
+| Security Group: 443 e 80 (a 80 so redireciona para HTTPS); porta 22 fechada; sem SSH (administracao via SSM Session Manager) | [smarthive.yaml](../infra/smarthive.yaml), [Caddyfile](../infra/ec2/Caddyfile) | porta 80 responde so 301/308 para HTTPS |
 | Acesso direto ao IP do servidor sem o cabecalho secreto recebe 403 | [Caddyfile](../infra/ec2/Caddyfile) | verificado a cada deploy por `install.sh` |
 | IMDSv2 obrigatorio; creditos de CPU `standard` | `LaunchTemplate` em [smarthive.yaml](../infra/smarthive.yaml) | |
 | Container da API roda com usuario sem privilegios | [backend/Dockerfile](../backend/Dockerfile) | |
@@ -192,7 +192,8 @@ no lugar do access token, emissor de outro User Pool e token expirado.
 | Upload de imagem: URL pre-assinada / mesma URL sem assinatura | 200 / 403 |
 | Upload de HTML disfarcado de `.png` | 415 |
 | Acesso direto ao IP da instancia sem cabecalho secreto | 403 |
-| Porta 80 da instancia | sem resposta |
+| Porta 80 da instancia | so redireciona para HTTPS (308); nunca entrega a API |
+| `smarthive.app.br` (dominio raiz) | redireciona para `https://www.smarthive.app.br` |
 | `/api/docs` em producao | 404 |
 | Instancia tentando listar/ler/apagar backups | acesso negado |
 | Restauracao com metadado malicioso | recusada |
@@ -208,7 +209,7 @@ Escolhas feitas pelo orcamento do projeto (creditos limitados) ou ainda pendente
 | Limitacao | Impacto | Mitigacao atual / proximo passo |
 |---|---|---|
 | Porta 443 do EC2 aberta a internet (exigida pela validacao do certificado) | Qualquer um alcanca o Caddy | Requisicoes sem o cabecalho secreto recebem 403 |
-| Origem usa `sslip.io` (DNS de terceiros) | Dependencia externa | Trocar por dominio proprio |
+| Origem da API usa `sslip.io` (DNS de terceiros), visivel so para o CloudFront | Dependencia externa | Trocar por `origem.smarthive.app.br` |
 | Limite de requisicoes em memoria, em um unico processo, so por IP | Contadores zeram ao reiniciar; ataque distribuido (muitos IPs) nao e contido | Limite tambem por usuario autenticado; AWS WAF (pago) para ataques distribuidos |
 | Sem WAF | Sem filtragem de ataques comuns na borda | Custo; avaliar AWS WAF |
 | MFA opcional, nao obrigatorio | Quem nao ativa depende so da senha | Tornar obrigatorio para administradores |

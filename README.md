@@ -4,6 +4,8 @@ SmartHive e uma plataforma para monitoramento de colmeias de abelhas nativas. O
 MVP valida a coleta, organizacao e interpretacao inicial dos dados antes da
 evolucao para IA e IoT real.
 
+Em producao: https://www.smarthive.app.br (infraestrutura em [infra/](infra/README.md)).
+
 O SmartHive nao e apenas um CRUD. Ele e a base de uma plataforma inteligente
 para monitoramento de colmeias de abelhas nativas. O MVP valida a coleta,
 organizacao e interpretacao inicial dos dados. A evolucao futura sera a

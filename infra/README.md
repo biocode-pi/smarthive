@@ -11,7 +11,7 @@ e criada na stack `smarthive`, regiao `us-east-1`.
                               HTTPS
                                  |
                     +------------v-------------+
-                    |   Amazon CloudFront      |  dominio unico *.cloudfront.net
+                    |   Amazon CloudFront      |  www.smarthive.app.br (ACM)
                     +-----+--------------+-----+
                           |              |
                  /* (site e plataforma)  /api/*
@@ -40,7 +40,7 @@ e criada na stack `smarthive`, regiao `us-east-1`.
 | S3 `UploadsBucket` | Imagens e videos, privado, criptografado, versionado |
 | S3 `DeployBucket` | Pacotes de release do backend |
 | S3 `BackupBucket` | Backups diarios do Postgres, retidos por 30 dias |
-| CloudFront | HTTPS, cache do site, roteamento de `/api/*` para o EC2, cabecalhos de seguranca |
+| CloudFront | HTTPS em `www.smarthive.app.br` (certificado ACM gratuito), cache do site, roteamento de `/api/*` para o EC2, cabecalhos de seguranca |
 | EC2 t4g.micro | Caddy + API + Postgres em Docker; sem SSH, administrado por SSM Session Manager |
 | Elastic IP | Endereco fixo da origem da API |
 
@@ -52,8 +52,9 @@ e criada na stack `smarthive`, regiao `us-east-1`.
 - O CloudFront envia o cabecalho secreto `X-Origin-Verify`; o Caddy responde 403 a quem
   acessa o IP direto. O segredo fica no SSM Parameter Store (`/smarthive/origin-secret`,
   SecureString) e e lido pela instancia via IAM Role.
-- O Security Group abre so a 443 (exigida pela validacao TLS-ALPN do certificado); portas
-  22 e 80 fechadas. API e Postgres nao publicam portas.
+- O Security Group abre a 443 (exigida pela validacao TLS-ALPN do certificado) e a 80, que
+  so redireciona para HTTPS (o dominio raiz vai para o `www`); a porta 22 fica fechada.
+  API e Postgres nao publicam portas.
 - A senha do Postgres e gerada na propria instancia (`/opt/smarthive/db.env`, permissao 600).
 - A instancia usa IAM Role com permissao minima (gravar/ler `usuarios/*` no bucket de midias,
   ler pacotes de deploy e o segredo de origem). Nenhuma chave de acesso AWS fica em codigo ou `.env`.

@@ -542,8 +542,8 @@ Resources:
     Metadata:
       com.aws.cloudformation.Context:
         why: >-
-          Dominio unico com HTTPS para site, plataforma e API (/api/*), sem CORS e sem
-          certificado proprio. /api usa ForwardedValues com lista de headers (inclui Authorization) para repassar
+          Dominio unico com HTTPS para site, plataforma e API (/api/*), sem CORS. Com o
+          parametro Dominio, responde em www.<Dominio> com certificado ACM. /api usa ForwardedValues com lista de headers (inclui Authorization) para repassar
           Authorization e nao cachear respostas. A origem da API e <ip>.sslip.io (DNS publico
           gratuito que resolve para o IP) porque o Let's Encrypt nao emite para amazonaws.com.
     Properties:
