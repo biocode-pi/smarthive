@@ -43,7 +43,7 @@ export function MeliponarioDetalhes() {
 
   return (
     <>
-      <Link to="/app/meliponarios" className="focus-ring inline-flex items-center gap-1 rounded text-sm font-bold text-ink">
+      <Link to="/app/meliponarios" className="press focus-ring inline-flex items-center gap-1 rounded text-sm font-bold text-ink">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Meliponários
       </Link>
 
@@ -64,7 +64,7 @@ export function MeliponarioDetalhes() {
           <button
             type="button"
             onClick={excluir}
-            className="focus-ring inline-flex h-10 items-center gap-2 rounded-field bg-white px-3 text-sm font-bold text-status-risco-texto ring-1 ring-status-risco hover:bg-status-risco"
+            className="press focus-ring inline-flex h-10 items-center gap-2 rounded-field bg-white px-3 text-sm font-bold text-status-risco-texto ring-1 ring-status-risco hover:bg-status-risco"
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" /> Excluir
           </button>
@@ -91,7 +91,7 @@ export function MeliponarioDetalhes() {
             <h2 className="text-lg font-bold text-ink">Lista</h2>
             <Link
               to={`/app/colmeias?meliponario=${meliponario.id}`}
-              className="focus-ring inline-flex h-10 items-center gap-2 rounded-field bg-hive-600 px-3 text-sm font-bold text-ink shadow-app hover:brightness-95"
+              className="press focus-ring inline-flex h-10 items-center gap-2 rounded-field bg-hive-600 px-3 text-sm font-bold text-ink shadow-app hover:brightness-95"
             >
               <Plus className="h-4 w-4" aria-hidden="true" /> Adicionar colmeia
             </Link>

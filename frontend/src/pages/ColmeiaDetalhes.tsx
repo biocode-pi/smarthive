@@ -47,14 +47,14 @@ export function ColmeiaDetalhes() {
       <PageHeader title={colmeia.nome} description="Detalhes operacionais, histórico de monitoramentos e indicadores iniciais de atividade.">
         <Link
           to="/app/colmeias"
-          className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="press focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar
         </Link>
         <Link
           to={`/app/colmeias/${colmeia.id}/monitoramentos/novo`}
-          className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
+          className="press focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
         >
           <ClipboardPlus className="h-4 w-4" />
           Novo monitoramento

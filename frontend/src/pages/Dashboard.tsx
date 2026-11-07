@@ -60,7 +60,7 @@ export function Dashboard() {
       >
         <Link
           to="/app/registros"
-          className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+          className="press focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
         >
           <LineChart className="h-4 w-4" />
           Ver histórico
@@ -83,7 +83,7 @@ export function Dashboard() {
             </div>
             <Link
               to="/app/sensor-celular"
-              className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
+              className="press focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95"
             >
               <Camera className="h-4 w-4" />
               Câmera IA

@@ -1,8 +1,9 @@
-import { Archive, Bell, CheckCircle2, MapPin, Plus, Search, X } from "lucide-react";
+import { Archive, Bell, CheckCircle2, MapPin, Plus, Search } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { Sheet } from "../components/ui/Sheet";
 import { criarMeliponario, listarMeliponarios, type MeliponarioPayload } from "../services/meliponarios";
 import type { Meliponario } from "../types";
 import { cn } from "../utils/classNames";
@@ -186,7 +187,7 @@ export function Meliponarios() {
           <li key={m.id}>
             <Link
               to={`/app/meliponarios/${m.id}`}
-              className="focus-ring flex gap-3 rounded-card bg-white p-4 shadow-app transition hover:-translate-y-0.5"
+              className="press focus-ring flex gap-3 rounded-card bg-white p-4 shadow-app hover:-translate-y-0.5"
             >
               <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-field bg-honey-100 text-honey-600">
                 <Archive className="h-6 w-6" aria-hidden="true" />
@@ -229,18 +230,9 @@ export function Meliponarios() {
         <Plus className="h-6 w-6" aria-hidden="true" /> Novo meliponário
       </button>
 
-      {formAberto ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="titulo-novo">
-          <form onSubmit={salvar} className="w-full max-w-md rounded-card bg-honey-50 p-6 shadow-app">
-            <div className="flex items-center justify-between">
-              <h2 id="titulo-novo" className="text-xl font-bold text-ink">
-                Novo meliponário
-              </h2>
-              <button type="button" onClick={() => setFormAberto(false)} className="focus-ring rounded-lg p-1" aria-label="Fechar">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="mt-4 space-y-3">
+      <Sheet aberto={formAberto} onFechar={() => setFormAberto(false)} titulo="Novo meliponário">
+          <form onSubmit={salvar}>
+            <div className="space-y-3">
               {(
                 [
                   ["nome", "Nome", "Ex.: Meliponário do Horto"],
@@ -281,8 +273,7 @@ export function Meliponarios() {
               {salvando ? "Salvando..." : "Salvar meliponário"}
             </button>
           </form>
-        </div>
-      ) : null}
+      </Sheet>
     </>
   );
 }

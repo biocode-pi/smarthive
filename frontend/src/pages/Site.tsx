@@ -1,5 +1,5 @@
 import { Activity, ArrowRight, Bell, Camera, Flower2, LineChart, Menu, Smartphone, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FavoMap, LegendaFavo, type CelulaFavo } from "../components/ui/FavoMap";
 import { Marca } from "../components/ui/Marca";
@@ -66,6 +66,16 @@ const steps = [
 export function Site() {
   const { user } = useAuth();
   const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Menu fechado fica fora do foco e dos leitores de tela; Esc fecha.
+  useEffect(() => {
+    if (menuRef.current) menuRef.current.inert = !menuAberto;
+    if (!menuAberto) return;
+    const tecla = (event: KeyboardEvent) => event.key === "Escape" && setMenuAberto(false);
+    document.addEventListener("keydown", tecla);
+    return () => document.removeEventListener("keydown", tecla);
+  }, [menuAberto]);
   const cta = user ? { to: "/app", label: "Abrir plataforma" } : { to: "/login", label: "Entrar" };
 
   return (
@@ -77,7 +87,7 @@ export function Site() {
         Pular para o conteúdo
       </a>
 
-      <header className="sticky top-0 z-30 bg-honey-500">
+      <header className="material-mel sticky top-0 z-30">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <a href="#inicio" className="focus-ring rounded-lg" aria-label="Smart Hive, início">
             <Marca />
@@ -91,7 +101,7 @@ export function Site() {
             ))}
             <Link
               to={cta.to}
-              className="focus-ring inline-flex min-h-10 items-center rounded-field bg-ink px-4 text-sm font-bold text-honey-400 shadow-app hover:bg-black"
+              className="press focus-ring inline-flex min-h-10 items-center rounded-field bg-ink px-4 text-sm font-bold text-honey-400 shadow-app hover:bg-black"
             >
               {cta.label}
             </Link>
@@ -102,29 +112,33 @@ export function Site() {
             className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink md:hidden"
             aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
             aria-expanded={menuAberto}
+            aria-controls="menu-site"
             onClick={() => setMenuAberto((aberto) => !aberto)}
           >
             {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        {menuAberto && (
-          <nav className="flex flex-col gap-1 border-t border-ink/10 px-4 py-3 md:hidden" aria-label="Seções do site">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuAberto(false)}
-                className="rounded-lg px-3 py-3 text-sm font-bold text-ink hover:bg-white/40"
-              >
-                {link.label}
-              </a>
-            ))}
-            <Link to={cta.to} className="mt-1 rounded-field bg-ink px-3 py-3 text-center text-sm font-bold text-honey-400">
-              {cta.label}
-            </Link>
-          </nav>
-        )}
+        {/* Sempre montado: abre e fecha animando a altura e pode inverter no meio. */}
+        <div ref={menuRef} id="menu-site" className="recolhivel md:hidden" data-aberto={menuAberto}>
+          <div>
+            <nav className="flex flex-col gap-1 border-t border-ink/10 px-4 py-3" aria-label="Seções do site">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuAberto(false)}
+                  className="press rounded-lg px-3 py-3 text-sm font-bold text-ink hover:bg-white/40"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <Link to={cta.to} className="press mt-1 rounded-field bg-ink px-3 py-3 text-center text-sm font-bold text-honey-400">
+                {cta.label}
+              </Link>
+            </nav>
+          </div>
+        </div>
       </header>
 
       <main id="conteudo">
@@ -134,7 +148,7 @@ export function Site() {
             <p className="font-tagline text-xs font-semibold uppercase tracking-[4px] text-ink">
               Meliponicultura · abelhas sem ferrão
             </p>
-            <h1 className="mt-5 text-[2.6rem] font-black leading-[1.05] text-ink sm:text-6xl">
+            <h1 className="titulo-display mt-5 text-[2.6rem] font-black leading-[1.05] text-ink sm:text-6xl">
               Cada colmeia do meliponário, acompanhada de perto.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/80">
@@ -144,13 +158,13 @@ export function Site() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 to={cta.to}
-                className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-field bg-hive-600 px-6 font-bold text-ink shadow-app hover:brightness-95"
+                className="press focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-field bg-hive-600 px-6 font-bold text-ink shadow-app hover:brightness-95"
               >
                 {user ? "Abrir plataforma" : "Entrar na plataforma"} <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#como-funciona"
-                className="focus-ring inline-flex min-h-12 items-center justify-center rounded-field bg-white px-6 font-bold text-ink shadow-app hover:bg-honey-50"
+                className="press focus-ring inline-flex min-h-12 items-center justify-center rounded-field bg-white px-6 font-bold text-ink shadow-app hover:bg-honey-50"
               >
                 Como funciona
               </a>

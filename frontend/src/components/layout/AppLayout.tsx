@@ -10,11 +10,11 @@ import {
   Menu,
   Settings,
   UserCircle,
-  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Marca } from "../ui/Marca";
+import { Sheet } from "../ui/Sheet";
 import { useAuth, userDisplayName } from "../../context/AuthContext";
 import { cn } from "../../utils/classNames";
 
@@ -39,10 +39,10 @@ const tabItems = [
 
 function BottomTabs({ onMenu, menuAberto }: { onMenu: () => void; menuAberto: boolean }) {
   const itemClass =
-    "focus-ring flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold";
+    "press focus-ring flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold";
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+      className="material-branco fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 px-2 pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Navegação principal"
     >
       <div className="flex">
@@ -55,7 +55,7 @@ function BottomTabs({ onMenu, menuAberto }: { onMenu: () => void; menuAberto: bo
           >
             {({ isActive }) => (
               <>
-                <span className={cn("rounded-full px-4 py-1", isActive && "bg-hive-100")}>
+                <span className={cn("rounded-full px-4 py-1 transition-colors duration-200", isActive && "bg-hive-100")}>
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 {label}
@@ -69,7 +69,7 @@ function BottomTabs({ onMenu, menuAberto }: { onMenu: () => void; menuAberto: bo
           onClick={onMenu}
           aria-expanded={menuAberto}
         >
-          <span className={cn("rounded-full px-4 py-1", menuAberto && "bg-hive-100")}>
+          <span className={cn("rounded-full px-4 py-1 transition-colors duration-200", menuAberto && "bg-hive-100")}>
             <Menu className="h-5 w-5" aria-hidden="true" />
           </span>
           Menu
@@ -90,7 +90,7 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              "focus-ring inline-flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition",
+              "press focus-ring inline-flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold",
               isActive
                 ? "bg-honey-400 text-ink"
                 : "text-slate-700 hover:bg-honey-50 hover:text-ink",
@@ -115,6 +115,14 @@ export function AppLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+
+  // O menu em painel so existe no celular; ao alargar a janela, a barra lateral assume.
+  useEffect(() => {
+    const largo = window.matchMedia("(min-width: 1024px)");
+    const aoMudar = () => largo.matches && setOpen(false);
+    largo.addEventListener("change", aoMudar);
+    return () => largo.removeEventListener("change", aoMudar);
+  }, []);
 
   async function handleLogout() {
     await logout();
@@ -152,37 +160,10 @@ export function AppLayout() {
         </div>
       </aside>
 
-      <header className="sticky top-0 z-40 bg-honey-400 lg:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
+      <header className="material-mel sticky top-0 z-40 lg:hidden">
+        <div className="flex items-center px-4 py-3">
           <Brand />
-          <button
-            type="button"
-            className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700"
-            onClick={() => setOpen((value) => !value)}
-            aria-label="Abrir navegação"
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
         </div>
-        {open ? (
-          <div className="border-t border-slate-100 bg-white/95 px-4 py-3">
-            <Navigation onNavigate={() => setOpen(false)} />
-            <div className="mt-3 flex items-center justify-between rounded-lg bg-hive-50 px-3 py-2">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-slate-950">{userDisplayName(user)}</p>
-                <p className="truncate text-xs text-slate-600">{user?.email}</p>
-              </div>
-              <button
-                type="button"
-                className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-700"
-                onClick={handleLogout}
-                aria-label="Sair"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ) : null}
       </header>
 
       <main className="px-4 pb-28 pt-6 sm:px-6 lg:ml-72 lg:px-10 lg:py-8">
@@ -190,6 +171,24 @@ export function AppLayout() {
       </main>
 
       <BottomTabs onMenu={() => setOpen((value) => !value)} menuAberto={open} />
+
+      {/* No celular o menu completo sobe da aba "Menu", de onde foi chamado. */}
+      <Sheet aberto={open} onFechar={() => setOpen(false)} titulo="Menu" className="lg:hidden">
+        <Navigation onNavigate={() => setOpen(false)} />
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-field bg-white px-3 py-2 shadow-app">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-slate-950">{userDisplayName(user)}</p>
+            <p className="truncate text-xs text-slate-600">{user?.email}</p>
+          </div>
+          <button
+            type="button"
+            className="focus-ring inline-flex min-h-10 flex-shrink-0 items-center gap-2 rounded-lg bg-honey-50 px-3 text-sm font-semibold text-slate-700"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" /> Sair
+          </button>
+        </div>
+      </Sheet>
     </div>
   );
 }

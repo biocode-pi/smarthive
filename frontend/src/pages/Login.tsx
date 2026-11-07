@@ -42,9 +42,9 @@ function Campo({
 }
 
 const botaoPrincipal =
-  "focus-ring h-[50px] w-full rounded-field bg-hive-600 text-sm font-bold text-ink shadow-app transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60";
+  "press focus-ring h-[50px] w-full rounded-field bg-hive-600 text-sm font-bold text-ink shadow-app transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60";
 const botaoSecundario =
-  "focus-ring h-[50px] w-full rounded-field bg-white text-sm font-bold text-ink shadow-app transition hover:bg-honey-50";
+  "press focus-ring h-[50px] w-full rounded-field bg-white text-sm font-bold text-ink shadow-app transition hover:bg-honey-50";
 const linkTexto = "focus-ring rounded font-bold text-ink underline underline-offset-4";
 
 export function Login() {

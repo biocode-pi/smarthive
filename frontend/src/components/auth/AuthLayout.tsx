@@ -24,7 +24,7 @@ export function AuthLayout({ footer, comMarca = true, children }: AuthLayoutProp
         </Link>
         <div className="max-w-md">
           <p className="font-tagline text-xs font-semibold uppercase tracking-[4px]">Meliponicultura</p>
-          <p className="mt-4 text-5xl font-black leading-[1.05]">Cada colmeia do meliponário, acompanhada de perto.</p>
+          <p className="titulo-display mt-4 text-5xl font-black leading-[1.05]">Cada colmeia do meliponário, acompanhada de perto.</p>
           <p className="mt-5 text-lg text-ink/80">A mesma conta vale no site e no aplicativo do celular.</p>
         </div>
         <p className="text-sm font-bold">Projeto Integrador · Fatec Registro</p>
