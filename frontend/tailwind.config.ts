@@ -14,6 +14,9 @@ export default {
         mono: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
         // Marca: "Smart Hive" em Poppins Bold e "PROJECT" em Inter SemiBold.
         brand: ['"Poppins"', "ui-sans-serif", "system-ui", "sans-serif"],
+        // Site institucional: Archivo (largura variavel) nos titulos e Plex Mono nas leituras.
+        expo: ['"Archivo Variable"', '"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
+        dados: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
         tagline: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {

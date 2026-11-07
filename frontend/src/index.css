@@ -213,6 +213,62 @@ button:not(:disabled):active,
   overflow: hidden;
 }
 
+/* Instrumento do site: abelhas cruzando a entrada da caixa (x = 268 e o tubo). */
+.abelha {
+  animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  animation-iteration-count: infinite;
+}
+.abelha-entra {
+  animation-name: abelha-entra;
+}
+.abelha-sai {
+  animation-name: abelha-sai;
+}
+@keyframes abelha-entra {
+  0% {
+    transform: translate(-12px, var(--y));
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  55% {
+    transform: translate(150px, calc(var(--y) - 6px));
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(268px, 60px);
+    opacity: 0;
+  }
+}
+@keyframes abelha-sai {
+  0% {
+    transform: translate(268px, 60px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(150px, calc(var(--y) + 6px));
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-12px, var(--y));
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .abelha {
+    animation: none;
+    transform: translate(var(--x), var(--y));
+  }
+}
+
 /* Numeros de dados alinhados em colunas (KPIs, tabelas). */
 .tabular {
   font-variant-numeric: tabular-nums;

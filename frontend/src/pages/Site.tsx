@@ -1,14 +1,18 @@
-import { Activity, ArrowRight, Bell, Camera, Flower2, LineChart, Menu, Smartphone, X } from "lucide-react";
+import { ArrowDown, ArrowRight, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import { InstrumentoEntrada } from "../components/site/InstrumentoEntrada";
 import { FavoMap, LegendaFavo, type CelulaFavo } from "../components/ui/FavoMap";
 import { Marca } from "../components/ui/Marca";
 import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
-  { href: "#sobre", label: "Sobre" },
-  { href: "#funcionalidades", label: "Funcionalidades" },
+  { href: "#abelhas", label: "Abelhas nativas" },
   { href: "#como-funciona", label: "Como funciona" },
+  { href: "#mapa", label: "Mapa do meliponário" },
 ];
 
 // Exemplo ilustrativo do mapa do meliponario. Como na plataforma, a colmeia mais grave fica no centro.
@@ -22,37 +26,13 @@ const meliponarioExemplo: CelulaFavo[] = [
   { id: "7", codigo: "TUB-007", nome: "Tubuna", status: "ativa", detalhe: "33 mov." },
 ];
 
-const features = [
-  {
-    icon: Flower2,
-    title: "Gestão de colmeias",
-    text: "Cadastro de cada colmeia com espécie, localização e histórico completo.",
-  },
-  {
-    icon: Camera,
-    title: "Captura em campo",
-    text: "Fotos e vídeos da entrada da colmeia registrados direto pelo celular.",
-  },
-  {
-    icon: Activity,
-    title: "Análise automatizada",
-    text: "As capturas viram uma estimativa do nível de atividade de cada colmeia.",
-  },
-  {
-    icon: Bell,
-    title: "Alertas",
-    text: "Aviso quando a atividade cai ou aparece um possível invasor.",
-  },
-  {
-    icon: LineChart,
-    title: "Dashboard",
-    text: "Indicadores e histórico para acompanhar a saúde do meliponário ao longo do tempo.",
-  },
-  {
-    icon: Smartphone,
-    title: "Web e celular",
-    text: "A mesma conta na plataforma web e no aplicativo, com os dados sincronizados.",
-  },
+const especies = [
+  { nome: "Jataí", cientifico: "Tetragonisca angustula" },
+  { nome: "Mandaçaia", cientifico: "Melipona quadrifasciata" },
+  { nome: "Uruçu", cientifico: "Melipona scutellaris" },
+  { nome: "Mirim", cientifico: "Plebeia spp." },
+  { nome: "Iraí", cientifico: "Nannotrigona testaceicornis" },
+  { nome: "Tubuna", cientifico: "Scaptotrigona bipunctata" },
 ];
 
 // A ordem importa: e o caminho de um registro, do campo ate a decisao de manejo.
@@ -62,6 +42,71 @@ const steps = [
   { title: "Analisar", text: "A plataforma estima o fluxo de abelhas e compara com o histórico da colmeia." },
   { title: "Agir", text: "Dashboard e alertas mostram onde o manejo é necessário." },
 ];
+
+const destaquesMapa = [
+  { termo: "Cor pela situação", texto: "Verde em dia, amarelo em observação, vermelho em risco." },
+  { termo: "A mais grave no centro", texto: "A colmeia que precisa de atenção primeiro fica no meio do favo." },
+  { termo: "Mesma conta no celular", texto: "No campo pelo aplicativo, no escritório pelo navegador." },
+];
+
+// Miniatura do que acontece em cada etapa, com o vocabulario visual da propria plataforma.
+function ArtefatoEtapa({ indice }: { indice: number }) {
+  if (indice === 0) {
+    return (
+      <div className="relative h-full">
+        <span className="absolute left-0 top-0 h-4 w-4 border-l-2 border-t-2 border-ink" />
+        <span className="absolute right-0 top-0 h-4 w-4 border-r-2 border-t-2 border-ink" />
+        <span className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-ink" />
+        <span className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-ink" />
+        <span className="absolute left-1/2 top-1/2 h-5 w-9 -translate-x-1/2 -translate-y-1/2 rounded-md bg-hive-700" />
+        <span className="absolute left-1/2 top-1/2 h-2.5 w-3.5 -translate-x-[150%] -translate-y-[160%] rounded-full bg-honey-500 ring-1 ring-ink/40" />
+        <span className="absolute left-3 top-2.5 flex items-center gap-1.5 font-dados text-[10px] text-ink/70">
+          <span className="h-1.5 w-1.5 rounded-full bg-status-risco-texto" /> REC 00:12
+        </span>
+      </div>
+    );
+  }
+  if (indice === 1) {
+    return (
+      <div className="flex h-full flex-col justify-center gap-2 font-dados text-[10px] text-ink/70">
+        <div className="flex justify-between gap-2">
+          <span className="truncate">entrada_0712.mp4</span>
+          <span>3,2 MB</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-ink/10">
+          <div className="h-full w-[72%] rounded-full bg-ink" />
+        </div>
+        <span>criptografado · 72%</span>
+      </div>
+    );
+  }
+  if (indice === 2) {
+    // Movimento dos ultimos sete dias; a linha tracejada e a media da colmeia.
+    const barras = [52, 49, 55, 47, 50, 31, 18];
+    return (
+      <div className="relative flex h-full items-end gap-1.5">
+        <span className="absolute inset-x-0 bottom-[84%] border-t border-dashed border-ink/40" />
+        {barras.map((v, i) => (
+          <span
+            key={i}
+            className={i === barras.length - 1 ? "flex-1 rounded-t bg-status-risco-texto" : "flex-1 rounded-t bg-ink/80"}
+            style={{ height: `${(v / 60) * 100}%` }}
+          />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="flex h-full items-center">
+      <div className="w-full rounded-xl bg-white p-3 shadow-app">
+        <p className="flex items-center gap-1.5 font-dados text-[10px] uppercase tracking-wider text-status-risco-texto">
+          <span className="h-1.5 w-1.5 rounded-full bg-status-risco-texto" /> Alerta
+        </p>
+        <p className="mt-1 text-xs font-bold leading-snug text-ink">MIR-005: atividade bem abaixo do histórico</p>
+      </div>
+    </div>
+  );
+}
 
 export function Site() {
   const { user } = useAuth();
@@ -101,7 +146,7 @@ export function Site() {
             ))}
             <Link
               to={cta.to}
-              className="press focus-ring inline-flex min-h-10 items-center rounded-field bg-ink px-4 text-sm font-bold text-honey-400 shadow-app hover:bg-black"
+              className="press focus-ring inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-sm font-bold text-honey-500 hover:bg-black"
             >
               {cta.label}
             </Link>
@@ -133,7 +178,7 @@ export function Site() {
                   {link.label}
                 </a>
               ))}
-              <Link to={cta.to} className="press mt-1 rounded-field bg-ink px-3 py-3 text-center text-sm font-bold text-honey-400">
+              <Link to={cta.to} className="press mt-1 rounded-full bg-ink px-3 py-3 text-center text-sm font-bold text-honey-500">
                 {cta.label}
               </Link>
             </nav>
@@ -142,108 +187,138 @@ export function Site() {
       </header>
 
       <main id="conteudo">
-        <section id="inicio" className="rounded-b-[30px] bg-honey-500">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-8 sm:px-6 md:grid-cols-[1.05fr_1fr] md:pb-24 md:pt-12">
-          <div>
-            <p className="font-tagline text-xs font-semibold uppercase tracking-[4px] text-ink">
-              Meliponicultura · abelhas sem ferrão
-            </p>
-            <h1 className="titulo-display mt-5 text-[2.6rem] font-black leading-[1.05] text-ink sm:text-6xl">
-              Cada colmeia do meliponário, acompanhada de perto.
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink/80">
-              O Smart Hive reúne capturas em campo, análise de atividade e alertas numa plataforma única para
-              meliponicultores e pesquisadores cuidarem das suas colônias de abelhas nativas.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to={cta.to}
-                className="press focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-field bg-hive-600 px-6 font-bold text-ink shadow-app hover:brightness-95"
-              >
-                {user ? "Abrir plataforma" : "Entrar na plataforma"} <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href="#como-funciona"
-                className="press focus-ring inline-flex min-h-12 items-center justify-center rounded-field bg-white px-6 font-bold text-ink shadow-app hover:bg-honey-50"
-              >
-                Como funciona
-              </a>
+        <section id="inicio" className="bg-honey-500">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.4fr_1fr] lg:gap-14 lg:pb-28">
+            <div>
+              <p className="font-dados text-xs uppercase tracking-[0.18em] text-ink/70">Monitoramento de meliponários</p>
+              <h1 className="mt-5 font-expo text-[clamp(2.4rem,5vw,4.1rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-ink [font-stretch:112%]">
+                Quem entra e quem sai diz como vai a colmeia.
+              </h1>
+              <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink/80">
+                O Smart Hive estima o movimento na entrada de cada colmeia a partir de fotos e vídeos feitos em campo,
+                guarda o histórico e avisa quando a atividade cai ou aparece um invasor.
+              </p>
+              <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+                <Link
+                  to={cta.to}
+                  className="press focus-ring inline-flex min-h-12 items-center gap-2 rounded-full bg-ink px-6 font-bold text-honey-500 hover:bg-black"
+                >
+                  {user ? "Abrir plataforma" : "Entrar na plataforma"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <a
+                  href="#como-funciona"
+                  className="focus-ring inline-flex items-center gap-1.5 rounded font-bold text-ink underline decoration-2 underline-offset-[6px] hover:decoration-ink/40"
+                >
+                  Como funciona <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </div>
             </div>
-          </div>
-
-          <figure className="rounded-card bg-white p-5 shadow-app sm:p-7">
-            <div className="flex items-baseline justify-between gap-4">
-              <p className="text-lg font-bold text-ink">Meliponário Horto</p>
-              <p className="text-xs font-bold text-slate-600">7 colmeias</p>
-            </div>
-            <FavoMap celulas={meliponarioExemplo} className="mx-auto mt-4 max-w-sm" titulo="Exemplo de mapa do meliponário" />
-            <div className="mt-4 border-t border-border pt-4">
-              <LegendaFavo celulas={meliponarioExemplo} />
-            </div>
-            <figcaption className="mt-3 text-xs text-slate-600">
-              Exemplo do mapa da plataforma: cada hexágono é uma colmeia, com o movimento estimado na última captura.
-            </figcaption>
-          </figure>
+            <InstrumentoEntrada />
           </div>
         </section>
 
-        <section id="sobre" className="py-16">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:px-6 md:grid-cols-3">
-            <h2 className="text-3xl font-bold text-ink">Sobre o projeto</h2>
-            <div className="space-y-4 leading-relaxed text-slate-600 md:col-span-2">
-              <p>
-                As abelhas nativas sem ferrão, como a jataí, a mandaçaia e a uruçu, são essenciais para a polinização
-                e a biodiversidade. Ainda assim, o acompanhamento das colmeias costuma depender de observação manual e
-                anotações em papel.
-              </p>
-              <p>
-                O Smart Hive registra a atividade de cada colmeia, organiza o histórico e avisa o meliponicultor quando
-                algo foge do normal, apoiando o manejo no dia a dia e a pesquisa científica.
+        <section id="abelhas" className="bg-honey-50 py-20 lg:py-28">
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
+            <div>
+              <h2 className="font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
+                Feito para abelhas nativas sem ferrão
+              </h2>
+              <p className="mt-6 max-w-md text-lg leading-relaxed text-ink/75">
+                Essenciais para a polinização e a biodiversidade, as colônias ainda são acompanhadas, na maioria dos
+                meliponários, por observação e anotações em papel. O Smart Hive organiza esse acompanhamento colmeia a
+                colmeia, para o manejo do dia a dia e para a pesquisa.
               </p>
             </div>
+            <ul className="border-t border-ink/15">
+              {especies.map((e) => (
+                <li key={e.nome} className="flex items-baseline justify-between gap-6 border-b border-ink/15 py-4">
+                  <span className="font-expo text-2xl font-bold text-ink [font-stretch:108%] sm:text-3xl">{e.nome}</span>
+                  <span className="text-right text-sm italic text-ink/60">{e.cientifico}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
-        <section id="funcionalidades" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <h2 className="text-3xl font-bold text-ink">Funcionalidades</h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(({ icon: Icon, title, text }) => (
-              <article key={title} className="rounded-card bg-white p-6 shadow-app">
-                <span className="inline-flex rounded-field bg-honey-100 p-2.5 text-ink">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <h3 className="mt-4 text-lg font-bold text-ink">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="como-funciona" className="bg-hive-900 py-16 text-white">
+        <section id="como-funciona" className="bg-white py-20 lg:py-28">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="text-3xl font-semibold">Como funciona</h2>
-            <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <h2 className="max-w-2xl font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
+              Do campo à decisão de manejo
+            </h2>
+            <ol className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {steps.map((step, index) => (
-                <li key={step.title} className="rounded-xl bg-white/5 p-6 ring-1 ring-white/10">
-                  <span className="text-sm font-black text-honey-400">{String(index + 1).padStart(2, "0")}</span>
-                  <h3 className="mt-2 text-lg font-semibold">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/75">{step.text}</p>
+                <li key={step.title} className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <span className="font-dados text-sm text-hive-700">0{index + 1}</span>
+                    <span className="h-px flex-1 bg-ink/15" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-4 font-expo text-2xl font-bold text-ink [font-stretch:108%]">{step.title}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-ink/70">{step.text}</p>
+                  <div className="mt-auto pt-6" aria-hidden="true">
+                    <div className="h-28 rounded-2xl bg-honey-50 p-4">
+                      <ArtefatoEtapa indice={index} />
+                    </div>
+                  </div>
                 </li>
               ))}
             </ol>
           </div>
         </section>
 
+        <section id="mapa" className="bg-honey-500 py-20 lg:py-28">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
+            <figure className="order-last rounded-[28px] bg-white p-6 shadow-[0_24px_48px_-20px_rgba(18,21,21,0.35)] sm:p-8 lg:order-first">
+              <div className="flex items-baseline justify-between gap-4">
+                <p className="text-lg font-bold text-ink">Meliponário Horto</p>
+                <p className="font-dados text-xs text-ink/60">7 colmeias</p>
+              </div>
+              <FavoMap celulas={meliponarioExemplo} className="mx-auto mt-5 max-w-sm" titulo="Exemplo de mapa do meliponário" />
+              <div className="mt-5 border-t border-ink/10 pt-4">
+                <LegendaFavo celulas={meliponarioExemplo} />
+              </div>
+              <figcaption className="sr-only">
+                Exemplo do mapa da plataforma: cada hexágono é uma colmeia, com o movimento estimado na última captura.
+              </figcaption>
+            </figure>
+            <div>
+              <h2 className="font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
+                O meliponário inteiro numa tela
+              </h2>
+              <dl className="mt-10 space-y-7">
+                {destaquesMapa.map(({ termo, texto }) => (
+                  <div key={termo} className="border-l-4 border-ink pl-5">
+                    <dt className="font-expo text-xl font-bold text-ink [font-stretch:108%]">{termo}</dt>
+                    <dd className="mt-1 text-ink/75">{texto}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-ink py-20 text-white lg:py-24">
+          <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between">
+            <h2 className="max-w-3xl font-expo text-4xl font-extrabold uppercase leading-[0.95] text-white [font-stretch:118%] sm:text-6xl">
+              Comece pelo seu <span className="text-honey-500">meliponário.</span>
+            </h2>
+            <Link
+              to={cta.to}
+              className="press focus-ring inline-flex min-h-12 flex-shrink-0 items-center gap-2 rounded-full bg-honey-500 px-6 font-bold text-ink hover:brightness-95 focus:ring-offset-ink"
+            >
+              {user ? "Abrir plataforma" : "Criar conta ou entrar"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
       </main>
 
-      <footer className="border-t border-white/15 bg-ink text-white">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-white/80 sm:flex-row sm:px-6">
+      <footer className="bg-ink text-white">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/10 px-4 py-6 text-sm text-white/70 sm:flex-row sm:px-6">
           <span>© {new Date().getFullYear()} Smart Hive</span>
           <nav className="flex gap-5" aria-label="Documentos">
-            <Link to="/termos" className="focus-ring rounded hover:text-honey-400">
+            <Link to="/termos" className="focus-ring rounded hover:text-honey-500 focus:ring-offset-ink">
               Termos de Uso
             </Link>
-            <Link to="/privacidade" className="focus-ring rounded hover:text-honey-400">
+            <Link to="/privacidade" className="focus-ring rounded hover:text-honey-500 focus:ring-offset-ink">
               Política de Privacidade
             </Link>
           </nav>
