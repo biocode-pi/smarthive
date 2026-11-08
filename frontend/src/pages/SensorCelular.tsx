@@ -75,6 +75,30 @@ function pickTargetPrediction(predictions: Prediction[]): TargetPrediction | nul
   return candidates[0] ?? null;
 }
 
+const CHAVE_CAMERA = "smarthive-camera";
+
+function cameraSalva() {
+  try {
+    return localStorage.getItem(CHAVE_CAMERA) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function salvarCamera(id: string) {
+  try {
+    if (id) localStorage.setItem(CHAVE_CAMERA, id);
+    else localStorage.removeItem(CHAVE_CAMERA);
+  } catch {
+    // Sem armazenamento, a escolha vale so ate fechar a pagina.
+  }
+}
+
+/** Nome da camera sem o codigo USB que o navegador acrescenta: "GoPro Webcam (2672:0056)". */
+function nomeDaCamera(camera: MediaDeviceInfo, indice: number) {
+  return camera.label.replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)$/i, "") || `Câmera ${indice + 1}`;
+}
+
 function confidenceLabel(value: number) {
   return `${Math.round(value * 100)}%`;
 }
@@ -87,6 +111,8 @@ export function SensorCelular() {
   const modelRef = useRef<MobileNet | null>(null);
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  // Cada ciclo de analise tem um numero; ao parar ou trocar de camera, o ciclo antigo se encerra.
+  const cicloRef = useRef(0);
 
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);
   const [form, setForm] = useState(emptyForm);
@@ -94,6 +120,9 @@ export function SensorCelular() {
   const [loading, setLoading] = useState(true);
   const [modelLoading, setModelLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [abrindoCamera, setAbrindoCamera] = useState(false);
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [cameraId, setCameraId] = useState(cameraSalva);
   const [saving, setSaving] = useState(false);
   const [targetPrediction, setTargetPrediction] = useState<TargetPrediction | null>(null);
   const [lastTargetPrediction, setLastTargetPrediction] = useState<TargetPrediction | null>(null);
@@ -117,6 +146,25 @@ export function SensorCelular() {
     return () => stopCamera();
   }, []);
 
+  // A lista acompanha o que for plugado ou desplugado com a pagina aberta (ex.: a GoPro).
+  useEffect(() => {
+    const dispositivos = navigator.mediaDevices;
+    if (!dispositivos?.enumerateDevices) return;
+    void atualizarCameras();
+    dispositivos.addEventListener?.("devicechange", atualizarCameras);
+    return () => dispositivos.removeEventListener?.("devicechange", atualizarCameras);
+  }, []);
+
+  async function atualizarCameras() {
+    try {
+      const lista = await navigator.mediaDevices.enumerateDevices();
+      // Antes da permissao o navegador pode devolver entradas sem id, que nao servem para escolher.
+      setCameras(lista.filter((item) => item.kind === "videoinput" && item.deviceId));
+    } catch {
+      setCameras([]);
+    }
+  }
+
   function setField(key: keyof typeof form, value: string | boolean) {
     setForm((state) => ({ ...state, [key]: value }));
   }
@@ -134,7 +182,7 @@ export function SensorCelular() {
     }
   }
 
-  async function startCamera() {
+  async function startCamera(idEscolhido = cameraId) {
     setCameraError(null);
     setMessage(null);
 
@@ -143,12 +191,14 @@ export function SensorCelular() {
       return;
     }
 
+    setAbrindoCamera(true);
     try {
       await ensureModel();
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
-          facingMode: { ideal: "environment" },
+          // Sem escolha, usa a camera traseira no celular; com escolha, exatamente aquela.
+          ...(idEscolhido ? { deviceId: { exact: idEscolhido } } : { facingMode: { ideal: "environment" } }),
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -162,17 +212,40 @@ export function SensorCelular() {
 
       setCameraActive(true);
       runAnalysisLoop();
+      // So depois da permissao o navegador informa os nomes das cameras.
+      setCameraId(stream.getVideoTracks()[0]?.getSettings().deviceId ?? idEscolhido);
+      await atualizarCameras();
     } catch (error) {
-      const permissionDenied = error instanceof DOMException && error.name === "NotAllowedError";
-      setCameraError(
-        permissionDenied
-          ? "A câmera foi bloqueada. Libere o acesso nas permissões do navegador e toque em Abrir câmera de novo."
-          : "Não foi possível abrir a câmera. Feche outros apps que estejam usando e tente de novo.",
-      );
+      const nome = error instanceof DOMException ? error.name : "";
+      if (nome === "OverconstrainedError" || nome === "NotFoundError") {
+        // A camera guardada foi desconectada: volta para a padrao e mostra o que existe agora.
+        setCameraId("");
+        salvarCamera("");
+        await atualizarCameras();
+        setCameraError("Essa câmera não está conectada. Confira o cabo ou toque em Abrir câmera para usar a padrão.");
+      } else {
+        setCameraError(
+          nome === "NotAllowedError"
+            ? "A câmera foi bloqueada. Libere o acesso nas permissões do navegador e toque em Abrir câmera de novo."
+            : "Não foi possível abrir a câmera. Feche outros apps que estejam usando e tente de novo.",
+        );
+      }
+    } finally {
+      setAbrindoCamera(false);
+    }
+  }
+
+  function escolherCamera(id: string) {
+    setCameraId(id);
+    salvarCamera(id);
+    if (cameraActive) {
+      stopCamera();
+      void startCamera(id);
     }
   }
 
   function stopCamera() {
+    cicloRef.current += 1;
     if (timerRef.current) {
       window.clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -226,8 +299,11 @@ export function SensorCelular() {
 
   function runAnalysisLoop() {
     if (timerRef.current) window.clearTimeout(timerRef.current);
+    cicloRef.current += 1;
+    const ciclo = cicloRef.current;
 
     const analyze = async () => {
+      if (ciclo !== cicloRef.current) return;
       const model = modelRef.current;
       const video = videoRef.current;
 
@@ -238,11 +314,11 @@ export function SensorCelular() {
 
       try {
         const result = (await model.classify(video, 5)) as Prediction[];
-        applyPredictions(result);
+        if (ciclo === cicloRef.current) applyPredictions(result);
       } catch {
-        setCameraError("A contagem parou. Toque em Parar câmera e abra de novo.");
+        if (ciclo === cicloRef.current) setCameraError("A contagem parou. Toque em Parar câmera e abra de novo.");
       } finally {
-        timerRef.current = window.setTimeout(analyze, 1200);
+        if (ciclo === cicloRef.current) timerRef.current = window.setTimeout(analyze, 1200);
       }
     };
 
@@ -360,7 +436,7 @@ export function SensorCelular() {
                     {modelLoading ? "Preparando a câmera…" : "Câmera desligada"}
                   </p>
                   <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/70">
-                    Segure o celular a um palmo da entrada, sem tampar o tubo, e deixe as abelhas passarem.
+                    Posicione a câmera a um palmo da entrada, sem tampar o tubo, e deixe as abelhas passarem.
                   </p>
                 </div>
               ) : null}
@@ -386,8 +462,8 @@ export function SensorCelular() {
 
             <div className="mt-5 flex flex-wrap gap-3">
               <Button
-                onClick={cameraActive ? stopCamera : startCamera}
-                disabled={modelLoading}
+                onClick={cameraActive ? stopCamera : () => void startCamera()}
+                disabled={modelLoading || abrindoCamera}
                 icon={modelLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Video className="h-4 w-4" aria-hidden="true" />}
               >
                 {cameraActive ? "Parar câmera" : modelLoading ? "Preparando…" : "Abrir câmera"}
@@ -407,6 +483,25 @@ export function SensorCelular() {
                 Zerar contagem
               </Button>
             </div>
+
+            {cameras.length > 1 ? (
+              <label className="campo-rotulo mt-5 max-w-md">
+                Câmera
+                <select
+                  className="campo"
+                  value={cameras.some((camera) => camera.deviceId === cameraId) ? cameraId : ""}
+                  onChange={(event) => escolherCamera(event.target.value)}
+                  disabled={modelLoading || abrindoCamera}
+                >
+                  <option value="">Câmera padrão</option>
+                  {cameras.map((camera, indice) => (
+                    <option key={camera.deviceId} value={camera.deviceId}>
+                      {nomeDaCamera(camera, indice)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
             <Leituras
               className="mt-8"
