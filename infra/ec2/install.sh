@@ -3,6 +3,8 @@
 set -euo pipefail
 RELEASE_URI="$1"   # s3://bucket/releases/<id>
 DOMINIO="${2:-}"   # dominio proprio (ex.: smarthive.app.br), opcional
+shift $(( $# < 2 ? $# : 2 ))
+DOMINIOS_EXTRAS=("$@")   # outros dominios raiz redirecionados para www (ex.: biocode.dev.br)
 RELEASE_ID="$(basename "$RELEASE_URI")"
 DIR="/opt/smarthive/releases/$RELEASE_ID"
 
@@ -41,16 +43,26 @@ umask 077
 printf 'ORIGIN_DOMAIN=%s\nORIGIN_SECRET=%s\n' "$ORIGIN_DOMAIN" "$ORIGIN_SECRET" > /opt/smarthive/origin.env
 umask 022
 
-# Dominio raiz -> www (o site fica no CloudFront, em www.<dominio>).
-if [[ "$DOMINIO" =~ ^[a-z0-9.-]+$ ]]; then
-  printf '%s {\n\tredir https://www.%s{uri} permanent\n}\n' "$DOMINIO" "$DOMINIO" > /opt/smarthive/sites.caddy
-else
-  : > /opt/smarthive/sites.caddy
-fi
+# Dominio raiz -> www (o site fica no CloudFront, em www.<dominio>). Os dominios extras sao de
+# outros sites estaticos no CloudFront (Biocode) que usam este servidor so para o redirecionamento.
+SITES_NOVO=""
+for d in "$DOMINIO" "${DOMINIOS_EXTRAS[@]}"; do
+  if [[ "$d" =~ ^[a-z0-9.-]+$ ]]; then
+    SITES_NOVO+="$(printf '%s {\n\tredir https://www.%s{uri} permanent\n}' "$d" "$d")"$'\n'
+  fi
+done
+touch /opt/smarthive/sites.caddy
 
 cd /opt/smarthive/current
 docker compose -p smarthive --env-file /opt/smarthive/db.env up -d --build --remove-orphans
 docker image prune -f >/dev/null
+# Com "admin off" o Caddy nao recarrega sozinho; reinicia so quando os redirecionamentos mudam.
+# O arquivo so e gravado aqui (com printf, mantendo o inode do bind mount): se o "up" falhar,
+# o proximo deploy ainda ve a diferenca e reinicia o Caddy.
+if [ "$(cat /opt/smarthive/sites.caddy)" != "${SITES_NOVO%$'\n'}" ]; then
+  printf '%s' "$SITES_NOVO" > /opt/smarthive/sites.caddy
+  docker compose -p smarthive restart caddy
+fi
 
 # Backup diario do Postgres para o S3 as 03:00 UTC (00:00 em Brasilia).
 chmod +x /opt/smarthive/current/backup.sh /opt/smarthive/current/restore.sh

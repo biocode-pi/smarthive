@@ -7,6 +7,9 @@ cd "$(dirname "$0")/.."
 AWS="${AWS:-aws}"
 command -v "$AWS" >/dev/null 2>&1 || AWS="/c/Program Files/Amazon/AWSCLIV2/aws.exe"
 STACK="${STACK:-smarthive}"
+# Dominios raiz de outros sites que este servidor redireciona para www (o registro.br nao
+# aceita CNAME no raiz). biocode.dev.br: landing da equipe, no repo biocode-pi/biocode.
+DOMINIOS_EXTRAS="${DOMINIOS_EXTRAS:-biocode.dev.br}"
 
 output() {
   "$AWS" cloudformation describe-stacks --stack-name "$STACK" \
@@ -60,7 +63,7 @@ ENV
 "$AWS" s3 cp infra/ec2/install.sh "$RELEASE_URI/install.sh" --only-show-errors
 
 cat > "$TMP/params.json" <<JSON
-{"commands": ["set -e", "aws s3 cp $RELEASE_URI/install.sh /tmp/smarthive-install.sh --only-show-errors", "bash /tmp/smarthive-install.sh $RELEASE_URI $DOMINIO"], "executionTimeout": ["1200"]}
+{"commands": ["set -e", "aws s3 cp $RELEASE_URI/install.sh /tmp/smarthive-install.sh --only-show-errors", "bash /tmp/smarthive-install.sh $RELEASE_URI $DOMINIO $DOMINIOS_EXTRAS"], "executionTimeout": ["1200"]}
 JSON
 
 PARAMS_FILE="$TMP/params.json"
