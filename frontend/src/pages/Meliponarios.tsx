@@ -1,12 +1,16 @@
-import { Archive, Bell, CheckCircle2, MapPin, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { botao } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { PageHeader } from "../components/ui/PageHeader";
 import { Sheet } from "../components/ui/Sheet";
+import { Hexa } from "../components/ui/StatusBadge";
 import { criarMeliponario, listarMeliponarios, type MeliponarioPayload } from "../services/meliponarios";
 import type { Meliponario } from "../types";
 import { cn } from "../utils/classNames";
+import { formatNumber } from "../utils/formatters";
 
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 
@@ -15,27 +19,18 @@ export function enderecoCompleto(m: Pick<Meliponario, "endereco" | "cidade" | "u
   return [m.cidade, m.endereco].filter(Boolean).join(", ");
 }
 
-/** Selo "Em dia" / "N alertas", como no card do app. */
+/** Situacao do meliponario: "Em dia" ou quantos alertas estao abertos. */
 export function SeloAlertas({ alertas }: { alertas: number }) {
   return alertas > 0 ? (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-status-risco px-3 py-0.5 text-xs font-bold uppercase text-status-risco-texto">
-      <Bell className="h-3.5 w-3.5" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-status-risco-texto">
+      <Hexa status="risco" />
       {alertas} {alertas === 1 ? "alerta" : "alertas"}
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-status-ativa px-3 py-0.5 text-xs font-bold uppercase text-status-ativa-texto">
-      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-status-ativa-texto">
+      <Hexa status="ativa" />
       Em dia
     </span>
-  );
-}
-
-function ResumoTile({ valor, rotulo, alerta = false }: { valor: number; rotulo: string; alerta?: boolean }) {
-  return (
-    <div className="rounded-field bg-honey-100 px-4 py-2">
-      <p className={cn("text-2xl font-bold", alerta && valor > 0 ? "text-[#b00000]" : "text-ink")}>{valor}</p>
-      <p className="text-xs font-bold text-honey-700">{rotulo}</p>
-    </div>
   );
 }
 
@@ -121,103 +116,99 @@ export function Meliponarios() {
 
   return (
     <>
-      <section className="-mx-4 -mt-6 mb-6 rounded-b-[30px] bg-honey-400 px-4 pb-6 pt-6 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-0 lg:rounded-none lg:bg-transparent lg:p-0">
-        <div className="lg:flex lg:items-end lg:justify-between lg:gap-6">
-          <div>
-            <p className="text-xs font-bold uppercase text-honey-700 lg:hidden">Bem-vindo</p>
-            <h1 className="text-2xl font-bold uppercase text-ink lg:text-3xl lg:normal-case">Meliponários</h1>
-            <p className="hidden text-slate-700 lg:mt-1 lg:block">Locais onde ficam suas colmeias, com o status de cada um.</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setFormAberto(true)}
-            className="focus-ring hidden h-11 items-center gap-2 rounded-field bg-ink px-4 font-black text-honey-400 shadow-app hover:bg-black lg:inline-flex"
-          >
-            <Plus className="h-5 w-5" aria-hidden="true" /> Novo meliponário
-          </button>
+      <PageHeader
+        title="Meliponários"
+        leitura={`${formatNumber(totais.meliponarios)} meliponários · ${formatNumber(totais.colmeias)} colmeias · ${formatNumber(totais.alertas)} ${totais.alertas === 1 ? "alerta aberto" : "alertas abertos"}`}
+      >
+        <button type="button" onClick={() => setFormAberto(true)} className={botao("primary", "hidden lg:inline-flex")}>
+          <Plus className="h-4 w-4" aria-hidden="true" /> Novo meliponário
+        </button>
+      </PageHeader>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex h-12 flex-1 items-center gap-3 rounded-full bg-white px-5 ring-1 ring-ink/15 focus-within:ring-2 focus-within:ring-ink">
+          <Search className="h-4 w-4 text-ink/60" aria-hidden="true" />
+          <label htmlFor="busca" className="sr-only">
+            Buscar por nome ou cidade
+          </label>
+          <input
+            id="busca"
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome ou cidade"
+            className="h-full min-w-0 flex-1 bg-transparent text-ink placeholder:text-ink/45 focus:outline-none"
+          />
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-3 sm:max-w-lg lg:mt-6">
-          <ResumoTile valor={totais.meliponarios} rotulo="Meliponários" />
-          <ResumoTile valor={totais.colmeias} rotulo="Colmeias" />
-          <ResumoTile valor={totais.alertas} rotulo="Alertas" alerta />
-        </div>
-      </section>
 
-      <div className="lg:flex lg:items-center lg:gap-4">
-
-      <div className="flex h-[61px] items-center gap-3 rounded-card bg-white px-5 shadow-app focus-within:ring-2 focus-within:ring-ink lg:h-12 lg:flex-1 lg:rounded-field">
-        <Search className="h-5 w-5 text-ink" aria-hidden="true" />
-        <label htmlFor="busca" className="sr-only">
-          Buscar por nome ou cidade
-        </label>
-        <input
-          id="busca"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome ou cidade"
-          className="h-full min-w-0 flex-1 bg-transparent font-bold text-ink placeholder:text-slate-600 focus:outline-none"
-        />
-      </div>
-
-      <div className="mt-5 flex gap-3 lg:mt-0" role="group" aria-label="Filtro">
-        {[
-          { rotulo: "Todos", ativo: !somenteAlerta, valor: false },
-          { rotulo: "Com alerta", ativo: somenteAlerta, valor: true },
-        ].map((filtro) => (
-          <button
-            key={filtro.rotulo}
-            type="button"
-            aria-pressed={filtro.ativo}
-            onClick={() => setSomenteAlerta(filtro.valor)}
-            className={cn(
-              "focus-ring min-h-9 rounded-[5px] px-5 text-xs font-bold uppercase text-ink",
-              filtro.ativo ? "bg-honey-400" : "border border-ink bg-honey-200",
-            )}
-          >
-            {filtro.rotulo}
-          </button>
-        ))}
-      </div>
-      </div>
-
-      {erro ? <p className="mt-6 rounded-field bg-white p-4 font-bold text-status-risco-texto shadow-app">{erro}</p> : null}
-
-      <ul className="mt-6 grid gap-5 pb-24 md:grid-cols-2 lg:pb-0 xl:grid-cols-3">
-        {visiveis.map((m) => (
-          <li key={m.id}>
-            <Link
-              to={`/app/meliponarios/${m.id}`}
-              className="press focus-ring flex gap-3 rounded-card bg-white p-4 shadow-app hover:-translate-y-0.5"
+        <div className="inline-flex w-fit rounded-full bg-ink/10 p-1" role="group" aria-label="Filtro">
+          {[
+            { rotulo: "Todos", ativo: !somenteAlerta, valor: false },
+            { rotulo: "Com alerta", ativo: somenteAlerta, valor: true },
+          ].map((filtro) => (
+            <button
+              key={filtro.rotulo}
+              type="button"
+              aria-pressed={filtro.ativo}
+              onClick={() => setSomenteAlerta(filtro.valor)}
+              className={cn(
+                "focus-ring min-h-10 rounded-full px-4 text-sm font-bold",
+                filtro.ativo ? "bg-ink text-honey-500" : "text-ink/70 hover:text-ink",
+              )}
             >
-              <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-field bg-honey-100 text-honey-600">
-                <Archive className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-bold text-ink">{m.nome}</span>
-                {enderecoCompleto(m) ? (
-                  <span className="mt-0.5 flex items-center gap-1 text-sm font-bold text-[#5c5c5c]">
-                    <MapPin className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                    <span className="truncate">{enderecoCompleto(m)}</span>
+              {filtro.rotulo}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {erro ? <p className="mt-6 font-bold text-status-risco-texto">{erro}</p> : null}
+
+      {visiveis.length ? (
+        <ul className="mt-8 border-t border-ink/15 pb-24 lg:pb-0">
+          {visiveis.map((m) => (
+            <li key={m.id}>
+              <Link
+                to={`/app/meliponarios/${m.id}`}
+                className="press focus-ring group grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 rounded border-b border-ink/10 py-5 hover:bg-ink/[0.03] sm:grid-cols-[1fr_8rem_9rem]"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-expo text-2xl font-bold text-ink [font-stretch:106%] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+                    {m.nome}
                   </span>
-                ) : null}
-                <span className="mt-3 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#d9d9d9] px-3 py-0.5 text-xs font-bold text-ink">
-                    <Archive className="h-3.5 w-3.5" aria-hidden="true" />
-                    {m.total_colmeias} <span className="sr-only">colmeias</span>
+                  <span className="mt-1 block truncate text-sm text-ink/65">
+                    {enderecoCompleto(m) ? `${enderecoCompleto(m)}${m.uf ? ` · ${m.uf}` : ""}` : "Endereço não informado"}
                   </span>
+                </span>
+                <span className="tabular text-right font-dados text-ink">
+                  <span className="text-2xl font-medium">{m.total_colmeias}</span>
+                  <span className="ml-1.5 text-xs text-ink/60">{m.total_colmeias === 1 ? "colmeia" : "colmeias"}</span>
+                </span>
+                <span className="col-span-2 sm:col-span-1 sm:text-right">
                   <SeloAlertas alertas={m.alertas_abertos} />
                 </span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {!visiveis.length && !erro ? (
-        <div className="mt-6">
+        <div className="mt-8">
           <EmptyState
             title={todos.length ? "Nenhum meliponário encontrado" : "Nenhum meliponário cadastrado"}
-            description={todos.length ? "Tente outro nome ou cidade, ou limpe o filtro." : "Cadastre o local onde ficam suas colmeias."}
+            description={
+              todos.length
+                ? "Tente outro nome ou cidade, ou volte para Todos."
+                : "Cadastre o local onde ficam suas caixas. Depois é só adicionar as colmeias a ele."
+            }
+            acao={
+              todos.length ? null : (
+                <button type="button" onClick={() => setFormAberto(true)} className={botao("primary")}>
+                  <Plus className="h-4 w-4" aria-hidden="true" /> Novo meliponário
+                </button>
+              )
+            }
           />
         </div>
       ) : null}
@@ -225,9 +216,9 @@ export function Meliponarios() {
       <button
         type="button"
         onClick={() => setFormAberto(true)}
-        className="focus-ring fixed bottom-24 right-4 z-30 inline-flex h-[49px] items-center gap-2 rounded-[15px] bg-ink px-4 font-black text-honey-400 shadow-app lg:hidden"
+        className={botao("primary", "fixed bottom-24 right-4 z-30 min-h-12 shadow-[0_12px_24px_-10px_rgba(18,21,21,0.55)] lg:hidden")}
       >
-        <Plus className="h-6 w-6" aria-hidden="true" /> Novo meliponário
+        <Plus className="h-5 w-5" aria-hidden="true" /> Novo meliponário
       </button>
 
       <Sheet aberto={formAberto} onFechar={() => setFormAberto(false)} titulo="Novo meliponário">
@@ -240,23 +231,23 @@ export function Meliponarios() {
                   ["cidade", "Cidade", "Ex.: Jacupiranga"],
                 ] as const
               ).map(([campo, rotulo, dica]) => (
-                <label key={campo} className="block text-sm font-bold text-ink">
+                <label key={campo} className="campo-rotulo">
                   {rotulo}
                   <input
                     value={form[campo] ?? ""}
                     onChange={(e) => setForm((f) => ({ ...f, [campo]: e.target.value }))}
                     placeholder={dica}
-                    className="mt-1 h-[50px] w-full rounded-field bg-white px-4 font-normal shadow-app focus:outline-none focus:ring-2 focus:ring-ink"
+                    className="campo"
                     autoFocus={campo === "nome"}
                   />
                 </label>
               ))}
-              <label className="block text-sm font-bold text-ink">
+              <label className="campo-rotulo">
                 UF
                 <select
                   value={form.uf ?? ""}
                   onChange={(e) => setForm((f) => ({ ...f, uf: e.target.value }))}
-                  className="mt-1 h-[50px] w-full rounded-field bg-white px-4 font-normal shadow-app focus:outline-none focus:ring-2 focus:ring-ink"
+                  className="campo"
                 >
                   {UFS.map((uf) => (
                     <option key={uf}>{uf}</option>
@@ -268,7 +259,7 @@ export function Meliponarios() {
             <button
               type="submit"
               disabled={salvando}
-              className="focus-ring mt-5 h-[50px] w-full rounded-field bg-hive-600 font-bold text-ink shadow-app hover:brightness-95 disabled:opacity-60"
+              className={botao("primary", "mt-6 min-h-12 w-full")}
             >
               {salvando ? "Salvando..." : "Salvar meliponário"}
             </button>

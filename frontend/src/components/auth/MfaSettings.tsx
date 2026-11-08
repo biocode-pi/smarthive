@@ -1,5 +1,4 @@
 import { fetchMFAPreference, setUpTOTP, updateMFAPreference, verifyTOTPSetup } from "aws-amplify/auth";
-import { ShieldCheck, ShieldOff } from "lucide-react";
 import QRCode from "qrcode";
 import { FormEvent, useEffect, useState } from "react";
 import { Button } from "../ui/Button";
@@ -7,7 +6,7 @@ import { Button } from "../ui/Button";
 type Estado = "carregando" | "desativado" | "configurando" | "ativado";
 
 const inputClass =
-  "h-11 w-40 rounded-md border border-slate-300 bg-white px-3.5 text-center text-sm tracking-[0.3em] text-slate-900 focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-100";
+  "h-12 w-40 rounded-field bg-white px-3.5 text-center font-dados text-base tracking-[0.3em] text-ink ring-1 ring-ink/15 focus:outline-none focus:ring-2 focus:ring-ink";
 
 /** Verificacao em duas etapas (TOTP) com aplicativo autenticador. */
 export function MfaSettings({ email }: { email: string }) {
@@ -78,21 +77,16 @@ export function MfaSettings({ email }: { email: string }) {
   const ativado = estado === "ativado";
 
   return (
-    <section className="surface mb-6 rounded-xl p-6">
+    <section className="border-t border-ink/15 py-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <div className={`rounded-lg p-3 ${ativado ? "bg-status-ativa text-status-ativa-texto" : "bg-status-observacao text-status-observacao-texto"}`}>
-            {ativado ? <ShieldCheck className="h-6 w-6" /> : <ShieldOff className="h-6 w-6" />}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-500">Verificação em duas etapas</p>
-            <p className="mt-1 text-lg font-bold text-slate-950">
-              {estado === "carregando" ? "Verificando..." : ativado ? "Ativada" : "Desativada"}
-            </p>
-            <p className="text-sm text-slate-600">
-              Pede um codigo do aplicativo autenticador (Google Authenticator, Microsoft Authenticator) ao entrar.
-            </p>
-          </div>
+        <div className="min-w-0">
+          <h2 className="titulo-secao">Verificação em duas etapas</h2>
+          <p className={`mt-2 text-sm font-bold ${ativado ? "text-status-ativa-texto" : "text-ink/60"}`}>
+            {estado === "carregando" ? "Verificando…" : ativado ? "Ativada" : "Desativada"}
+          </p>
+          <p className="mt-1 max-w-lg text-sm text-ink/70">
+            Ao entrar, pede também um código do aplicativo autenticador (Google Authenticator, Microsoft Authenticator).
+          </p>
         </div>
         {estado === "desativado" ? (
           <Button onClick={iniciar} disabled={enviando}>
@@ -107,12 +101,12 @@ export function MfaSettings({ email }: { email: string }) {
       </div>
 
       {estado === "configurando" && qrCode ? (
-        <form className="mt-6 flex flex-col gap-6 border-t border-border pt-6 sm:flex-row" onSubmit={confirmar}>
-          <img src={qrCode} alt="QR code para o aplicativo autenticador" className="h-48 w-48 rounded-lg border border-border" />
-          <div className="space-y-3 text-sm text-slate-600">
+        <form className="mt-6 flex flex-col gap-6 border-t border-ink/10 pt-6 sm:flex-row" onSubmit={confirmar}>
+          <img src={qrCode} alt="QR code para o aplicativo autenticador" className="h-48 w-48 rounded-field bg-white p-2 ring-1 ring-ink/10" />
+          <div className="space-y-3 text-sm text-ink/75">
             <p>1. Abra o aplicativo autenticador e escaneie o QR code.</p>
             <p>
-              Sem camera? Digite a chave: <code className="break-all font-mono text-slate-900">{segredo}</code>
+              Sem câmera? Digite a chave: <code className="break-all font-dados text-ink">{segredo}</code>
             </p>
             <p>2. Digite o código de 6 dígitos gerado pelo aplicativo:</p>
             <div className="flex flex-wrap gap-3">
@@ -136,7 +130,11 @@ export function MfaSettings({ email }: { email: string }) {
         </form>
       ) : null}
 
-      {erro ? <p className="mt-4 text-sm text-rose-700">{erro}</p> : null}
+      {erro ? (
+        <p role="alert" className="mt-4 text-sm font-bold text-status-risco-texto">
+          {erro}
+        </p>
+      ) : null}
     </section>
   );
 }

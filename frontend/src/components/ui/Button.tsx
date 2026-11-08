@@ -3,31 +3,33 @@ import { cn } from "../../utils/classNames";
 
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
+// Mesmo botao do site: pilula preta com texto mel para a acao principal.
 const variants: Record<Variant, string> = {
-  primary: "bg-hive-600 text-ink hover:brightness-95 border-hive-600",
-  secondary: "bg-white text-slate-900 hover:bg-slate-50 border-slate-200",
-  danger: "bg-rose-600 text-white hover:bg-rose-700 border-rose-600",
-  ghost: "bg-transparent text-slate-600 hover:bg-slate-100 border-transparent",
+  primary: "border-ink bg-ink text-honey-500 hover:bg-black",
+  secondary: "border-ink/20 bg-white text-ink hover:border-ink/50",
+  danger: "border-status-risco-texto bg-status-risco-texto text-white hover:brightness-110",
+  ghost: "border-transparent bg-transparent text-ink/70 hover:bg-ink/5 hover:text-ink",
 };
+
+/** Classes do botao, para usar tambem em links (<Link className={botao("primary")}>). */
+export function botao(variant: Variant = "primary", className?: string) {
+  return cn(
+    "press focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50",
+    variants[variant],
+    className,
+  );
+}
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   icon?: ReactNode;
 }
 
-export function Button({ variant = "primary", icon, className, children, ...props }: ButtonProps) {
+export function Button({ variant = "primary", icon, className, children, type = "button", ...props }: ButtonProps) {
   return (
-    <button
-      className={cn(
-        "focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-        variants[variant],
-        className,
-      )}
-      {...props}
-    >
+    <button type={type} className={botao(variant, className)} {...props}>
       {icon}
       {children}
     </button>
   );
 }
-

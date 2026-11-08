@@ -145,7 +145,7 @@ export function Sheet({ aberto, onFechar, titulo, children, className }: SheetPr
         >
           <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-ink/20 sm:hidden" aria-hidden="true" />
           <div className="flex items-center justify-between gap-4">
-            <h2 id={idTitulo} className="text-xl font-bold text-ink">
+            <h2 id={idTitulo} className="titulo-secao">
               {titulo}
             </h2>
             <button type="button" onClick={() => fechar.current()} className="focus-ring rounded-lg p-1" aria-label="Fechar">

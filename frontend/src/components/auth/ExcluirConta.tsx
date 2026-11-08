@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
+import { botao } from "../ui/Button";
 
 /**
  * Exclusao da conta (LGPD, art. 18, VI). Primeiro a API apaga todos os dados do usuario;
@@ -46,9 +47,9 @@ export function ExcluirConta({ email }: { email: string }) {
   }
 
   return (
-    <section className="surface mb-6 p-6 ring-1 ring-status-risco">
-      <h2 className="text-lg font-bold text-status-risco-texto">Excluir minha conta</h2>
-      <p className="mt-2 text-sm text-slate-700">
+    <section className="border-t border-ink/15 py-8">
+      <h2 className="titulo-secao text-status-risco-texto">Excluir minha conta</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/75">
         Apaga de forma permanente sua conta e todos os seus dados: meliponários, colmeias, monitoramentos, alertas,
         fotos, vídeos, telefone e preferências. Cópias de segurança e versões antigas de arquivos são eliminadas
         automaticamente em até 30 dias.
@@ -58,29 +59,31 @@ export function ExcluirConta({ email }: { email: string }) {
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="focus-ring mt-4 inline-flex h-11 items-center gap-2 rounded-field bg-white px-4 text-sm font-bold text-status-risco-texto ring-1 ring-status-risco hover:bg-status-risco"
+          className={botao("secondary", "mt-5 border-status-risco-texto/40 text-status-risco-texto hover:border-status-risco-texto")}
         >
           <Trash2 className="h-4 w-4" aria-hidden="true" /> Quero excluir minha conta
         </button>
       ) : (
-        <form className="mt-4 space-y-3" onSubmit={excluir}>
-          <label className="block text-sm font-bold text-ink">
-            Para confirmar, digite seu e-mail: <span className="font-normal">{email}</span>
+        <form className="mt-5 max-w-xl space-y-4" onSubmit={excluir}>
+          <label className="campo-rotulo">
+            <span>
+              Para confirmar, digite seu e-mail: <span className="font-dados font-normal">{email}</span>
+            </span>
             <input
               value={confirmacao}
               onChange={(e) => setConfirmacao(e.target.value)}
               autoComplete="off"
-              className="mt-1 h-[50px] w-full rounded-field bg-white px-4 font-normal shadow-app focus:outline-none focus:ring-2 focus:ring-ink"
+              className="campo"
             />
           </label>
           <div className="flex flex-wrap gap-3">
             <button
               type="submit"
               disabled={!confirmado || excluindo}
-              className="focus-ring inline-flex h-11 items-center gap-2 rounded-field bg-status-risco-texto px-4 text-sm font-bold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              className={botao("danger")}
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
-              {excluindo ? "Excluindo..." : "Excluir conta e todos os dados"}
+              {excluindo ? "Excluindo…" : "Excluir conta e todos os dados"}
             </button>
             <button
               type="button"
@@ -88,7 +91,7 @@ export function ExcluirConta({ email }: { email: string }) {
                 setAberto(false);
                 setConfirmacao("");
               }}
-              className="focus-ring h-11 rounded-field bg-white px-4 text-sm font-bold text-ink shadow-app"
+              className={botao("secondary")}
             >
               Cancelar
             </button>

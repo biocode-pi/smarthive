@@ -1,14 +1,16 @@
 import type { MobileNet } from "@tensorflow-models/mobilenet";
-import { Camera, CheckCircle2, Loader2, Save, ScanSearch, Video, XCircle } from "lucide-react";
+import { Loader2, Video } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/Button";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { botao, Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Leituras } from "../components/ui/Leituras";
 import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { listarColmeias } from "../services/colmeias";
 import { registrarCapturaSensorCelular } from "../services/sensorCelular";
 import type { Colmeia } from "../types";
+import { cn } from "../utils/classNames";
 
 type Prediction = {
   className: string;
@@ -79,6 +81,7 @@ function confidenceLabel(value: number) {
 
 export function SensorCelular() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<MobileNet | null>(null);
@@ -92,7 +95,6 @@ export function SensorCelular() {
   const [modelLoading, setModelLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [targetPrediction, setTargetPrediction] = useState<TargetPrediction | null>(null);
   const [lastTargetPrediction, setLastTargetPrediction] = useState<TargetPrediction | null>(null);
   const [beeDetected, setBeeDetected] = useState(false);
@@ -106,7 +108,9 @@ export function SensorCelular() {
     listarColmeias()
       .then((items) => {
         setColmeias(items);
-        if (items[0]) setForm((state) => ({ ...state, colmeia_id: items[0].id }));
+        // Vindo de uma colmeia ("Nova captura"), ela ja vem escolhida.
+        const pedida = items.find((item) => item.id === searchParams.get("colmeia")) ?? items[0];
+        if (pedida) setForm((state) => ({ ...state, colmeia_id: pedida.id }));
       })
       .finally(() => setLoading(false));
 
@@ -135,7 +139,7 @@ export function SensorCelular() {
     setMessage(null);
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError("Câmera indisponível neste navegador.");
+      setCameraError("Este navegador não dá acesso à câmera. Use o Chrome ou o Safari do celular, ou envie uma foto abaixo.");
       return;
     }
 
@@ -162,8 +166,8 @@ export function SensorCelular() {
       const permissionDenied = error instanceof DOMException && error.name === "NotAllowedError";
       setCameraError(
         permissionDenied
-          ? "Permissão da câmera negada."
-          : "Não foi possível abrir a câmera. Em celular, use HTTPS ou localhost.",
+          ? "A câmera foi bloqueada. Libere o acesso nas permissões do navegador e toque em Abrir câmera de novo."
+          : "Não foi possível abrir a câmera. Feche outros apps que estejam usando e tente de novo.",
       );
     }
   }
@@ -180,7 +184,6 @@ export function SensorCelular() {
 
   function applyPredictions(result: Prediction[]) {
     const target = pickTargetPrediction(result);
-    setPredictions(target ? [target.prediction] : []);
     setTargetPrediction(target);
     if (target) setLastTargetPrediction(target);
 
@@ -198,7 +201,7 @@ export function SensorCelular() {
 
   async function classifyImageFile(file: File) {
     if (!file.type.startsWith("image/")) {
-      setMessage("Para testar a IA por arquivo, selecione uma imagem.");
+      setMessage("Vídeo anexado. A contagem automática só funciona com foto ou com a câmera aberta.");
       return;
     }
 
@@ -210,14 +213,14 @@ export function SensorCelular() {
       const image = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error("Imagem inválida."));
+        img.onerror = () => reject(new Error("Imagem inválida"));
         img.src = URL.createObjectURL(file);
       });
       const result = (await model.classify(image, 8)) as Prediction[];
       applyPredictions(result);
       URL.revokeObjectURL(image.src);
     } catch {
-      setCameraError("Não foi possível analisar esta imagem.");
+      setCameraError("Não foi possível ler esta imagem. Tente outra foto, em JPG ou PNG.");
     }
   }
 
@@ -237,7 +240,7 @@ export function SensorCelular() {
         const result = (await model.classify(video, 5)) as Prediction[];
         applyPredictions(result);
       } catch {
-        setCameraError("Falha ao classificar o frame da câmera.");
+        setCameraError("A contagem parou. Toque em Parar câmera e abra de novo.");
       } finally {
         timerRef.current = window.setTimeout(analyze, 1200);
       }
@@ -294,8 +297,8 @@ export function SensorCelular() {
       [
         form.observacoes,
         currentTarget
-          ? `IA: ${currentTarget.label.toLowerCase()} identificado como "${currentTarget.prediction.className}" com ${confidenceLabel(currentTarget.prediction.probability)} de confiança.`
-          : "IA: nenhum alvo relevante identificado. Classes fora de abelha/invasor foram ignoradas.",
+          ? `Leitura automática: ${currentTarget.label.toLowerCase()} na imagem (${confidenceLabel(currentTarget.prediction.probability)}).`
+          : "Leitura automática: nenhuma abelha ou invasor na imagem.",
       ]
         .filter(Boolean)
         .join("\n"),
@@ -309,7 +312,7 @@ export function SensorCelular() {
       setMessage(response.mensagem);
       navigate(`/app/colmeias/${form.colmeia_id}`);
     } catch {
-      setMessage("Não foi possível salvar a captura experimental.");
+      setMessage("Não foi possível salvar a captura. Confira a conexão e tente de novo.");
     } finally {
       setSaving(false);
     }
@@ -317,221 +320,184 @@ export function SensorCelular() {
 
   if (loading) return <LoadingState />;
 
-  const statusText = targetPrediction
-    ? `${targetPrediction.label}: ${targetPrediction.prediction.className}`
-    : "Nenhuma abelha ou invasor identificado";
-  const overlayClass =
+  const leituraAtual = targetPrediction
+    ? `${targetPrediction.label} na imagem · ${confidenceLabel(targetPrediction.prediction.probability)}`
+    : cameraActive
+      ? "Procurando movimento na entrada…"
+      : "Foto sem abelha ou invasor";
+  const tomLeitura =
     targetPrediction?.kind === "bee"
-      ? "bg-hive-600/90 text-ink"
+      ? "bg-honey-500 text-ink"
       : targetPrediction?.kind === "invader"
-        ? "bg-rose-600/90 text-white"
-        : "bg-black/55 text-white";
+        ? "bg-status-risco-texto text-white"
+        : "bg-ink/70 text-white";
 
   return (
     <>
       <PageHeader
-        title="Câmera IA"
-        description="Captura visual pelo celular com classificação local de abelhas."
+        title="Captura"
+        leitura="Aponte a câmera para a entrada da caixa. A contagem acontece no próprio aparelho."
       />
 
       {colmeias.length === 0 ? (
         <EmptyState
-          icon={<Camera className="h-6 w-6" />}
-          title="Nenhuma colmeia cadastrada"
-          description="Cadastre uma colmeia antes de registrar capturas."
+          title="Nenhuma colmeia para capturar"
+          description="Toda captura pertence a uma colmeia. Cadastre a primeira e volte aqui."
+          acao={
+            <Link to="/app/colmeias?nova=1" className={botao("primary")}>
+              Cadastrar colmeia
+            </Link>
+          }
         />
       ) : (
-        <section className="grid gap-6 xl:grid-cols-[1.35fr_0.85fr]">
-          <div className="surface p-4 sm:p-6">
-            <div className="relative overflow-hidden rounded-xl bg-slate-950">
-              <video
-                ref={videoRef}
-                className="aspect-[4/3] w-full object-cover sm:aspect-video"
-                playsInline
-                muted
-                autoPlay
-              />
+        <section className="grid gap-10 xl:grid-cols-[1.35fr_0.9fr] xl:gap-12">
+          <div className="min-w-0">
+            <div className="relative overflow-hidden rounded-[24px] bg-ink">
+              <video ref={videoRef} className="aspect-[4/3] w-full object-cover sm:aspect-video" playsInline muted autoPlay />
               {!cameraActive ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/92 p-6 text-center">
-                  <div>
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-hive-600 text-ink">
-                      {modelLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Camera className="h-8 w-8" />}
-                    </div>
-                    <p className="text-lg font-bold text-white">Câmera pronta</p>
-                    <p className="mt-2 text-sm text-slate-300">MobileNet será carregado antes da captura.</p>
-                  </div>
+                <div className="absolute inset-0 flex flex-col items-start justify-end bg-ink p-6 sm:p-8">
+                  <p className="font-expo text-2xl font-extrabold text-honey-500 [font-stretch:112%] sm:text-3xl">
+                    {modelLoading ? "Preparando a câmera…" : "Câmera desligada"}
+                  </p>
+                  <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/70">
+                    Segure o celular a um palmo da entrada, sem tampar o tubo, e deixe as abelhas passarem.
+                  </p>
                 </div>
               ) : null}
-              <div className="absolute left-3 top-3 rounded-full bg-black/55 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                {cameraActive ? "Ao vivo" : "Parado"}
-              </div>
-              <div
-                className={`absolute bottom-3 left-3 right-3 rounded-xl px-4 py-3 backdrop-blur ${overlayClass}`}
-              >
-                <div className="flex items-center gap-2">
-                  {targetPrediction ? <CheckCircle2 className="h-5 w-5" /> : <ScanSearch className="h-5 w-5" />}
-                  <span className="font-bold">
-                    {statusText}
-                  </span>
-                </div>
-              </div>
+              <p className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-ink/70 px-3 py-1 font-dados text-[11px] uppercase tracking-[0.14em] text-white">
+                <span className={cn("h-2 w-2 rounded-full", cameraActive ? "animate-pulse bg-status-risco" : "bg-white/40")} aria-hidden="true" />
+                {cameraActive ? "Ao vivo" : "Parada"}
+              </p>
+              {cameraActive || targetPrediction ? (
+                <p
+                  role="status"
+                  className={cn("absolute bottom-4 left-4 right-4 rounded-full px-4 py-2.5 font-dados text-sm transition-colors", tomLeitura)}
+                >
+                  {leituraAtual}
+                </p>
+              ) : null}
             </div>
 
             {cameraError ? (
-              <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
-                <XCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <span>{cameraError}</span>
-              </div>
+              <p role="alert" className="mt-4 text-sm font-bold text-status-risco-texto">
+                {cameraError}
+              </p>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               <Button
-                type="button"
                 onClick={cameraActive ? stopCamera : startCamera}
                 disabled={modelLoading}
-                icon={modelLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                icon={modelLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Video className="h-4 w-4" aria-hidden="true" />}
               >
-                {cameraActive ? "Parar câmera" : modelLoading ? "Carregando IA..." : "Abrir câmera"}
+                {cameraActive ? "Parar câmera" : modelLoading ? "Preparando…" : "Abrir câmera"}
               </Button>
               <Button
-                type="button"
                 variant="secondary"
                 onClick={() => {
                   setBeeDetected(false);
                   setInvaderDetected(false);
                   setDetections(0);
                   setInvaderDetections(0);
-                  setPredictions([]);
                   setTargetPrediction(null);
                   setLastTargetPrediction(null);
                   setField("possivel_invasor", false);
                 }}
               >
-                Reiniciar leitura
+                Zerar contagem
               </Button>
             </div>
+
+            <Leituras
+              className="mt-8"
+              itens={[
+                { rotulo: "Quadros com abelha", valor: detections, nota: beeDetected ? "abelhas vistas" : "nenhuma ainda" },
+                {
+                  rotulo: "Quadros com invasor",
+                  valor: invaderDetections,
+                  nota: invaderDetected ? "confira a entrada" : "nenhum visto",
+                  alerta: invaderDetected,
+                },
+              ]}
+            />
 
             <canvas ref={canvasRef} className="hidden" />
           </div>
 
-          <form onSubmit={handleSubmit} className="surface p-6">
+          <form onSubmit={handleSubmit} className="surface h-fit p-5 sm:p-7">
+            <h2 className="titulo-secao">Salvar captura</h2>
             {message ? (
-              <p className="mb-4 rounded-lg bg-hive-50 px-4 py-3 text-sm font-semibold text-hive-700">{message}</p>
+              <p role="status" className="mt-3 text-sm font-bold text-ink">
+                {message}
+              </p>
             ) : null}
 
-            <div className="mb-5">
-              <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Classificação</p>
-              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-bold text-slate-700">Abelha detectada</span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${beeDetected ? "bg-hive-50 text-hive-700" : "bg-slate-100 text-slate-500"}`}>
-                    {beeDetected ? "Sim" : "Não"}
-                  </span>
-                </div>
-                <p className="mt-3 text-3xl font-black text-slate-950">{detections}</p>
-                <p className="text-xs font-semibold text-slate-500">leituras positivas</p>
-              </div>
-              <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-bold text-slate-700">Invasor detectado</span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${invaderDetected ? "bg-rose-50 text-rose-700" : "bg-slate-100 text-slate-500"}`}>
-                    {invaderDetected ? "Sim" : "Não"}
-                  </span>
-                </div>
-                <p className="mt-3 text-3xl font-black text-slate-950">{invaderDetections}</p>
-                <p className="text-xs font-semibold text-slate-500">leituras positivas</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <label className="grid gap-1 text-sm font-semibold text-slate-700">
+            <div className="mt-5 space-y-4">
+              <label className="campo-rotulo">
                 Colmeia
-                <select
-                  className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
-                  value={form.colmeia_id}
-                  onChange={(event) => setField("colmeia_id", event.target.value)}
-                  required
-                >
+                <select className="campo" value={form.colmeia_id} onChange={(event) => setField("colmeia_id", event.target.value)} required>
                   {colmeias.map((colmeia) => (
                     <option key={colmeia.id} value={colmeia.id}>
-                      {colmeia.nome} - {colmeia.especie}
+                      {colmeia.codigo ? `${colmeia.codigo} · ` : ""}
+                      {colmeia.nome}
                     </option>
                   ))}
                 </select>
               </label>
 
-              <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Duração da observação
+              <label className="campo-rotulo">
+                Tempo observando (segundos)
                 <input
                   type="number"
                   min="1"
-                  className="focus-ring rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  inputMode="numeric"
+                  className="campo font-dados"
                   value={form.duracao_segundos}
                   onChange={(event) => setField("duracao_segundos", event.target.value)}
                   required
                 />
               </label>
 
-              <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Captura nativa
+              <label className="campo-rotulo">
+                Foto ou vídeo do celular (opcional)
                 <input
                   type="file"
                   accept="image/*,video/*"
                   capture="environment"
-                  className="focus-ring rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm"
+                  className="focus-ring w-full rounded-field border-2 border-dashed border-ink/20 bg-honey-50 px-3 py-3 text-sm font-normal file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-bold file:text-honey-500"
                   onChange={(event) => {
                     const file = event.target.files?.[0] ?? null;
                     setArquivo(file);
                     if (file) void classifyImageFile(file);
                   }}
                 />
-                <span className="text-xs font-medium text-slate-500">
-                  Use imagens de teste de abelhas, formigas, aranhas ou vespas para validar antes de salvar.
-                </span>
+                <span className="text-xs font-normal text-ink/60">Sem câmera aberta, uma foto da entrada também conta.</span>
               </label>
 
-              <label className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3">
+              <label className="flex items-center gap-3 border-y border-ink/10 py-3">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-slate-300 text-hive-600 focus:ring-hive-500"
+                  className="h-5 w-5 rounded border-ink/30 accent-ink"
                   checked={form.possivel_invasor}
                   onChange={(event) => setField("possivel_invasor", event.target.checked)}
                 />
-                <span className="text-sm font-semibold text-slate-700">Possível invasor</span>
+                <span className="text-sm font-bold text-ink">Vi um possível invasor</span>
               </label>
 
-              <label className="grid gap-1 text-sm font-semibold text-slate-700">
-                Observações
+              <label className="campo-rotulo">
+                Anotações
                 <textarea
-                  className="focus-ring min-h-28 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                  className="campo"
                   value={form.observacoes}
                   onChange={(event) => setField("observacoes", event.target.value)}
+                  placeholder="Ex.: muitas campeiras com pólen, tempo nublado"
                 />
               </label>
             </div>
 
-            <div className="mt-5 space-y-3">
-              {predictions.length ? (
-                predictions.map((prediction) => (
-                  <div key={prediction.className} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
-                    <span className="truncate text-sm font-semibold text-slate-700">
-                      {targetPrediction?.label ?? "Alvo"}: {prediction.className}
-                    </span>
-                    <span className="text-xs font-bold text-slate-500">{confidenceLabel(prediction.probability)}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500">
-                  Classes irrelevantes são ignoradas.
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <Button type="submit" disabled={saving || !form.colmeia_id} icon={<Save className="h-4 w-4" />}>
-                {saving ? "Salvando..." : "Salvar captura"}
-              </Button>
-            </div>
+            <Button type="submit" disabled={saving || !form.colmeia_id} className="mt-6 min-h-12 w-full">
+              {saving ? "Salvando…" : "Salvar captura"}
+            </Button>
           </form>
         </section>
       )}

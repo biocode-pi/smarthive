@@ -33,8 +33,8 @@ function RouteFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center px-6">
       <div className="surface p-6 text-center">
-        <p className="text-sm font-semibold text-slate-500">Carregando</p>
-        <p className="mt-2 text-lg font-bold text-slate-950">Smart Hive</p>
+        <p className="rotulo">Carregando</p>
+        <p className="mt-2 font-expo text-xl font-extrabold text-ink [font-stretch:112%]">Smart Hive</p>
       </div>
     </div>
   );

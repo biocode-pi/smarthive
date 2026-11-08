@@ -20,7 +20,7 @@ const RAIO = 46;
 const LARGURA = Math.sqrt(3) * RAIO;
 
 // Mesmos tons pastel dos selos de status do app mobile (com texto escuro, contraste AA).
-const CORES: Record<StatusColmeia, { fill: string; texto: string; rotulo: string }> = {
+export const CORES_STATUS: Record<StatusColmeia, { fill: string; texto: string; rotulo: string }> = {
   ativa: { fill: "#cff8cc", texto: "#1a6b12", rotulo: "Em dia" },
   observacao: { fill: "#fae596", texto: "#645f46", rotulo: "Em observação" },
   risco: { fill: "#f6c0c0", texto: "#a40000", rotulo: "Em risco" },
@@ -59,7 +59,7 @@ function tamanhoDoFavo(quantidade: number): number {
   return total;
 }
 
-function pontosHexagono(cx: number, cy: number, raio: number): string {
+export function pontosHexagono(cx: number, cy: number, raio: number): string {
   return Array.from({ length: 6 }, (_, i) => {
     const angulo = (Math.PI / 180) * (60 * i - 30);
     return `${(cx + raio * Math.cos(angulo)).toFixed(1)},${(cy + raio * Math.sin(angulo)).toFixed(1)}`;
@@ -125,7 +125,7 @@ export function FavoMap({
             />
           );
         }
-        const cor = CORES[celula.status] ?? CORES.inativa;
+        const cor = CORES_STATUS[celula.status] ?? CORES_STATUS.inativa;
         const interativa = Boolean(onSelecionar);
         return (
           <g
@@ -155,12 +155,12 @@ export function FavoMap({
               y={p.y + (celula.detalhe ? -4 : 4)}
               textAnchor="middle"
               fill={cor.texto}
-              className="font-sans text-[12.5px] font-bold"
+              className="font-dados text-[12px] font-medium"
             >
               {celula.codigo}
             </text>
             {celula.detalhe ? (
-              <text x={p.x} y={p.y + 13} textAnchor="middle" fill={cor.texto} className="font-sans text-[10.5px]" opacity={0.9}>
+              <text x={p.x} y={p.y + 13} textAnchor="middle" fill={cor.texto} className="font-dados text-[10px]" opacity={0.9}>
                 {celula.detalhe}
               </text>
             ) : null}
@@ -174,14 +174,14 @@ export function FavoMap({
 export function LegendaFavo({ celulas }: { celulas: CelulaFavo[] }) {
   const itens: StatusColmeia[] = ["ativa", "observacao", "risco"];
   return (
-    <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
+    <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink/70">
       {itens.map((status) => (
         <li key={status} className="inline-flex items-center gap-2">
           <svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
-            <polygon points={pontosHexagono(6, 6, 6)} fill={CORES[status].fill} />
+            <polygon points={pontosHexagono(6, 6, 6)} fill={CORES_STATUS[status].fill} />
           </svg>
-          {CORES[status].rotulo}
-          <span className="tabular font-semibold text-ink">{celulas.filter((c) => c.status === status).length}</span>
+          {CORES_STATUS[status].rotulo}
+          <span className="tabular font-dados font-medium text-ink">{celulas.filter((c) => c.status === status).length}</span>
         </li>
       ))}
     </ul>

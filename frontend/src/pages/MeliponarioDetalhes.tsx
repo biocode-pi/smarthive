@@ -1,9 +1,11 @@
-import { ArrowLeft, MapPin, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { botao, Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { FavoMap, LegendaFavo, type CelulaFavo } from "../components/ui/FavoMap";
 import { LoadingState } from "../components/ui/LoadingState";
+import { PageHeader } from "../components/ui/PageHeader";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { excluirMeliponario, listarColmeiasDoMeliponario, obterMeliponario } from "../services/meliponarios";
 import type { Colmeia, Meliponario } from "../types";
@@ -24,7 +26,7 @@ export function MeliponarioDetalhes() {
         setMeliponario(m);
         setColmeias(c);
       })
-      .catch(() => setErro("Meliponário não encontrado."));
+      .catch(() => setErro("Meliponário não encontrado"));
   }, [id]);
 
   async function excluir() {
@@ -34,86 +36,95 @@ export function MeliponarioDetalhes() {
     navigate("/app/meliponarios", { replace: true });
   }
 
-  if (erro) return <EmptyState title={erro} description="Volte para a lista e escolha outro meliponário." />;
+  if (erro) {
+    return (
+      <EmptyState
+        title={erro}
+        description="Ele pode ter sido excluído. Volte para a lista e escolha outro."
+        acao={
+          <Link to="/app/meliponarios" className={botao("secondary")}>
+            Ver meliponários
+          </Link>
+        }
+      />
+    );
+  }
   if (!meliponario) return <LoadingState />;
 
-  const celulas: CelulaFavo[] = [...colmeias]
-    .sort((a, b) => gravidade[a.status] - gravidade[b.status])
-    .map((c) => ({ id: c.id, codigo: c.codigo || c.nome.slice(0, 7), nome: c.nome, status: c.status }));
+  const ordenadas = [...colmeias].sort((a, b) => gravidade[a.status] - gravidade[b.status]);
+  const celulas: CelulaFavo[] = ordenadas.map((c) => ({
+    id: c.id,
+    codigo: c.codigo || c.nome.slice(0, 7),
+    nome: c.nome,
+    status: c.status,
+  }));
+  const endereco = enderecoCompleto(meliponario);
 
   return (
     <>
-      <Link to="/app/meliponarios" className="press focus-ring inline-flex items-center gap-1 rounded text-sm font-bold text-ink">
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Meliponários
-      </Link>
+      <PageHeader
+        voltar={{ to: "/app/meliponarios", label: "Meliponários" }}
+        title={meliponario.nome}
+        leitura={[endereco && `${endereco}${meliponario.uf ? ` · ${meliponario.uf}` : ""}`, `${colmeias.length} ${colmeias.length === 1 ? "colmeia" : "colmeias"}`]
+          .filter(Boolean)
+          .join(" · ")}
+      >
+        <Link to={`/app/colmeias?meliponario=${meliponario.id}`} className={botao("primary")}>
+          <Plus className="h-4 w-4" aria-hidden="true" /> Adicionar colmeia
+        </Link>
+        <Button variant="ghost" onClick={excluir} className="text-status-risco-texto hover:text-status-risco-texto">
+          <Trash2 className="h-4 w-4" aria-hidden="true" /> Excluir
+        </Button>
+      </PageHeader>
 
-      <section className="mt-3 rounded-card bg-white p-5 shadow-app">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-ink">{meliponario.nome}</h1>
-            {enderecoCompleto(meliponario) ? (
-              <p className="mt-1 flex items-center gap-1 text-sm font-bold text-[#5c5c5c]">
-                <MapPin className="h-4 w-4" aria-hidden="true" />
-                {enderecoCompleto(meliponario)}
-              </p>
-            ) : null}
-            <div className="mt-3">
-              <SeloAlertas alertas={meliponario.alertas_abertos} />
+      <div className="mb-8">
+        <SeloAlertas alertas={meliponario.alertas_abertos} />
+        {meliponario.descricao ? <p className="mt-3 max-w-2xl leading-relaxed text-ink/75">{meliponario.descricao}</p> : null}
+      </div>
+
+      {colmeias.length ? (
+        <section className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
+          <figure className="surface p-5 sm:p-7">
+            <FavoMap celulas={celulas} onSelecionar={(cid) => navigate(`/app/colmeias/${cid}`)} className="mx-auto max-w-xs" />
+            <div className="mt-5 border-t border-ink/10 pt-4">
+              <LegendaFavo celulas={celulas} />
             </div>
+          </figure>
+
+          <div className="min-w-0">
+            <h2 className="titulo-secao">Colmeias</h2>
+            <ul className="mt-3 border-t border-ink/15">
+              {ordenadas.map((c) => (
+                <li key={c.id}>
+                  <Link
+                    to={`/app/colmeias/${c.id}`}
+                    className="press focus-ring flex items-center justify-between gap-4 rounded border-b border-ink/10 py-3 hover:bg-ink/[0.03]"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold text-ink">{c.nome}</span>
+                      <span className="font-dados text-xs text-ink/65">
+                        {c.codigo ? `${c.codigo} · ` : ""}
+                        {c.especie}
+                      </span>
+                    </span>
+                    <StatusBadge status={c.status} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <button
-            type="button"
-            onClick={excluir}
-            className="press focus-ring inline-flex h-10 items-center gap-2 rounded-field bg-white px-3 text-sm font-bold text-status-risco-texto ring-1 ring-status-risco hover:bg-status-risco"
-          >
-            <Trash2 className="h-4 w-4" aria-hidden="true" /> Excluir
-          </button>
-        </div>
-      </section>
-
-      <section className="mt-6 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="surface p-5">
-          <h2 className="text-lg font-bold text-ink">Colmeias ({colmeias.length})</h2>
-          {celulas.length ? (
-            <>
-              <FavoMap celulas={celulas} onSelecionar={(cid) => navigate(`/app/colmeias/${cid}`)} className="mx-auto mt-4 max-w-xs" />
-              <div className="mt-4 border-t border-border pt-4">
-                <LegendaFavo celulas={celulas} />
-              </div>
-            </>
-          ) : (
-            <p className="mt-4 text-sm text-slate-700">Nenhuma colmeia neste meliponário ainda.</p>
-          )}
-        </div>
-
-        <div className="surface p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-ink">Lista</h2>
-            <Link
-              to={`/app/colmeias?meliponario=${meliponario.id}`}
-              className="press focus-ring inline-flex h-10 items-center gap-2 rounded-field bg-hive-600 px-3 text-sm font-bold text-ink shadow-app hover:brightness-95"
-            >
+        </section>
+      ) : (
+        <EmptyState
+          title="Nenhuma colmeia neste meliponário"
+          description="Adicione as caixas que ficam aqui para acompanhar cada uma no mapa."
+          acao={
+            <Link to={`/app/colmeias?meliponario=${meliponario.id}`} className={botao("primary")}>
               <Plus className="h-4 w-4" aria-hidden="true" /> Adicionar colmeia
             </Link>
-          </div>
-          <ul className="mt-4 divide-y divide-border">
-            {colmeias.map((c) => (
-              <li key={c.id}>
-                <Link to={`/app/colmeias/${c.id}`} className="focus-ring flex items-center justify-between gap-3 rounded py-3">
-                  <span className="min-w-0">
-                    <span className="block truncate font-bold text-ink">{c.nome}</span>
-                    <span className="text-sm text-slate-700">
-                      {c.codigo ? `${c.codigo} · ` : ""}
-                      {c.especie}
-                    </span>
-                  </span>
-                  <StatusBadge status={c.status} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+          }
+        />
+      )}
     </>
   );
 }
