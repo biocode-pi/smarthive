@@ -5,6 +5,15 @@ import "@fontsource-variable/archivo/wdth.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import { InstrumentoEntrada } from "../components/site/InstrumentoEntrada";
+import {
+  AbelhaDesenho,
+  AbelhaGuia,
+  EnxameFundo,
+  FavoFundo,
+  ordem,
+  Palavras,
+  useAnimacoesDoSite,
+} from "../components/site/Movimento";
 import { FavoMap, LegendaFavo, type CelulaFavo } from "../components/ui/FavoMap";
 import { Marca } from "../components/ui/Marca";
 import { useAuth } from "../context/AuthContext";
@@ -53,15 +62,17 @@ const destaquesMapa = [
 function ArtefatoEtapa({ indice }: { indice: number }) {
   if (indice === 0) {
     return (
-      <div className="relative h-full">
+      <div className="art-mira relative h-full">
         <span className="absolute left-0 top-0 h-4 w-4 border-l-2 border-t-2 border-ink" />
         <span className="absolute right-0 top-0 h-4 w-4 border-r-2 border-t-2 border-ink" />
         <span className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-ink" />
         <span className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-ink" />
         <span className="absolute left-1/2 top-1/2 h-5 w-9 -translate-x-1/2 -translate-y-1/2 rounded-md bg-hive-700" />
-        <span className="absolute left-1/2 top-1/2 h-2.5 w-3.5 -translate-x-[150%] -translate-y-[160%] rounded-full bg-honey-500 ring-1 ring-ink/40" />
+        <span className="absolute left-1/2 top-1/2 h-2.5 w-3.5 -translate-x-[150%] -translate-y-[160%]">
+          <span className="art-abelha block h-full w-full rounded-full bg-honey-500 ring-1 ring-ink/40" />
+        </span>
         <span className="absolute left-3 top-2.5 flex items-center gap-1.5 font-dados text-[10px] text-ink/70">
-          <span className="h-1.5 w-1.5 rounded-full bg-status-risco-texto" /> REC 00:12
+          <span className="art-piscar h-1.5 w-1.5 rounded-full bg-status-risco-texto" /> REC 00:12
         </span>
       </div>
     );
@@ -74,9 +85,9 @@ function ArtefatoEtapa({ indice }: { indice: number }) {
           <span>3,2 MB</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-ink/10">
-          <div className="h-full w-[72%] rounded-full bg-ink" />
+          <div className="art-progresso h-full w-full origin-left rounded-full bg-ink" />
         </div>
-        <span>criptografado · 72%</span>
+        <span>enviando · criptografado</span>
       </div>
     );
   }
@@ -89,8 +100,8 @@ function ArtefatoEtapa({ indice }: { indice: number }) {
         {barras.map((v, i) => (
           <span
             key={i}
-            className={i === barras.length - 1 ? "flex-1 rounded-t bg-status-risco-texto" : "flex-1 rounded-t bg-ink/80"}
-            style={{ height: `${(v / 60) * 100}%` }}
+            className={i === barras.length - 1 ? "art-barra art-queda flex-1 rounded-t bg-status-risco-texto" : "art-barra flex-1 rounded-t bg-ink/80"}
+            style={{ height: `${(v / 60) * 100}%`, ...ordem(i) }}
           />
         ))}
       </div>
@@ -98,9 +109,9 @@ function ArtefatoEtapa({ indice }: { indice: number }) {
   }
   return (
     <div className="flex h-full items-center">
-      <div className="w-full rounded-xl bg-white p-3 shadow-app">
+      <div className="art-alerta w-full rounded-xl bg-white p-3 shadow-app">
         <p className="flex items-center gap-1.5 font-dados text-[10px] uppercase tracking-wider text-status-risco-texto">
-          <span className="h-1.5 w-1.5 rounded-full bg-status-risco-texto" /> Alerta
+          <span className="art-piscar h-1.5 w-1.5 rounded-full bg-status-risco-texto" /> Alerta
         </p>
         <p className="mt-1 text-xs font-bold leading-snug text-ink">MIR-005: atividade bem abaixo do histórico</p>
       </div>
@@ -112,6 +123,7 @@ export function Site() {
   const { user } = useAuth();
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const raizRef = useAnimacoesDoSite<HTMLDivElement>();
 
   // Menu fechado fica fora do foco e dos leitores de tela; Esc fecha.
   useEffect(() => {
@@ -124,7 +136,8 @@ export function Site() {
   const cta = user ? { to: "/app", label: "Abrir plataforma" } : { to: "/login", label: "Entrar" };
 
   return (
-    <div className="min-h-screen text-ink">
+    <div ref={raizRef} className="min-h-screen text-ink">
+      <AbelhaGuia />
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-panel"
@@ -187,23 +200,24 @@ export function Site() {
       </header>
 
       <main id="conteudo">
-        <section id="inicio" className="bg-honey-500">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.4fr_1fr] lg:gap-14 lg:pb-28">
+        <section id="inicio" className="relative overflow-hidden bg-honey-500">
+          <FavoFundo />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.4fr_1fr] lg:gap-14 lg:pb-28">
             <div>
-              <p className="font-dados text-xs uppercase tracking-[0.18em] text-ink/70">Monitoramento de meliponários</p>
-              <h1 className="mt-5 font-expo text-[clamp(2.4rem,5vw,4.1rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-ink [font-stretch:112%]">
-                Quem entra e quem sai diz como vai a colmeia.
+              <p data-revelar="" className="font-dados text-xs uppercase tracking-[0.18em] text-ink/70">Monitoramento de meliponários</p>
+              <h1 data-revelar="palavras" className="mt-5 font-expo text-[clamp(2.4rem,5vw,4.1rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.02em] text-ink [font-stretch:112%]">
+                <Palavras texto="Quem entra e quem sai diz como vai a colmeia." />
               </h1>
-              <p className="mt-7 max-w-lg text-lg leading-relaxed text-ink/80">
+              <p data-revelar="" style={ordem(8)} className="mt-7 max-w-lg text-lg leading-relaxed text-ink/80">
                 O Smart Hive estima o movimento na entrada de cada colmeia a partir de fotos e vídeos feitos em campo,
                 guarda o histórico e avisa quando a atividade cai ou aparece um invasor.
               </p>
-              <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <div data-revelar="" style={ordem(10)} className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
                 <Link
                   to={cta.to}
-                  className="press focus-ring inline-flex min-h-12 items-center gap-2 rounded-full bg-ink px-6 font-bold text-honey-500 hover:bg-black"
+                  className="press focus-ring group inline-flex min-h-12 items-center gap-2 rounded-full bg-ink px-6 font-bold text-honey-500 hover:bg-black"
                 >
-                  {user ? "Abrir plataforma" : "Entrar na plataforma"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  {user ? "Abrir plataforma" : "Entrar na plataforma"} <ArrowRight className="seta-avanca h-4 w-4" aria-hidden="true" />
                 </Link>
                 <a
                   href="#como-funciona"
@@ -213,26 +227,36 @@ export function Site() {
                 </a>
               </div>
             </div>
-            <InstrumentoEntrada />
+            <div data-revelar="escala" style={ordem(6)}>
+              <div className="flutuar">
+                <InstrumentoEntrada />
+              </div>
+            </div>
           </div>
         </section>
 
         <section id="abelhas" className="bg-honey-50 py-20 lg:py-28">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
             <div>
-              <h2 className="font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
+              <h2 data-revelar="" className="font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
                 Feito para abelhas nativas sem ferrão
               </h2>
-              <p className="mt-6 max-w-md text-lg leading-relaxed text-ink/75">
+              <p data-revelar="" style={ordem(1)} className="mt-6 max-w-md text-lg leading-relaxed text-ink/75">
                 Essenciais para a polinização e a biodiversidade, as colônias ainda são acompanhadas, na maioria dos
                 meliponários, por observação e anotações em papel. O Smart Hive organiza esse acompanhamento colmeia a
                 colmeia, para o manejo do dia a dia e para a pesquisa.
               </p>
             </div>
             <ul className="border-t border-ink/15">
-              {especies.map((e) => (
-                <li key={e.nome} className="flex items-baseline justify-between gap-6 border-b border-ink/15 py-4">
-                  <span className="font-expo text-2xl font-bold text-ink [font-stretch:108%] sm:text-3xl">{e.nome}</span>
+              {especies.map((e, i) => (
+                <li
+                  key={e.nome}
+                  data-revelar="direita"
+                  style={ordem(i)}
+                  className="especie relative flex items-baseline justify-between gap-6 overflow-hidden border-b border-ink/15 py-4"
+                >
+                  <AbelhaDesenho className="especie-abelha absolute left-0 top-1/2 h-6 w-6" />
+                  <span className="especie-nome font-expo text-2xl font-bold text-ink [font-stretch:108%] sm:text-3xl">{e.nome}</span>
                   <span className="text-right text-sm italic text-ink/60">{e.cientifico}</span>
                 </li>
               ))}
@@ -242,15 +266,15 @@ export function Site() {
 
         <section id="como-funciona" className="bg-white py-20 lg:py-28">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="max-w-2xl font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
+            <h2 data-revelar="" className="max-w-2xl font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
               Do campo à decisão de manejo
             </h2>
             <ol className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {steps.map((step, index) => (
-                <li key={step.title} className="flex flex-col">
+                <li key={step.title} data-revelar="" style={ordem(index * 2)} className="flex flex-col">
                   <div className="flex items-center gap-3">
                     <span className="font-dados text-sm text-hive-700">0{index + 1}</span>
-                    <span className="h-px flex-1 bg-ink/15" aria-hidden="true" />
+                    <span className="linha-cresce h-px flex-1 bg-ink/15" aria-hidden="true" />
                   </div>
                   <h3 className="mt-4 font-expo text-2xl font-bold text-ink [font-stretch:108%]">{step.title}</h3>
                   <p className="mt-2 text-[15px] leading-relaxed text-ink/70">{step.text}</p>
@@ -267,12 +291,12 @@ export function Site() {
 
         <section id="mapa" className="bg-honey-500 py-20 lg:py-28">
           <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
-            <figure className="order-last rounded-[28px] bg-white p-6 shadow-[0_24px_48px_-20px_rgba(18,21,21,0.35)] sm:p-8 lg:order-first">
+            <figure data-revelar="escala" className="order-last rounded-[28px] bg-white p-6 shadow-[0_24px_48px_-20px_rgba(18,21,21,0.35)] sm:p-8 lg:order-first">
               <div className="flex items-baseline justify-between gap-4">
                 <p className="text-lg font-bold text-ink">Meliponário Horto</p>
                 <p className="font-dados text-xs text-ink/60">7 colmeias</p>
               </div>
-              <FavoMap celulas={meliponarioExemplo} className="mx-auto mt-5 max-w-sm" titulo="Exemplo de mapa do meliponário" />
+              <FavoMap celulas={meliponarioExemplo} className="favo-surgir mx-auto mt-5 max-w-sm" titulo="Exemplo de mapa do meliponário" />
               <div className="mt-5 border-t border-ink/10 pt-4">
                 <LegendaFavo celulas={meliponarioExemplo} />
               </div>
@@ -281,12 +305,12 @@ export function Site() {
               </figcaption>
             </figure>
             <div>
-              <h2 className="font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
+              <h2 data-revelar="" className="font-expo text-4xl font-extrabold leading-none text-ink [font-stretch:112%] sm:text-5xl">
                 O meliponário inteiro numa tela
               </h2>
               <dl className="mt-10 space-y-7">
-                {destaquesMapa.map(({ termo, texto }) => (
-                  <div key={termo} className="border-l-4 border-ink pl-5">
+                {destaquesMapa.map(({ termo, texto }, i) => (
+                  <div key={termo} data-revelar="direita" style={ordem(i * 2)} className="border-l-4 border-ink pl-5">
                     <dt className="font-expo text-xl font-bold text-ink [font-stretch:108%]">{termo}</dt>
                     <dd className="mt-1 text-ink/75">{texto}</dd>
                   </div>
@@ -296,16 +320,19 @@ export function Site() {
           </div>
         </section>
 
-        <section className="bg-ink py-20 text-white lg:py-24">
-          <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between">
-            <h2 className="max-w-3xl font-expo text-4xl font-extrabold uppercase leading-[0.95] text-white [font-stretch:118%] sm:text-6xl">
-              Comece pelo seu <span className="text-honey-500">meliponário.</span>
+        <section className="relative overflow-hidden bg-ink py-20 text-white lg:py-24">
+          <EnxameFundo />
+          <div className="relative mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between">
+            <h2 data-revelar="palavras" className="max-w-3xl font-expo text-4xl font-extrabold uppercase leading-[0.95] text-white [font-stretch:118%] sm:text-6xl">
+              <Palavras texto="Comece pelo seu" /> <span className="text-honey-500"><Palavras texto="meliponário." inicio={3} /></span>
             </h2>
             <Link
               to={cta.to}
-              className="press focus-ring inline-flex min-h-12 flex-shrink-0 items-center gap-2 rounded-full bg-honey-500 px-6 font-bold text-ink hover:brightness-95 focus:ring-offset-ink"
+              data-revelar="escala"
+              style={ordem(5)}
+              className="press focus-ring group inline-flex min-h-12 flex-shrink-0 items-center gap-2 rounded-full bg-honey-500 px-6 font-bold text-ink hover:brightness-95 focus:ring-offset-ink"
             >
-              {user ? "Abrir plataforma" : "Criar conta ou entrar"} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {user ? "Abrir plataforma" : "Criar conta ou entrar"} <ArrowRight className="seta-avanca h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
         </section>

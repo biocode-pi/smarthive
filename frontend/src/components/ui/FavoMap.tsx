@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
 import type { StatusColmeia } from "../../types";
 import { cn } from "../../utils/classNames";
 
@@ -130,6 +130,8 @@ export function FavoMap({
         return (
           <g
             key={celula.id}
+            data-celula={celula.status}
+            style={{ "--i": indice } as CSSProperties}
             className={cn(
               "origin-center outline-none [transform-box:fill-box]",
               interativa && "cursor-pointer transition-transform duration-150 hover:scale-[1.04] focus-visible:scale-[1.04]",

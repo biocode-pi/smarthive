@@ -87,7 +87,7 @@ export function InstrumentoEntrada() {
       <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-4 border-t border-white/10 pt-5">
         <div>
           <p className="font-dados text-[11px] uppercase tracking-[0.12em] text-white/60">Movimentos na última hora</p>
-          <p className="mt-1 font-dados text-5xl font-medium tabular-nums text-honey-500" aria-live="off">
+          <p key={total} className="numero-pulso mt-1 font-dados text-5xl font-medium tabular-nums text-honey-500" aria-live="off">
             {total}
           </p>
         </div>
@@ -100,7 +100,7 @@ export function InstrumentoEntrada() {
       </div>
 
       <div className="mt-5">
-        <svg viewBox="0 0 240 40" className="h-10 w-full" preserveAspectRatio="none" aria-hidden="true">
+        <svg viewBox="0 0 240 40" className="grafico-surge h-10 w-full" preserveAspectRatio="none" aria-hidden="true">
           <path d={trilha(dia, 240, 36) + " V40 H0 Z"} fill="#ffcc00" opacity="0.12" />
           <path d={trilha(dia, 240, 36)} fill="none" stroke="#ffcc00" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
         </svg>
