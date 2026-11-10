@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "../../utils/classNames";
 
-/** Ordem do item numa sequencia: o CSS transforma em atraso. */
 export function ordem(indice: number) {
   return { "--i": indice } as CSSProperties;
 }
@@ -10,10 +9,6 @@ function pedeMenosMovimento() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/**
- * Liga as animacoes do site: revela [data-revelar] ao entrar na tela e aplica o parallax de
- * [data-parallax]. Sem isto (sem JS ou com movimento reduzido), todo o conteudo fica visivel.
- */
 export function useAnimacoesDoSite<T extends HTMLElement>() {
   const raizRef = useRef<T>(null);
 
@@ -72,7 +67,6 @@ export function AbelhaDesenho({ className }: { className?: string }) {
   );
 }
 
-/** Titulo que sobe palavra por palavra. O leitor de tela recebe a frase inteira. */
 export function Palavras({ texto, inicio = 0 }: { texto: string; inicio?: number }) {
   return (
     <>
@@ -92,7 +86,6 @@ export function Palavras({ texto, inicio = 0 }: { texto: string; inicio?: number
   );
 }
 
-/** Favo ao fundo do hero, que se desloca mais devagar que a pagina. */
 export function FavoFundo() {
   return (
     <div className="favo-fundo pointer-events-none absolute inset-x-0 -bottom-1/4 -top-1/4" data-parallax="0.18" aria-hidden="true">
@@ -118,7 +111,6 @@ const ENXAME = [
   { y: 50, dur: 16, atraso: 9, tam: 20 },
 ];
 
-/** Abelhas cruzando o fundo da chamada final. */
 export function EnxameFundo() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -145,10 +137,6 @@ export function EnxameFundo() {
 const PONTOS_DO_RASTRO = 14;
 const DISTANCIA_ENTRE_PONTOS = 34;
 
-/**
- * Abelha que voa pela pagina acompanhando a rolagem (so em telas largas). Persegue o alvo a
- * partir da posicao atual, entao inverter a rolagem no meio do voo nunca causa salto.
- */
 export function AbelhaGuia() {
   const [ativa, setAtiva] = useState(false);
   const corpo = useRef<HTMLDivElement>(null);
@@ -206,7 +194,6 @@ export function AbelhaGuia() {
         soltarPonto();
         Object.assign(ultimoPonto, posicao);
       }
-      // Sem movimento pendente, o laco para ate a proxima rolagem.
       quadro = Math.hypot(destino.x - posicao.x, destino.y - posicao.y) > 0.4 ? requestAnimationFrame(passo) : 0;
     };
 

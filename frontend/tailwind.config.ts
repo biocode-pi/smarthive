@@ -1,20 +1,14 @@
 import type { Config } from "tailwindcss";
 
-// Tokens alinhados ao app mobile (Figma "SMART HIVE"): amarelo + preto + laranja, Lato.
-// Onde a cor do Figma nao atingia contraste AA (verde "Em dia", vermelho de alertas,
-// cinza do endereco), usamos o mesmo tom mais escuro.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       fontFamily: {
-        // Titulos e texto em Lato, como no app.
         display: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
         sans: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ['"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
-        // Marca: "Smart Hive" em Poppins Bold e "PROJECT" em Inter SemiBold.
         brand: ['"Poppins"', "ui-sans-serif", "system-ui", "sans-serif"],
-        // Site institucional: Archivo (largura variavel) nos titulos e Plex Mono nas leituras.
         expo: ['"Archivo Variable"', '"Lato"', "ui-sans-serif", "system-ui", "sans-serif"],
         dados: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
         tagline: ['"Inter"', "ui-sans-serif", "system-ui", "sans-serif"],
@@ -27,7 +21,6 @@ export default {
         sidebar: {
           border: "#f0e2a6",
         },
-        // "hive" = cor de acao/marca. 600 e o laranja dos botoes do app (texto escuro em cima).
         hive: {
           50: "#fff2bd",
           100: "#fae596",
@@ -67,7 +60,6 @@ export default {
         field: "10px",
       },
       boxShadow: {
-        // Sombra dos cards e campos do app.
         app: "0 4px 4px rgba(0, 0, 0, 0.25)",
         soft: "0 4px 4px rgba(0, 0, 0, 0.12)",
         panel: "0 4px 4px rgba(0, 0, 0, 0.25)",

@@ -6,7 +6,6 @@ import { Sheet } from "../ui/Sheet";
 import { useAuth, userDisplayName } from "../../context/AuthContext";
 import { cn } from "../../utils/classNames";
 
-// Dois grupos: o que existe no campo e o que foi medido nele.
 const navGrupos = [
   [
     { to: "/app", label: "Visão geral" },
@@ -22,7 +21,6 @@ const navGrupos = [
   ],
 ];
 
-// Barra inferior do celular: as telas de uso diario no campo. O resto fica no menu.
 const tabItems = [
   { to: "/app", label: "Início", icon: Home },
   { to: "/app/meliponarios", label: "Meliponários", icon: Archive },
@@ -110,7 +108,6 @@ export function AppLayout() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
-  // O menu em painel so existe no celular; ao alargar a janela, a barra lateral assume.
   useEffect(() => {
     const largo = window.matchMedia("(min-width: 1024px)");
     const aoMudar = () => largo.matches && setOpen(false);
@@ -162,7 +159,6 @@ export function AppLayout() {
 
       <BottomTabs onMenu={() => setOpen((value) => !value)} menuAberto={open} />
 
-      {/* No celular o menu completo sobe da aba "Menu", de onde foi chamado. */}
       <Sheet aberto={open} onFechar={() => setOpen(false)} titulo="Menu" className="lg:hidden">
         <Navigation onNavigate={() => setOpen(false)} />
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-ink/15 pt-4">

@@ -16,7 +16,6 @@ import { obterResumoDashboard } from "../services/dashboard";
 import type { Colmeia, DashboardResumo } from "../types";
 import { formatDateTime, formatNumber, formatSigned, origemLabel } from "../utils/formatters";
 
-// Mais grave primeiro: no centro do favo e no topo da lista de atencao.
 const gravidade: Record<string, number> = { risco: 0, observacao: 1, ativa: 2, inativa: 3 };
 
 export function Overview() {
@@ -65,7 +64,6 @@ export function Overview() {
 
   const ordenadas = [...colmeias].sort((a, b) => gravidade[a.status] - gravidade[b.status]);
   const codigoDaColmeia = new Map(colmeias.map((c) => [c.id, c.codigo || c.nome]));
-  // Ultimo fluxo conhecido de cada colmeia (os monitoramentos vem do mais recente ao mais antigo).
   const ultimoFluxo = new Map<string, number>();
   for (const item of indicadores.registros) {
     if (!ultimoFluxo.has(item.colmeia_id)) ultimoFluxo.set(item.colmeia_id, item.fluxo_estimado ?? 0);

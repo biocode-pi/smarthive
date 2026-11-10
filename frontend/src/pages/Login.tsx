@@ -9,10 +9,8 @@ import { enviarPerfilPendente, guardarPerfilPendente, mascaraTelefone } from "..
 type Mode = "login" | "mfa" | "cadastro" | "confirmar" | "recuperar" | "novaSenha";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Mesma politica do User Pool do Cognito.
 const senhaForteRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-/** Campo no padrao do app: branco, cantos de 10px, sombra e icone a esquerda. */
 function Campo({
   id,
   label,
@@ -143,7 +141,6 @@ export function Login() {
       if (mode === "confirmar") {
         const result = await confirmarCadastro(emailLimpo, codigo.trim());
         if (result.erro) return setErro(result.erro);
-        // Logo apos o cadastro a senha ainda esta no formulario: entra direto.
         if (senha) {
           const entrada = await login(emailLimpo, senha, manterConectado);
           if (!entrada.erro && !entrada.precisaConfirmar && !entrada.precisaMfa) return entrarNaPlataforma(emailLimpo);
@@ -197,7 +194,6 @@ export function Login() {
           <p className="mt-2 text-sm">{current.subtitle}</p>
         </div>
       ) : (
-        // No celular a marca grande ja identifica a tela; no computador o formulario ganha titulo.
         <div className="mb-6">
           <h1 className="sr-only lg:not-sr-only lg:text-3xl lg:font-bold">Entrar</h1>
           <p className="hidden text-sm lg:mt-2 lg:block">{texts.login.subtitle}</p>

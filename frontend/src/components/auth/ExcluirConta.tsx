@@ -6,10 +6,6 @@ import { useAuth } from "../../context/AuthContext";
 import { api } from "../../services/api";
 import { botao } from "../ui/Button";
 
-/**
- * Exclusao da conta (LGPD, art. 18, VI). Primeiro a API apaga todos os dados do usuario;
- * depois o proprio usuario exclui a conta no Cognito com o token dele.
- */
 export function ExcluirConta({ email }: { email: string }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -35,13 +31,10 @@ export function ExcluirConta({ email }: { email: string }) {
     try {
       await deleteUser();
     } catch {
-      // Os dados ja foram apagados; se falhar so o Cognito, a pessoa pode repetir o pedido.
       setErro("Seus dados foram apagados, mas não foi possível encerrar a conta de login. Tente novamente.");
       setExcluindo(false);
       return;
     }
-    // Vai para a pagina inicial antes de encerrar a sessao; senao a rota protegida
-    // redireciona para o login.
     navigate("/", { replace: true });
     await logout().catch(() => undefined);
   }

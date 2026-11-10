@@ -30,7 +30,6 @@ export function Colmeias() {
   const [searchParams] = useSearchParams();
   const meliponarioInicial = searchParams.get("meliponario") ?? "";
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);
-  // Vindo de "Adicionar colmeia" num meliponario, o painel ja abre com ele selecionado.
   const [form, setForm] = useState({ ...initialForm, meliponario_id: meliponarioInicial });
   const [formAberto, setFormAberto] = useState(Boolean(meliponarioInicial) || searchParams.has("nova"));
   const [meliponarios, setMeliponarios] = useState<Meliponario[]>([]);
@@ -81,7 +80,6 @@ export function Colmeias() {
       setFormAberto(false);
       await loadData();
     } catch (erro) {
-      // 409: codigo ja usado em outra colmeia; a API informa o motivo.
       const repetido = axios.isAxiosError(erro) && erro.response?.status === 409;
       setErroForm(repetido ? erro.response?.data.detail : "Não foi possível salvar a colmeia. Confira os campos e tente de novo.");
     } finally {

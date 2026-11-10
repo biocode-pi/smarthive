@@ -1,7 +1,6 @@
 from pathlib import Path
 
 
-# Extensao permitida -> content-type esperado. Os dois precisam bater.
 ALLOWED_CONTENT_TYPES = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",

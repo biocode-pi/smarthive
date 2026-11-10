@@ -2,13 +2,10 @@ import { X } from "lucide-react";
 import { useEffect, useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { cn } from "../../utils/classNames";
 
-// Ponto de repouso de um gesto pela inercia, com a desaceleracao da rolagem do iOS
-// (WWDC 2018, "Designing Fluid Interfaces"). Velocidade em px/s.
 function projetar(velocidade: number, desaceleracao = 0.998) {
   return ((velocidade / 1000) * desaceleracao) / (1 - desaceleracao);
 }
 
-// Resistencia progressiva ao puxar alem do limite, em vez de travar de repente.
 function elastico(excesso: number, dimensao: number, constante = 0.55) {
   return (excesso * dimensao * constante) / (dimensao + constante * Math.abs(excesso));
 }
@@ -23,11 +20,6 @@ interface SheetProps {
   className?: string;
 }
 
-/**
- * Painel modal. No celular sobe da borda inferior e fecha arrastando para baixo (segue o
- * dedo 1:1 e respeita a inercia do gesto); no computador surge no centro. Fecha tambem com
- * Esc, no X ou tocando fora. Entrada e saida pelo mesmo caminho.
- */
 export function Sheet({ aberto, onFechar, titulo, children, className }: SheetProps) {
   const [montado, setMontado] = useState(aberto);
   const [visivel, setVisivel] = useState(false);
@@ -37,8 +29,6 @@ export function Sheet({ aberto, onFechar, titulo, children, className }: SheetPr
   const arraste = useRef<{ id: number; inicioY: number; amostras: { y: number; t: number }[] } | null>(null);
   const idTitulo = useId();
 
-  // Monta fechado e marca visivel no quadro seguinte, para a transicao de entrada rodar.
-  // Ao fechar, espera a saida terminar antes de desmontar.
   useEffect(() => {
     if (aberto) {
       painel.current?.style.removeProperty("transition-duration");
@@ -57,7 +47,6 @@ export function Sheet({ aberto, onFechar, titulo, children, className }: SheetPr
     return () => window.clearTimeout(timer);
   }, [aberto]);
 
-  // Enquanto aberto: Esc fecha, a pagina nao rola por tras e o foco volta ao gatilho no fim.
   useEffect(() => {
     if (!aberto) return;
     const anterior = document.activeElement as HTMLElement | null;
@@ -107,8 +96,6 @@ export function Sheet({ aberto, onFechar, titulo, children, className }: SheetPr
     const altura = el.offsetHeight;
     const fecha = dy + projetar(velocidade) > altura / 2;
 
-    // Devolve o controle ao CSS: a transicao parte da posicao atual na tela. Num gesto
-    // rapido, encurta a saida para acompanhar a velocidade do dedo.
     el.style.transition = "";
     el.style.transform = "";
     if (fecha) {

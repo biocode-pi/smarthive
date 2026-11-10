@@ -17,10 +17,6 @@ export async function atualizarPerfil(payload: { telefone?: string | null; notif
   return data;
 }
 
-/*
- * No cadastro o usuario ainda nao esta autenticado, entao a API nao aceita o telefone e o
- * aceite de notificacoes. Guardamos no navegador e enviamos no primeiro login.
- */
 const CHAVE_PENDENTE = "smarthive:perfil-pendente";
 
 interface PerfilPendente {
@@ -33,7 +29,6 @@ export function guardarPerfilPendente(dados: PerfilPendente) {
   try {
     localStorage.setItem(CHAVE_PENDENTE, JSON.stringify(dados));
   } catch {
-    // Sem armazenamento disponivel: o usuario pode preencher depois em Configuracoes.
   }
 }
 
@@ -49,11 +44,9 @@ export async function enviarPerfilPendente(email: string) {
     await atualizarPerfil({ telefone: pendente.telefone, notificacoes_email: pendente.notificacoes_email });
     localStorage.removeItem(CHAVE_PENDENTE);
   } catch {
-    // Tenta de novo no proximo login.
   }
 }
 
-/** Formata enquanto digita: (11) 91234-5678. */
 export function mascaraTelefone(valor: string) {
   const d = valor.replace(/\D/g, "").slice(0, 11);
   if (d.length <= 2) return d.length ? `(${d}` : "";

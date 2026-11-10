@@ -5,7 +5,6 @@ export interface Leitura {
   rotulo: string;
   valor: ReactNode;
   nota?: ReactNode;
-  /** Pinta o valor de vermelho quando ha algo a resolver. */
   alerta?: boolean;
 }
 
@@ -15,7 +14,6 @@ const colunas: Record<number, string> = {
   4: "grid-cols-2 sm:grid-cols-4",
 };
 
-/** Regua de leituras: numeros em Plex Mono separados por linhas finas, como um painel de medidor. */
 export function Leituras({ itens, className }: { itens: Leitura[]; className?: string }) {
   return (
     <dl className={cn("grid gap-px border-y border-ink/15 bg-ink/15", colunas[itens.length] ?? "grid-cols-2", className)}>

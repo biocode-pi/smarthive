@@ -24,7 +24,6 @@ const navLinks = [
   { href: "#mapa", label: "Mapa do meliponário" },
 ];
 
-// Exemplo ilustrativo do mapa do meliponario. Como na plataforma, a colmeia mais grave fica no centro.
 const meliponarioExemplo: CelulaFavo[] = [
   { id: "6", codigo: "MIR-005", nome: "Mirim", status: "risco", detalhe: "3 mov." },
   { id: "1", codigo: "URU-004", nome: "Uruçu", status: "ativa", detalhe: "52 mov." },
@@ -44,7 +43,6 @@ const especies = [
   { nome: "Tubuna", cientifico: "Scaptotrigona bipunctata" },
 ];
 
-// A ordem importa: e o caminho de um registro, do campo ate a decisao de manejo.
 const steps = [
   { title: "Capturar", text: "O meliponicultor registra a entrada da colmeia pelo celular ou por um dispositivo IoT." },
   { title: "Enviar", text: "A captura segue criptografada para a nuvem." },
@@ -58,7 +56,6 @@ const destaquesMapa = [
   { termo: "Mesma conta no celular", texto: "No campo pelo aplicativo, no escritório pelo navegador." },
 ];
 
-// Miniatura do que acontece em cada etapa, com o vocabulario visual da propria plataforma.
 function ArtefatoEtapa({ indice }: { indice: number }) {
   if (indice === 0) {
     return (
@@ -92,7 +89,6 @@ function ArtefatoEtapa({ indice }: { indice: number }) {
     );
   }
   if (indice === 2) {
-    // Movimento dos ultimos sete dias; a linha tracejada e a media da colmeia.
     const barras = [52, 49, 55, 47, 50, 31, 18];
     return (
       <div className="relative flex h-full items-end gap-1.5">
@@ -125,7 +121,6 @@ export function Site() {
   const menuRef = useRef<HTMLDivElement>(null);
   const raizRef = useAnimacoesDoSite<HTMLDivElement>();
 
-  // Menu fechado fica fora do foco e dos leitores de tela; Esc fecha.
   useEffect(() => {
     if (menuRef.current) menuRef.current.inert = !menuAberto;
     if (!menuAberto) return;
@@ -177,7 +172,6 @@ export function Site() {
           </button>
         </div>
 
-        {/* Sempre montado: abre e fecha animando a altura e pode inverter no meio. */}
         <div ref={menuRef} id="menu-site" className="recolhivel md:hidden" data-aberto={menuAberto}>
           <div>
             <nav className="flex flex-col gap-1 border-t border-ink/10 px-4 py-3" aria-label="Seções do site">

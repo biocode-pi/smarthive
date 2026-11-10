@@ -16,6 +16,5 @@ if (hasCognitoConfig) {
     },
   });
 } else {
-  // Web e mobile precisam apontar para o mesmo User Pool do Cognito.
   console.warn("Configure VITE_COGNITO_USER_POOL_ID e VITE_COGNITO_CLIENT_ID para ativar o login.");
 }

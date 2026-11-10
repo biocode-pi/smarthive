@@ -12,7 +12,6 @@ function rotuloData(value?: string | null, reserva = 0) {
   return `${dia} ${String(data.getHours()).padStart(2, "0")}h`;
 }
 
-/** Pontos da serie: as ultimas capturas, da mais antiga para a mais recente. */
 export function serieDeFluxo(registros: Monitoramento[], quantidade = 8) {
   return registros
     .slice(0, quantidade)
@@ -23,7 +22,6 @@ export function serieDeFluxo(registros: Monitoramento[], quantidade = 8) {
     }));
 }
 
-/** Movimento por captura: linha preta sobre area mel, grade fina e numeros em Plex Mono. */
 export function GraficoFluxo({ data }: { data: { label: string; value: number }[] }) {
   if (data.length < 2) {
     return (
@@ -54,7 +52,6 @@ export function GraficoFluxo({ data }: { data: { label: string; value: number }[
       <path d={area} fill="#ffcc00" opacity={0.55} />
       <path d={linha} fill="none" stroke="#121515" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} />
       {pontos.map((p, i) => {
-        // So a primeira, a do meio e a ultima data: legiveis tambem no celular.
         const ultimo = pontos.length - 1;
         const comRotulo = i === 0 || i === ultimo || (pontos.length > 4 && i === Math.floor(ultimo / 2));
         return (
@@ -80,7 +77,6 @@ export function GraficoFluxo({ data }: { data: { label: string; value: number }[
   );
 }
 
-/** Quanto entrou e quanto saiu, numa barra so dividida pelas duas cores do grafico do app. */
 export function BalancoFluxo({ entradas, saidas, invasores }: { entradas: number; saidas: number; invasores?: number }) {
   const total = Math.max(entradas + saidas, 1);
   const pctEntrada = Math.round((entradas / total) * 100);

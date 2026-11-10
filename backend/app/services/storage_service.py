@@ -1,11 +1,3 @@
-"""Armazenamento de imagens e videos das capturas.
-
-Em producao (STORAGE_BACKEND=s3) os arquivos vao para um bucket S3 privado, com
-chave prefixada pelo id do usuario. O banco guarda apenas a referencia "s3:<chave>"
-e a leitura acontece por URL pre-assinada com validade curta. Credenciais AWS vem
-da IAM Role da instancia, nunca do codigo ou do .env.
-"""
-
 from __future__ import annotations
 
 from functools import lru_cache
@@ -90,7 +82,6 @@ def url_de_leitura(usuario_id: str, referencia: str | None) -> str | None:
         return referencia
 
     key = referencia[len(S3_PREFIX):]
-    # Defesa extra: so assina objetos dentro da pasta do proprio usuario.
     if not key.startswith(f"usuarios/{usuario_id}/"):
         return None
 
@@ -103,12 +94,6 @@ def url_de_leitura(usuario_id: str, referencia: str | None) -> str | None:
 
 
 def excluir_midias_do_usuario(usuario_id: str, referencias: list[str]) -> int:
-    """Apaga as midias do usuario. No S3, tudo sob usuarios/<id>/; no modo local, os arquivos citados.
-
-    No S3 a remocao cria um marcador de exclusao: o bucket e versionado e as versoes antigas
-    expiram em 30 dias pela regra de ciclo de vida. A credencial da API nao tem permissao para
-    apagar versoes, entao uma API comprometida nao destroi midias de forma irreversivel.
-    """
     settings = get_settings()
     if settings.storage_backend == "s3":
         prefixo = f"usuarios/{usuario_id}/"
@@ -127,7 +112,6 @@ def excluir_midias_do_usuario(usuario_id: str, referencias: list[str]) -> int:
         if not referencia.startswith("/uploads/"):
             continue
         arquivo = (pasta / Path(referencia).name).resolve()
-        # Nome vem do banco, mas garantimos que nao sai da pasta de uploads.
         if arquivo.parent == pasta and arquivo.is_file():
             arquivo.unlink()
             total += 1

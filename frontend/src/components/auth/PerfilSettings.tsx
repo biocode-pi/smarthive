@@ -4,7 +4,6 @@ import { atualizarPerfil, mascaraTelefone, obterPerfil, type Perfil } from "../.
 import { formatDateTime } from "../../utils/formatters";
 import { Button } from "../ui/Button";
 
-/** Telefone e consentimento de notificacoes (LGPD: data do aceite e revogacao a qualquer momento). */
 export function PerfilSettings() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [telefone, setTelefone] = useState("");

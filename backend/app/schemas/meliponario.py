@@ -27,6 +27,5 @@ class Meliponario(MeliponarioBase):
     id: str
     criado_em: datetime
     atualizado_em: datetime | None = None
-    # Agregados calculados na listagem (nao ficam no banco).
     total_colmeias: int = 0
     alertas_abertos: int = 0

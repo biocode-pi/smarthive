@@ -64,7 +64,6 @@ export function ColmeiaDetalhes() {
     );
   }
 
-  // Ficha da caixa: so o que foi preenchido.
   const ficha: Array<[string, string]> = [
     ["Código", colmeia.codigo || "—"],
     ["Espécie", colmeia.especie],

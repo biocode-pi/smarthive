@@ -7,7 +7,6 @@ import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-# Configura a API em modo Cognito antes de importar o app.
 _tmp = Path(tempfile.mkdtemp())
 os.environ.update(
     {
@@ -23,11 +22,11 @@ os.environ.update(
     }
 )
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from app import auth  # noqa: E402
-from app.config import get_settings  # noqa: E402
-from app.main import app  # noqa: E402
+from app import auth
+from app.config import get_settings
+from app.main import app
 
 ISSUER = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_TESTE"
 _chave_privada = rsa.generate_private_key(public_exponent=65537, key_size=2048)

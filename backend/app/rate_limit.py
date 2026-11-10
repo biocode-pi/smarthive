@@ -1,14 +1,3 @@
-"""Limite de requisicoes por IP (janela fixa de 60 s, em memoria).
-
-A API roda em um unico processo, entao um contador em memoria basta. Cada tipo de rota
-tem o proprio limite, conforme o custo e o risco dela (ver grupo_e_limite).
-
-IP do cliente: em producao a requisicao passa por CloudFront e Caddy. O cliente pode
-enviar um X-Forwarded-For falso, mas o CloudFront acrescenta o IP real ao final e o
-Caddy acrescenta o IP do CloudFront depois dele. Com TRUSTED_PROXY_HOPS=2, usamos o
-segundo endereco a partir do fim, que e o que o CloudFront anotou.
-"""
-
 from __future__ import annotations
 
 import ipaddress
@@ -25,24 +14,19 @@ JANELA_SEGUNDOS = 60
 ROTAS_DE_UPLOAD = ("/monitoramentos", "/sensor-celular/captura")
 
 
-# Teto de chaves distintas por janela, para a memoria nao crescer sem limite. Acima dele,
-# IPs novos dividem um balde de excedente com limite proprio, em vez de serem recusados:
-# assim quem enche o teto (ex.: varrendo um /48 IPv6) nao bloqueia todos os outros clientes.
 MAX_CHAVES_POR_JANELA = 20_000
 CHAVE_EXCEDENTE = "__excedente__"
 FATOR_EXCEDENTE = 10
 
 
 def normalizar_ip(ip: str) -> str:
-    """IPv6 vira o prefixo /64: um so cliente costuma ter um /64 inteiro e poderia
-    trocar de endereco a cada requisicao para escapar do limite."""
     try:
         endereco = ipaddress.ip_address(ip)
     except ValueError:
-        return "__invalido__"  # nunca usar texto arbitrario como chave
+        return "__invalido__"
     if endereco.version == 4:
         return str(endereco)
-    if endereco.ipv4_mapped is not None:  # ::ffff:1.2.3.4 conta como o IPv4
+    if endereco.ipv4_mapped is not None:
         return str(endereco.ipv4_mapped)
     return str(ipaddress.ip_network(f"{endereco}/64", strict=False))
 
@@ -68,12 +52,10 @@ class LimitadorDeRequisicoes:
             self._janela = -1
 
     def registrar(self, chave: str, grupo: str, limite: int) -> int | None:
-        """Conta a requisicao; devolve os segundos de espera se o limite foi excedido."""
         agora = time.time()
         janela = int(agora // JANELA_SEGUNDOS)
         espera = max(1, math.ceil((janela + 1) * JANELA_SEGUNDOS - agora))
         with self._lock:
-            # Ao virar a janela, descarta tudo de uma vez (O(1) amortizado, sem recopiar a cada requisicao).
             if janela != self._janela:
                 self._contadores = {}
                 self._janela = janela

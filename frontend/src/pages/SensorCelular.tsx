@@ -91,11 +91,9 @@ function salvarCamera(id: string) {
     if (id) localStorage.setItem(CHAVE_CAMERA, id);
     else localStorage.removeItem(CHAVE_CAMERA);
   } catch {
-    // Sem armazenamento, a escolha vale so ate fechar a pagina.
   }
 }
 
-/** Nome da camera sem o codigo USB que o navegador acrescenta: "GoPro Webcam (2672:0056)". */
 function nomeDaCamera(camera: MediaDeviceInfo, indice: number) {
   return camera.label.replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)$/i, "") || `Câmera ${indice + 1}`;
 }
@@ -110,11 +108,9 @@ export function SensorCelular() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<MobileNet | null>(null);
-  // Modelo treinado pelo grupo; sem ele, a pagina usa o reconhecimento generico.
   const detectorRef = useRef<DetectorAbelhas | null>(null);
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  // Cada ciclo de analise tem um numero; ao parar ou trocar de camera, o ciclo antigo se encerra.
   const cicloRef = useRef(0);
 
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);
@@ -141,7 +137,6 @@ export function SensorCelular() {
     listarColmeias()
       .then((items) => {
         setColmeias(items);
-        // Vindo de uma colmeia ("Nova captura"), ela ja vem escolhida.
         const pedida = items.find((item) => item.id === searchParams.get("colmeia")) ?? items[0];
         if (pedida) setForm((state) => ({ ...state, colmeia_id: pedida.id }));
       })
@@ -150,7 +145,6 @@ export function SensorCelular() {
     return () => stopCamera();
   }, []);
 
-  // A lista acompanha o que for plugado ou desplugado com a pagina aberta (ex.: a GoPro).
   useEffect(() => {
     const dispositivos = navigator.mediaDevices;
     if (!dispositivos?.enumerateDevices) return;
@@ -162,7 +156,6 @@ export function SensorCelular() {
   async function atualizarCameras() {
     try {
       const lista = await navigator.mediaDevices.enumerateDevices();
-      // Antes da permissao o navegador pode devolver entradas sem id, que nao servem para escolher.
       setCameras(lista.filter((item) => item.kind === "videoinput" && item.deviceId));
     } catch {
       setCameras([]);
@@ -212,7 +205,6 @@ export function SensorCelular() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
-          // Sem escolha, usa a camera traseira no celular; com escolha, exatamente aquela.
           ...(idEscolhido ? { deviceId: { exact: idEscolhido } } : { facingMode: { ideal: "environment" } }),
           width: { ideal: 1280 },
           height: { ideal: 720 },
@@ -227,13 +219,11 @@ export function SensorCelular() {
 
       setCameraActive(true);
       runAnalysisLoop();
-      // So depois da permissao o navegador informa os nomes das cameras.
       setCameraId(stream.getVideoTracks()[0]?.getSettings().deviceId ?? idEscolhido);
       await atualizarCameras();
     } catch (error) {
       const nome = error instanceof DOMException ? error.name : "";
       if (nome === "OverconstrainedError" || nome === "NotFoundError") {
-        // A camera guardada foi desconectada: volta para a padrao e mostra o que existe agora.
         setCameraId("");
         salvarCamera("");
         await atualizarCameras();

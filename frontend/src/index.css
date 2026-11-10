@@ -12,9 +12,7 @@
 }
 
 html {
-  /* O toque ganha feedback proprio (.press); o destaque cinza do navegador sobra. */
   -webkit-tap-highlight-color: transparent;
-  /* Ancoras (#como-funciona) param abaixo do cabecalho fixo. */
   scroll-padding-top: 5rem;
 }
 
@@ -24,7 +22,6 @@ html {
   }
 }
 
-/* Sem a espera de ~300 ms do toque duplo para zoom. */
 a,
 button,
 label,
@@ -39,7 +36,6 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  /* Creme da lista do app mobile. */
   background: #fff5c5;
 }
 
@@ -50,8 +46,6 @@ textarea {
   font: inherit;
 }
 
-/* Campos tem largura minima intrinseca; sem isso, numa coluna estreita de grid eles
-   empurram o card para fora (ex.: "Especie" no formulario de colmeias). */
 label,
 input,
 select,
@@ -64,16 +58,13 @@ a {
 }
 
 .focus-ring {
-  /* Foco em preto: o amarelo da marca nao aparece sobre o creme. */
   @apply focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 focus:ring-offset-white;
 }
 
 .surface {
-  /* Painel branco: so onde ha algo para manipular (formulario, mapa, camera). */
   @apply min-w-0 rounded-[24px] bg-white ring-1 ring-ink/10;
 }
 
-/* Titulo de pagina: Archivo larga e pesada, a mesma voz dos titulos do site. */
 .titulo-pagina {
   @apply font-expo font-extrabold leading-[0.95] text-ink;
   font-size: clamp(2rem, 4.2vw, 3rem);
@@ -85,12 +76,10 @@ a {
   font-stretch: 108%;
 }
 
-/* Rotulo de leitura: Plex Mono em caixa alta, como a etiqueta de um instrumento. */
 .rotulo {
   @apply font-dados text-[11px] uppercase tracking-[0.14em] text-ink/60;
 }
 
-/* Campos de formulario. */
 .campo {
   @apply h-12 w-full rounded-field bg-white px-4 font-normal text-ink ring-1 ring-ink/15 placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-ink;
 }
@@ -101,13 +90,11 @@ textarea.campo {
   @apply grid gap-1.5 text-sm font-bold text-ink;
 }
 
-/* Link de acao em texto: sublinhado grosso que escurece no hover. */
 .link-acao {
   @apply rounded font-bold text-ink underline decoration-ink/30 decoration-2 underline-offset-4 hover:decoration-ink;
 }
 
 @layer components {
-/* Tabela de registros: sem caixa em volta, so linhas finas. */
 .table-shell {
   @apply overflow-x-auto;
 }
@@ -125,7 +112,6 @@ textarea.campo {
 }
 }
 
-/* Titulos em Lato Bold, como no app mobile. */
 h1,
 h2,
 h3 {
@@ -133,8 +119,6 @@ h3 {
   font-weight: 700;
 }
 
-/* Espacamento entre letras depende do tamanho: titulos grandes mais justos, caixa alta
-   mais aberta. Quebra de linha equilibrada nos titulos e sem palavra sozinha no fim. */
 h1,
 h2 {
   letter-spacing: -0.01em;
@@ -150,7 +134,6 @@ p {
   text-wrap: pretty;
 }
 
-/* Feedback no instante do toque (pointer-down), nao so ao soltar. */
 button,
 .press {
   transition-property: transform, color, background-color, border-color, box-shadow, filter, opacity;
@@ -163,7 +146,6 @@ button:not(:disabled):active,
   transition-duration: 80ms;
 }
 
-/* Camadas translucidas (cabecalhos e barras): o conteudo passa por baixo. */
 .material-mel {
   background-color: rgb(255 204 0 / 0.86);
   backdrop-filter: blur(20px) saturate(180%);
@@ -196,9 +178,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Painel modal (Sheet): sobe da borda no celular e surge no centro no computador.
-   Curva de desaceleracao das folhas do iOS; transicoes partem da posicao atual na tela. */
-/* Enquanto sai, o painel nao bloqueia toques na pagina. */
 .sheet[data-visivel="false"] {
   pointer-events: none;
 }
@@ -231,7 +210,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Menu que desce do cabecalho: altura animada por grid, reversivel no meio do caminho. */
 .recolhivel {
   display: grid;
   grid-template-rows: 0fr;
@@ -249,7 +227,6 @@ button:not(:disabled):active,
   overflow: hidden;
 }
 
-/* Instrumento do site: abelhas cruzando a entrada da caixa (x = 268 e o tubo). */
 .abelha {
   animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
   animation-iteration-count: infinite;
@@ -305,9 +282,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Site em movimento. O estado escondido so existe com [data-animar], que o JS liga quando
-   o visitante nao pediu movimento reduzido: sem isso, tudo aparece normalmente. */
-/* Itens que entram pelo lado nao podem criar rolagem horizontal; clip preserva o cabecalho fixo. */
 [data-animar] {
   overflow-x: clip;
 }
@@ -330,7 +304,6 @@ button:not(:disabled):active,
   transform: none;
 }
 
-/* Titulos palavra por palavra: a folga interna evita cortar acentos e a base das letras. */
 .palavra-caixa {
   display: inline-block;
   overflow: hidden;
@@ -389,7 +362,6 @@ button:not(:disabled):active,
   margin-top: -0.75rem;
 }
 
-/* Favo surge em espiral a partir do centro, onde fica a colmeia mais grave. */
 [data-animar] .favo-surgir [data-celula] {
   opacity: 0;
 }
@@ -594,7 +566,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Numeros de dados alinhados em colunas (KPIs, tabelas). */
 .tabular {
   font-variant-numeric: tabular-nums;
 }
@@ -608,7 +579,6 @@ button:not(:disabled):active,
     transition-duration: 0.01ms !important;
   }
 
-  /* Movimento reduzido nao e ausencia de feedback: troca deslizes e escala por esmaecer. */
   .sheet-painel,
   .sheet[data-visivel="true"] .sheet-painel,
   button:not(:disabled):active,
@@ -624,7 +594,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Paginas de texto legal: hierarquia clara e linha confortavel para leitura longa. */
 .legal h2 {
   @apply mt-10 text-2xl font-semibold text-hive-900;
 }

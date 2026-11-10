@@ -1,10 +1,3 @@
-"""Autenticacao via Amazon Cognito.
-
-O frontend e o app mobile enviam o access token do Cognito no header
-Authorization: Bearer <token>. Aqui validamos assinatura (JWKS do User Pool),
-emissor, expiracao, tipo do token e client_id, e expomos o `sub` como id do usuario.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -36,7 +29,6 @@ def nao_autorizado(detalhe: str = "Token inválido ou ausente.") -> HTTPExceptio
 
 @lru_cache
 def _jwks_client(issuer: str) -> jwt.PyJWKClient:
-    # O cliente guarda as chaves publicas em cache e so busca de novo quando aparece um "kid" novo.
     return jwt.PyJWKClient(f"{issuer}/.well-known/jwks.json", cache_keys=True)
 
 
@@ -53,7 +45,6 @@ def validar_token_cognito(token: str, settings: Settings) -> Usuario:
     except jwt.PyJWTError as exc:
         raise nao_autorizado() from exc
 
-    # Access token do Cognito nao tem "aud"; o client_id vem em "client_id".
     if claims.get("token_use") != "access" or claims.get("client_id") != settings.cognito_app_client_id:
         raise nao_autorizado()
 

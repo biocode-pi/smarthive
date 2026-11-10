@@ -1,8 +1,3 @@
--- Dados de exemplo do usuario 'dev-local' (AUTH_MODE=dev).
--- Para ver estes dados com um usuario real do Cognito, troque o dono depois:
---   update colmeias set usuario_id = '<sub-do-cognito>' where usuario_id = 'dev-local';
---   (repita para monitoramentos e alertas)
-
 insert into colmeias (id, usuario_id, nome, codigo, especie, localizacao, descricao, status, instalada_em)
 values
   (

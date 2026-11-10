@@ -9,7 +9,6 @@ const corSeveridade: Record<Alerta["severidade"], string> = {
   baixa: "bg-ink/30",
 };
 
-/** Alerta como linha: barra de cor pela gravidade, o que aconteceu e onde. */
 export function AlertaLinha({ alerta, colmeia, acao }: { alerta: Alerta; colmeia?: string; acao?: ReactNode }) {
   return (
     <li className="flex gap-4 border-b border-ink/10 py-4">

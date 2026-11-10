@@ -1,7 +1,3 @@
--- SmartHive - schema PostgreSQL (Amazon RDS / PostgreSQL 16)
--- usuario_id guarda o "sub" do usuario no Amazon Cognito. A API filtra todas as
--- consultas por esse campo, entao cada usuario so enxerga os proprios dados.
-
 create extension if not exists pgcrypto;
 
 create table if not exists colmeias (
@@ -36,7 +32,6 @@ create table if not exists monitoramentos (
   umidade_percentual numeric(5, 2),
   possivel_invasor boolean not null default false,
   observacoes text,
-  -- "s3:<chave>" no S3 ou "/uploads/<arquivo>" no modo local
   midia_url text,
   analise_experimental jsonb not null default '{}'::jsonb,
   criado_em timestamptz not null default now(),
@@ -74,7 +69,6 @@ create table if not exists capturas_sensor_celular (
   criado_em timestamptz not null default now()
 );
 
--- Meliponarios: locais (com endereco) que agrupam colmeias. Colmeias sem meliponario sao permitidas.
 create table if not exists meliponarios (
   id text primary key default gen_random_uuid()::text,
   usuario_id text not null,
@@ -89,7 +83,6 @@ create table if not exists meliponarios (
 
 alter table colmeias add column if not exists meliponario_id text references meliponarios(id) on delete set null;
 
--- Perfil do usuario: telefone e consentimento de notificacoes (com datas, como prova para a LGPD).
 create table if not exists perfis (
   id text primary key,
   usuario_id text not null unique,

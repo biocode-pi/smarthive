@@ -1,28 +1,20 @@
-# Proxy TLS na frente da API. ORIGIN_DOMAIN (<ip>.sslip.io) e o segredo vem de
-# /opt/smarthive/origin.env, gerado pelo install.sh.
 {
 	admin off
 	servers {
-		# Preserva o X-Forwarded-For do CloudFront (a API usa o IP real para o limite de
-		# requisicoes). Seguro aqui porque tudo sem o cabecalho secreto recebe 403 abaixo.
 		trusted_proxies static 0.0.0.0/0 ::/0
 	}
 }
 
 {$ORIGIN_DOMAIN} {
 	tls {
-		# Valida o certificado so pelo desafio TLS-ALPN na 443.
 		issuer acme {
 			disable_http_challenge
 		}
 	}
 
-	# So o CloudFront conhece o segredo; acesso direto ao IP recebe 403.
 	@semSegredo not header X-Origin-Verify {$ORIGIN_SECRET}
 	respond @semSegredo "Forbidden" 403
 
-	# Teto de tamanho antes de a API receber o corpo: 55 MB no envio de arquivos, 1 MB no resto.
-	# A API refina por rota (app/limite_corpo.py); os valores acompanham MAX_UPLOAD_MB.
 	@multipart header Content-Type multipart/form-data*
 	request_body @multipart {
 		max_size 55MB
@@ -36,7 +28,4 @@
 	reverse_proxy backend:8000
 }
 
-# Redirecionamento do dominio raiz (smarthive.app.br -> https://www.smarthive.app.br), gerado
-# pelo install.sh; vazio sem dominio proprio. O DNS do registro.br nao aponta o dominio raiz
-# para o CloudFront (CNAME no raiz nao e permitido), entao ele aponta para este servidor.
 import /etc/caddy/sites.caddy

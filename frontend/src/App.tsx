@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/ProtectedRoute";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AuthProvider } from "./context/AuthContext";
-// O site publico e a primeira pagina: carregado junto, sem a tela "Carregando".
 import { Site } from "./pages/Site";
 
 const Alertas = lazy(() => import("./pages/Alertas").then(({ Alertas }) => ({ default: Alertas })));

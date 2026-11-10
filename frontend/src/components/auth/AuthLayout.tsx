@@ -5,16 +5,10 @@ import { Marca } from "../ui/Marca";
 
 interface AuthLayoutProps {
   footer?: AuthFooterConfig;
-  /** Marca grande no topo da coluna (tela de entrada). */
   comMarca?: boolean;
   children: ReactNode;
 }
 
-/**
- * Telas de autenticacao. A identidade vem do app mobile (amarelo, marca, campos), mas o
- * layout e de web: no computador, painel da marca a esquerda e formulario a direita;
- * no celular, coluna unica como no app.
- */
 export function AuthLayout({ footer, comMarca = true, children }: AuthLayoutProps) {
   return (
     <main className="grid min-h-screen bg-honey-500 text-ink lg:grid-cols-[1.1fr_1fr]">
