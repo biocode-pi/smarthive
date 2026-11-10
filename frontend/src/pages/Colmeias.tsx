@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Plus, Trash2 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -79,8 +80,10 @@ export function Colmeias() {
       setForm({ ...initialForm, meliponario_id: form.meliponario_id });
       setFormAberto(false);
       await loadData();
-    } catch {
-      setErroForm("Não foi possível salvar a colmeia. Confira os campos e tente de novo.");
+    } catch (erro) {
+      // 409: codigo ja usado em outra colmeia; a API informa o motivo.
+      const repetido = axios.isAxiosError(erro) && erro.response?.status === 409;
+      setErroForm(repetido ? erro.response?.data.detail : "Não foi possível salvar a colmeia. Confira os campos e tente de novo.");
     } finally {
       setSaving(false);
     }

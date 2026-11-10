@@ -26,7 +26,7 @@ class Usuario:
     email: str | None = None
 
 
-def _nao_autorizado(detalhe: str = "Token inválido ou ausente.") -> HTTPException:
+def nao_autorizado(detalhe: str = "Token inválido ou ausente.") -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detalhe,
@@ -51,11 +51,11 @@ def validar_token_cognito(token: str, settings: Settings) -> Usuario:
             options={"require": ["exp", "iss", "sub", "token_use"]},
         )
     except jwt.PyJWTError as exc:
-        raise _nao_autorizado() from exc
+        raise nao_autorizado() from exc
 
     # Access token do Cognito nao tem "aud"; o client_id vem em "client_id".
     if claims.get("token_use") != "access" or claims.get("client_id") != settings.cognito_app_client_id:
-        raise _nao_autorizado()
+        raise nao_autorizado()
 
     return Usuario(id=claims["sub"], email=claims.get("email") or claims.get("username"))
 
@@ -68,5 +68,5 @@ def get_usuario_atual(
         return Usuario(id=settings.dev_user_id, email="dev@localhost")
 
     if credentials is None or credentials.scheme.lower() != "bearer":
-        raise _nao_autorizado()
+        raise nao_autorizado()
     return validar_token_cognito(credentials.credentials, settings)

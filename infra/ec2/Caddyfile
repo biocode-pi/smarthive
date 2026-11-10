@@ -21,6 +21,17 @@
 	@semSegredo not header X-Origin-Verify {$ORIGIN_SECRET}
 	respond @semSegredo "Forbidden" 403
 
+	# Teto de tamanho antes de a API receber o corpo: 55 MB no envio de arquivos, 1 MB no resto.
+	# A API refina por rota (app/limite_corpo.py); os valores acompanham MAX_UPLOAD_MB.
+	@multipart header Content-Type multipart/form-data*
+	request_body @multipart {
+		max_size 55MB
+	}
+	@semMultipart not header Content-Type multipart/form-data*
+	request_body @semMultipart {
+		max_size 1MB
+	}
+
 	header -Server
 	reverse_proxy backend:8000
 }
