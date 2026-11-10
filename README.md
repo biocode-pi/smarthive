@@ -1,149 +1,161 @@
-# SmartHive
+# Smart Hive
 
-SmartHive e uma plataforma para monitoramento de colmeias de abelhas nativas. O
-MVP valida a coleta, organizacao e interpretacao inicial dos dados antes da
-evolucao para IA e IoT real.
+Plataforma web para monitorar colmeias de abelhas nativas sem ferrão. O meliponicultor organiza seus meliponários e colmeias, registra capturas da entrada de cada caixa e acompanha o movimento, o histórico e os alertas.
 
-Em producao: https://www.smarthive.app.br (infraestrutura em [infra/](infra/README.md)).
+**Site publicado:** https://www.smarthive.app.br
 
-O SmartHive nao e apenas um CRUD. Ele e a base de uma plataforma inteligente
-para monitoramento de colmeias de abelhas nativas. O MVP valida a coleta,
-organizacao e interpretacao inicial dos dados. A evolucao futura sera a
-automacao da analise por IA e a substituicao do celular por um dispositivo IoT
-dedicado.
+## Funcionalidades
 
-## Arquitetura
+**Site institucional**
+- Apresentação do projeto, espécies nativas, etapas do monitoramento e exemplo do mapa do meliponário.
+- Termos de Uso e Política de Privacidade.
 
-```text
-smarthive/
-+-- frontend/
-+-- backend/
-+-- database/
-+-- docs/
-`-- README.md
-```
+**Conta**
+- Cadastro com confirmação por e-mail, login e recuperação de senha.
+- Verificação em duas etapas com aplicativo autenticador.
+- Telefone e preferência de notificações por e-mail, com registro do consentimento.
+- Exclusão da conta e de todos os dados, conforme a LGPD.
+
+**Plataforma**
+- **Visão geral:** mapa em forma de favo, colmeias que precisam de atenção, indicadores e movimento recente.
+- **Meliponários:** cadastro, busca, filtro por alertas e mapa das colmeias de cada local.
+- **Colmeias:** cadastro por espécie, código, localização e situação, com ficha e histórico de cada uma.
+- **Captura:** câmera do celular ou do computador, com escolha entre as câmeras disponíveis, inclusive uma GoPro usada como webcam. Também aceita foto ou vídeo. A leitura automática acontece no próprio navegador.
+- **Atividade:** entradas, saídas, movimentos e situação das colmeias.
+- **Histórico:** todas as capturas, com a mídia registrada.
+- **Alertas:** gerados a partir das capturas ou criados manualmente, com gravidade e resolução.
 
 ## Tecnologias
 
-- Frontend: React, Vite, TypeScript, Tailwind CSS, React Router DOM, Axios.
-- Backend: Python, FastAPI, Pydantic, Uvicorn.
-- Banco: PostgreSQL (Amazon RDS; Postgres local no Docker).
-- Autenticacao: Amazon Cognito.
-- Midias: Amazon S3 (bucket privado).
-- Storage MVP: pasta local `backend/app/uploads`.
-- Sensor experimental: celular como camera provisoria.
+| Parte | Tecnologias |
+|---|---|
+| Frontend | React, TypeScript, Vite, Tailwind CSS, React Router, AWS Amplify |
+| Backend | Python, FastAPI, Pydantic, Uvicorn |
+| Banco de dados | PostgreSQL 16 |
+| Login | Amazon Cognito |
+| Infraestrutura | AWS (CloudFront, S3, EC2), Caddy e Docker |
 
-## Como rodar com Docker
+## Como testar
 
-O Compose sobe o PostgreSQL, o backend FastAPI e o frontend React servido por
-Nginx. Por padrao a API roda com `AUTH_MODE=dev` (sem login).
+### Opção 1: no site publicado
 
-```bash
+É o caminho mais rápido e não exige instalar nada.
+
+1. Acesse https://www.smarthive.app.br e clique em **Entrar**.
+2. Crie uma conta com um e-mail válido e informe o código recebido.
+3. Cadastre um meliponário e uma colmeia.
+4. Em **Captura**, abra a câmera, ou envie uma foto, e salve o registro.
+5. Veja o resultado em **Visão geral**, **Histórico** e **Alertas**.
+
+### Opção 2: rodar o projeto completo no computador
+
+Requer [Git](https://git-scm.com/), [Python 3.12 ou superior](https://www.python.org/) e [Node.js 20.19 ou superior](https://nodejs.org/). Não precisa de Docker nem de banco de dados: neste modo, a API grava os dados em um arquivo local. O login usa o mesmo serviço do site publicado, então é necessária uma conta com e-mail válido.
+
+Os comandos abaixo são para o PowerShell do Windows. No Linux e no macOS, troque `copy` por `cp` e `.venv\Scripts\python` por `.venv/bin/python`.
+
+**1. Clone o repositório**
+
+```powershell
+git clone https://github.com/biocode-pi/smarthive.git
+cd smarthive
+```
+
+**2. Prepare e inicie a API**
+
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements-dev.txt
+copy .env.example .env
+```
+
+No arquivo `backend/.env`, altere estas linhas:
+
+```env
+AUTH_MODE=cognito
+COGNITO_USER_POOL_ID=us-east-1_ZnGO71IUs
+COGNITO_APP_CLIENT_ID=v2u40cvu2ncedlcbbafe0vig
+```
+
+Inicie a API e mantenha este terminal aberto:
+
+```powershell
+.venv\Scripts\python -m uvicorn app.main:app --reload
+```
+
+A API fica em http://localhost:8000 e a documentação interativa em http://localhost:8000/docs.
+
+**3. Prepare e inicie o site**
+
+Em outro terminal, na pasta do projeto:
+
+```powershell
+cd frontend
+npm ci
+copy .env.example .env
+```
+
+No arquivo `frontend/.env`, preencha:
+
+```env
+VITE_COGNITO_USER_POOL_ID=us-east-1_ZnGO71IUs
+VITE_COGNITO_CLIENT_ID=v2u40cvu2ncedlcbbafe0vig
+```
+
+Inicie o site:
+
+```powershell
+npm run dev
+```
+
+Acesse http://localhost:5173, crie uma conta e siga os passos da opção 1. A câmera funciona em `localhost`. Para usá-la em outro aparelho, use o site publicado, porque o navegador exige HTTPS.
+
+### Opção 3: testar só a API com Docker
+
+Sobe a API e um PostgreSQL com dados de exemplo, sem login. Requer o [Docker](https://www.docker.com/) em execução.
+
+```powershell
 copy .env.docker.example .env
 docker compose up --build
 ```
 
-Aplicacao: `http://localhost:5173`
+Abra http://localhost:8000/docs e experimente as rotas, por exemplo `GET /api/colmeias`. O site servido nesse modo não tem login habilitado; para usar a plataforma, siga a opção 1 ou 2.
 
-API: `http://localhost:8000`
+Para encerrar e apagar os dados locais:
 
-Swagger: `http://localhost:8000/docs`
-
-O frontend em Docker usa `VITE_API_URL=/api`; o Nginx encaminha `/api` e
-`/uploads` para o container do backend.
-
-Para parar:
-
-```bash
-docker compose down
-```
-
-Para remover tambem os dados locais persistidos em volumes:
-
-```bash
+```powershell
 docker compose down -v
 ```
 
-### Configuracao AWS
+## Testes automatizados
 
-O Compose sobe um PostgreSQL local que simula o Amazon RDS, com `schema.sql` e
-`seed.sql` aplicados na primeira subida. Para validar tokens reais do Cognito ou
-gravar midias no S3, ajuste no `.env` da raiz:
+Com o ambiente da opção 2 instalado, na pasta `backend`:
 
-```env
-AUTH_MODE=cognito
-COGNITO_USER_POOL_ID=
-COGNITO_APP_CLIENT_ID=
-STORAGE_BACKEND=s3
-S3_BUCKET=
+```powershell
+.venv\Scripts\python -m pytest tests
 ```
 
-Detalhes de configuracao em `backend/README.md`. Praticas de seguranca (OWASP Top 10,
-evidencias e limitacoes) em [docs/seguranca.md](docs/seguranca.md). Infraestrutura em
-[infra/README.md](infra/README.md).
+Os testes cobrem autenticação, isolamento de dados entre contas, uploads, limites de requisição e exclusão de conta.
 
-## Como rodar o backend
+## Estrutura do repositório
 
-```bash
-cd C:\Users\draxs\Desktop\smarthive\backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn app.main:app --reload
+```text
+backend/    API em FastAPI e testes
+frontend/   site e plataforma em React
+database/   estrutura do banco e dados de exemplo
+infra/      infraestrutura na AWS e scripts de publicação
+docs/       documentação de segurança e da API
 ```
 
-API: `http://localhost:8000`
+## Segurança
 
-Swagger: `http://localhost:8000/docs`
+- Cada conta acessa somente os próprios dados.
+- O login é feito pelo Amazon Cognito, com verificação em duas etapas opcional.
+- O banco de dados não tem acesso direto pela internet, e as mídias ficam em armazenamento privado.
+- A API limita o tamanho e a quantidade de requisições por tipo de rota.
 
-## Como rodar o frontend
+Detalhes em [docs/seguranca.md](docs/seguranca.md).
 
-```bash
-cd C:\Users\draxs\Desktop\smarthive\frontend
-npm install
-copy .env.example .env
-npm run dev
-```
+## Sobre o projeto
 
-Aplicacao: `http://localhost:5173`
-
-## Variaveis de ambiente
-
-Backend (`backend/.env`): veja `backend/.env.example` e `backend/README.md`.
-
-Frontend (`frontend/.env`):
-
-```env
-VITE_API_URL=http://localhost:8000/api
-```
-
-Nao insira chaves reais no repositorio.
-
-## Celular como sensor experimental
-
-Nesta fase, o celular funciona como sensor visual experimental. Ele permite
-validar a captura de dados visuais da entrada da colmeia antes da implementacao
-de hardware IoT dedicado. O usuario registra imagem ou video, duracao, fluxo
-estimado, abelhas entrando, abelhas saindo, observacoes e possivel invasor.
-
-Detalhes em `docs/iot/sensor-celular.md`.
-
-## Funcionalidades do MVP
-
-- Cadastrar, listar, editar e excluir colmeias.
-- Visualizar status: ativa, observacao, risco ou inativa.
-- Registrar monitoramentos com midia do celular.
-- Consultar historico por colmeia.
-- Registrar captura experimental pelo celular.
-- Visualizar resumo no dashboard.
-- Criar e resolver alertas.
-
-## Roadmap futuro
-
-- Perfis de usuario (pesquisador, meliponicultor, administrador) com grupos do Cognito.
-- Analise de frames com OpenCV.
-- Deteccao de fluxo com YOLO, TensorFlow ou PyTorch.
-- Identificacao de possiveis invasores.
-- Camera fixa com ESP32-CAM, Raspberry Pi ou outro dispositivo de borda.
-- Dashboard em tempo quase real.
+Projeto Integrador do curso de Desenvolvimento de Software Multiplataforma da Fatec Registro.
