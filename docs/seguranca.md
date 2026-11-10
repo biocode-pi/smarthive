@@ -67,7 +67,15 @@ recusada.
 ## A04 - Design inseguro
 
 - **Falha segura**: a API **recusa iniciar** em producao se a autenticacao nao for o Cognito
-  (`ENVIRONMENT=production` exige `AUTH_MODE=cognito`). Evidencia: `test_producao_exige_cognito`.
+  (`ENVIRONMENT=production` exige `AUTH_MODE=cognito`). Sem configuracao, a API tambem nao sobe:
+  o padrao e o Cognito, e `AUTH_MODE=dev` precisa ser pedido e so vale em ambiente local. Evidencias:
+  `test_producao_exige_cognito`, `test_sem_configuracao_a_api_nao_sobe_sem_login`,
+  `test_modo_dev_so_em_ambiente_local`.
+- **Corpo so depois do login**: o FastAPI le o corpo antes de autenticar, entao
+  [limite_corpo.py](../backend/app/limite_corpo.py) confere o token e o tamanho antes disso
+  (1 MB nas rotas JSON, 55 MB nos uploads, inclusive sem `Content-Length`). O Caddy aplica o
+  mesmo teto antes de a requisicao chegar a API. Evidencias: `test_json_sem_token_nao_e_lido`,
+  `test_multipart_sem_token_nao_e_lido`, `test_corpo_sem_content_length_tambem_e_limitado`.
 - **Menor exposicao**: API e Postgres nao publicam portas; so o Caddy escuta (443).
 - **Backup somente escrita**: a credencial da instancia (compartilhada com a API) grava
   backups, mas nao le, nao lista e nao apaga. Uma API comprometida nao consegue roubar nem
@@ -78,7 +86,8 @@ recusada.
   midias de todos de forma definitiva.
 - **Restauracao pelo operador**: so com credenciais de administrador, URL pre-assinada de
   15 minutos, chave explicita e `--confirmar`.
-- **Limite de requisicoes por IP** (janela de 60 s): 120 requisicoes gerais e 20 uploads,
+- **Limite de requisicoes por IP e por tipo de rota** (janela de 60 s): 120 leituras, 60
+  escritas, 20 uploads, 60 no dashboard, 60 no healthcheck publico e 5 na exclusao de conta,
   com resposta 429 e `Retry-After`. O IP usado e o anotado pelo CloudFront no
   `X-Forwarded-For`, entao um cabecalho forjado pelo cliente nao burla o limite.
   Enderecos IPv6 contam pelo prefixo /64 (um cliente costuma ter um /64 inteiro), e ha um

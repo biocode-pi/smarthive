@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
+from app.limite_corpo import LimiteDeCorpoMiddleware
 from app.rate_limit import aplicar_limite
 from app.routers import alertas, colmeias, conta, dashboard, health, meliponarios, monitoramentos, perfil, sensor_celular
 
@@ -32,6 +33,11 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+
+# Registrado antes de seguranca_http, que fica por fora: o limite por IP vem primeiro e os
+# cabecalhos de seguranca valem tambem para as recusas desta camada.
+app.add_middleware(LimiteDeCorpoMiddleware)
 
 
 @app.middleware("http")
