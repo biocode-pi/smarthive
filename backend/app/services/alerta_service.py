@@ -23,7 +23,6 @@ def criar_alerta(usuario_id: str, payload: AlertaCreate | dict) -> dict:
     from app.services import colmeia_service, monitoramento_service
 
     dados = payload if isinstance(payload, dict) else payload.model_dump(mode="json")
-    # Impede vincular o alerta a colmeia ou monitoramento de outro usuario.
     if dados.get("colmeia_id"):
         colmeia_service.obter_colmeia(usuario_id, dados["colmeia_id"])
     if dados.get("monitoramento_id"):

@@ -1,8 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
-// Abelhas na pista: "entra" voa de fora ate a entrada da caixa; "sai" faz o caminho inverso.
-// Duracao, atraso e altura variam para o fluxo nao parecer mecanico. "x" e a posicao parada
-// usada quando o sistema pede movimento reduzido.
 const abelhas = [
   { sentido: "entra", y: 46, dur: 2.6, atraso: 0, x: 60 },
   { sentido: "entra", y: 70, dur: 3.1, atraso: 0.9, x: 150 },
@@ -13,7 +10,6 @@ const abelhas = [
   { sentido: "sai", y: 44, dur: 3.3, atraso: 2.6, x: 175 },
 ] as const;
 
-// Movimentos por hora nas ultimas 24 h: baixo de madrugada, pico no meio do dia.
 const dia = [4, 3, 2, 2, 3, 6, 14, 26, 38, 47, 52, 55, 57, 54, 50, 46, 41, 33, 22, 12, 8, 6, 5, 4];
 
 function trilha(valores: number[], largura: number, altura: number) {
@@ -22,10 +18,6 @@ function trilha(valores: number[], largura: number, altura: number) {
   return valores.map((v, i) => `${i ? "L" : "M"}${(i * passo).toFixed(1)} ${(altura - (v / max) * altura).toFixed(1)}`).join(" ");
 }
 
-/**
- * Ilustracao do que a plataforma mede: abelhas cruzando a entrada da colmeia e a contagem
- * de movimentos. Os numeros sao simulados e o painel diz isso.
- */
 export function InstrumentoEntrada() {
   const [contagem, setContagem] = useState({ entradas: 22, saidas: 19 });
 
@@ -54,7 +46,6 @@ export function InstrumentoEntrada() {
             <path d="M0 0v120M5 0c2 30-2 60 0 120" stroke="#5b3300" strokeWidth="1" fill="none" opacity="0.6" />
           </pattern>
         </defs>
-        {/* Caixa de madeira a direita, com o tubo de entrada */}
         <rect x="292" y="0" width="108" height="120" rx="6" fill="#8f4f00" />
         <rect x="292" y="0" width="108" height="120" rx="6" fill="url(#veio)" />
         <rect x="270" y="50" width="26" height="20" rx="4" fill="#e58d0c" />
@@ -87,7 +78,7 @@ export function InstrumentoEntrada() {
       <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-4 border-t border-white/10 pt-5">
         <div>
           <p className="font-dados text-[11px] uppercase tracking-[0.12em] text-white/60">Movimentos na última hora</p>
-          <p className="mt-1 font-dados text-5xl font-medium tabular-nums text-honey-500" aria-live="off">
+          <p key={total} className="numero-pulso mt-1 font-dados text-5xl font-medium tabular-nums text-honey-500" aria-live="off">
             {total}
           </p>
         </div>
@@ -100,7 +91,7 @@ export function InstrumentoEntrada() {
       </div>
 
       <div className="mt-5">
-        <svg viewBox="0 0 240 40" className="h-10 w-full" preserveAspectRatio="none" aria-hidden="true">
+        <svg viewBox="0 0 240 40" className="grafico-surge h-10 w-full" preserveAspectRatio="none" aria-hidden="true">
           <path d={trilha(dia, 240, 36) + " V40 H0 Z"} fill="#ffcc00" opacity="0.12" />
           <path d={trilha(dia, 240, 36)} fill="none" stroke="#ffcc00" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
         </svg>

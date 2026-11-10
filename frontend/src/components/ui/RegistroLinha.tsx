@@ -2,7 +2,6 @@ import type { Monitoramento } from "../../types";
 import { mediaUrl } from "../../services/api";
 import { formatDateTime, formatNumber, origemLabel, textoObservacao } from "../../utils/formatters";
 
-/** Uma captura como linha de caderno de campo: quando, quanto movimento e o que foi notado. */
 export function RegistroLinha({ monitoramento, colmeia }: { monitoramento: Monitoramento; colmeia?: string }) {
   const url = mediaUrl(monitoramento.midia_url);
   const observacao = textoObservacao(monitoramento.observacoes);

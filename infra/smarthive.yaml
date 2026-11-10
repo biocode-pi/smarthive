@@ -27,9 +27,6 @@ Parameters:
     Type: String
     Default: t4g.micro
     AllowedValues: [t4g.micro, t4g.small]
-  # AMI fixa: com o parametro SSM "latest", toda atualizacao da stack apos a AWS publicar
-  # uma imagem nova SUBSTITUIA a instancia (e o banco, que fica no disco dela). Isso ocorreu
-  # em 31/10/2026. Para atualizar a imagem, troque este valor de proposito, com backup antes.
   AmiId:
     Type: AWS::EC2::Image::Id
     Default: ami-0951c836c26e34fc8
@@ -43,8 +40,6 @@ Parameters:
   OriginSecretParameterName:
     Type: String
     Default: /smarthive/origin-secret
-  # Dominio proprio (opcional). O site fica em www.<Dominio> no CloudFront; o dominio raiz
-  # aponta para o Elastic IP e o Caddy redireciona para o www (DNS do registro.br).
   Dominio:
     Type: String
     Default: ""
@@ -60,7 +55,6 @@ Conditions:
     - !Not [!Equals [!Ref CertificadoArn, ""]]
 
 Resources:
-  # ---------------------------------------------------------------- Cognito
   UserPool:
     Type: AWS::Cognito::UserPool
     DeletionPolicy: Retain
@@ -73,14 +67,11 @@ Resources:
     Properties:
       UserPoolName: !Sub "${AWS::StackName}-usuarios"
       UserPoolTier: ESSENTIALS
-      # Exclusao acidental do pool apagaria todas as contas.
       DeletionProtection: ACTIVE
-      # O e-mail so muda depois de confirmado pelo novo endereco.
       UserAttributeUpdateSettings:
         AttributesRequireVerificationBeforeUpdate: [email]
       UsernameAttributes: [email]
       AutoVerifiedAttributes: [email]
-      # MFA opcional por aplicativo autenticador (TOTP), sem custo de SMS.
       MfaConfiguration: OPTIONAL
       EnabledMfas: [SOFTWARE_TOKEN_MFA]
       AccountRecoverySetting:
@@ -127,7 +118,6 @@ Resources:
         IdToken: minutes
         RefreshToken: days
 
-  # ---------------------------------------------------------------- S3
   UploadsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
@@ -334,7 +324,6 @@ Resources:
               Bool:
                 aws:SecureTransport: "false"
 
-  # ---------------------------------------------------------------- EC2 (API + Postgres)
   ApiSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Metadata:
@@ -400,9 +389,6 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              # DeleteObject atende o "Excluir minha conta" (LGPD). Sem DeleteObjectVersion: no
-              # bucket versionado a exclusao vira marcador e as versoes expiram em 30 dias, entao
-              # uma API comprometida nao consegue destruir midias de forma irreversivel.
               - Sid: MidiasDosUsuarios
                 Effect: Allow
                 Action:
@@ -421,9 +407,6 @@ Resources:
                 Effect: Allow
                 Action: s3:GetObject
                 Resource: !Sub "${DeployBucket.Arn}/*"
-              # Backup somente escrita: a mesma credencial serve a API (container), entao
-              # ela nao pode ler, listar nem apagar backups. A restauracao usa uma URL
-              # pre-assinada gerada pelo operador (infra/restore-db.sh).
               - Sid: BackupsDoBancoSomenteEscrita
                 Effect: Allow
                 Action: s3:PutObject
@@ -512,7 +495,6 @@ Resources:
       Domain: vpc
       InstanceId: !Ref ApiInstance
 
-  # ---------------------------------------------------------------- CloudFront
   SiteOac:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -589,8 +571,8 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
           Compress: true
           AllowedMethods: [GET, HEAD, OPTIONS]
-          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
-          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
           FunctionAssociations:
             - EventType: viewer-request
               FunctionARN: !GetAtt SpaRewriteFunction.FunctionMetadata.FunctionARN
@@ -603,8 +585,6 @@ Resources:
             CachedMethods: [GET, HEAD]
             ForwardedValues:
               QueryString: true
-              # Lista explicita: repassar "*" incluiria o Host, e o CloudFront usaria o
-              # dominio *.cloudfront.net no SNI, quebrando o TLS com a origem (502).
               Headers: [Authorization, Content-Type, Accept, Origin, Range]
               Cookies:
                 Forward: none

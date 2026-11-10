@@ -1,10 +1,4 @@
 #!/bin/bash
-# Restaura o banco a partir de um backup do S3. SUBSTITUI os dados atuais da producao.
-# Roda no computador do operador (credenciais de administrador): a instancia nao tem
-# permissao de ler backups, entao este script gera uma URL pre-assinada de 15 minutos.
-#
-# Uso (Git Bash):  bash infra/restore-db.sh                       -> lista os backups
-#                  bash infra/restore-db.sh <chave> --confirmar   -> restaura
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -34,9 +28,6 @@ if [ "${2:-}" != "--confirmar" ]; then
   exit 2
 fi
 
-# A chave vem do operador e o checksum vem dos metadados do objeto, que a instancia
-# (e portanto uma API comprometida) consegue escrever. Os dois sao validados com
-# regex estritas e trafegam em base64 para nunca serem interpretados pelo shell remoto.
 if ! [[ "$KEY" =~ ^postgres/smarthive-[0-9]{8}T[0-9]{6}Z\.dump$ ]]; then
   echo "Chave invalida: $KEY" >&2
   exit 2

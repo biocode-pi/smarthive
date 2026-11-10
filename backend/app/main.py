@@ -20,7 +20,6 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="API do SmartHive para monitoramento de colmeias de abelhas nativas.",
-    # Documentacao interativa so fora de producao, para nao expor o mapa da API.
     docs_url=None if settings.is_production else "/docs",
     redoc_url=None if settings.is_production else "/redoc",
     openapi_url=None if settings.is_production else "/openapi.json",
@@ -35,14 +34,11 @@ app.add_middleware(
 )
 
 
-# Registrado antes de seguranca_http, que fica por fora: o limite por IP vem primeiro e os
-# cabecalhos de seguranca valem tambem para as recusas desta camada.
 app.add_middleware(LimiteDeCorpoMiddleware)
 
 
 @app.middleware("http")
 async def seguranca_http(request: Request, call_next):
-    # Limite de requisicoes antes de tudo; depois cabecalhos de seguranca em toda resposta.
     response = await aplicar_limite(request, settings) or await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -53,7 +49,6 @@ async def seguranca_http(request: Request, call_next):
     return response
 
 
-# Uploads locais so existem no modo de desenvolvimento; com S3 a leitura e por URL pre-assinada.
 if settings.storage_backend == "local":
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")

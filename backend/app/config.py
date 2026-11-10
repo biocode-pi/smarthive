@@ -7,7 +7,6 @@ from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# Unicos ambientes em que a API pode rodar sem login (AUTH_MODE=dev).
 AMBIENTES_SEM_LOGIN = {"development", "dev", "local", "docker", "test"}
 
 
@@ -23,29 +22,22 @@ class Settings(BaseSettings):
         description="Lista separada por virgulas com origens permitidas.",
     )
 
-    # Autenticacao: "cognito" valida o JWT do Amazon Cognito; "dev" usa um usuario fixo, precisa
-    # ser pedido explicitamente e so e aceito em ambiente local. Sem configuracao, a API nao sobe.
     auth_mode: Literal["cognito", "dev"] = "cognito"
     dev_user_id: str = "dev-local"
     aws_region: str = "us-east-1"
     cognito_user_pool_id: str | None = None
     cognito_app_client_id: str | None = None
 
-    # Banco: com DATABASE_URL usa PostgreSQL (RDS); sem ele, JSON local do MVP.
     database_url: str | None = None
     database_sslmode: str = "require"
 
-    # Storage: "s3" grava em bucket privado e devolve URLs pre-assinadas; "local" grava em disco.
     storage_backend: Literal["local", "s3"] = "local"
     s3_bucket: str | None = None
     s3_url_expiracao_segundos: int = 3600
     max_upload_mb: int = 50
-    # Corpo maximo: rotas JSON e, nos uploads, o arquivo mais a sobra do formato multipart.
     max_corpo_mb: int = 1
     margem_multipart_mb: int = 5
 
-    # Limite de requisicoes por IP a cada 60 s, separado por tipo de rota. TRUSTED_PROXY_HOPS:
-    # quantos proxies confiaveis acrescentam ao X-Forwarded-For (producao: CloudFront + Caddy = 2).
     rate_limit_por_minuto: int = 120
     rate_limit_escrita_por_minuto: int = 60
     rate_limit_upload_por_minuto: int = 20

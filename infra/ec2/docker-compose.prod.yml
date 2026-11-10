@@ -1,5 +1,3 @@
-# Compose de producao no EC2: Caddy (TLS) + API + Postgres. O frontend fica no S3/CloudFront.
-# Rodado por install.sh com --env-file /opt/smarthive/db.env (senha gerada na instancia).
 services:
   db:
     image: postgres:16-alpine
@@ -16,7 +14,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # Banco nao publica porta: so a API, na rede interna do Compose, o acessa.
 
   backend:
     build:
@@ -30,7 +27,6 @@ services:
     environment:
       DATABASE_URL: postgresql://smarthive:${POSTGRES_PASSWORD}@db:5432/smarthive
       DATABASE_SSLMODE: disable
-    # Sem porta publicada: so o Caddy, na rede interna do Compose, alcanca a API.
     logging:
       driver: json-file
       options:

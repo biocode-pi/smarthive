@@ -1,6 +1,5 @@
 services:
   db:
-    # Simula o Amazon RDS PostgreSQL localmente.
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -41,7 +40,6 @@ services:
       S3_BUCKET: ${S3_BUCKET:-}
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-50}
     ports:
-      # So nesta maquina: aqui a API roda sem login. BIND_HOST=0.0.0.0 abre para a rede.
       - "${BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
     volumes:
       - backend-uploads:/app/app/uploads

@@ -2,14 +2,11 @@ import logo from "../../assets/logo.png";
 import { cn } from "../../utils/classNames";
 
 interface MarcaProps {
-  /** "linha": logo ao lado do nome (cabecalhos). "pilha": logo em cima, como na abertura do app. */
   variante?: "linha" | "pilha";
-  /** Exibe "PROJECT" abaixo do nome, como no app. */
   comTagline?: boolean;
   className?: string;
 }
 
-/** Marca do app: abelha + "Smart Hive" (Poppins Bold) + "PROJECT" (Inter SemiBold espacado). */
 export function Marca({ variante = "linha", comTagline = false, className }: MarcaProps) {
   if (variante === "pilha") {
     return (

@@ -8,7 +8,6 @@ type Estado = "carregando" | "desativado" | "configurando" | "ativado";
 const inputClass =
   "h-12 w-40 rounded-field bg-white px-3.5 text-center font-dados text-base tracking-[0.3em] text-ink ring-1 ring-ink/15 focus:outline-none focus:ring-2 focus:ring-ink";
 
-/** Verificacao em duas etapas (TOTP) com aplicativo autenticador. */
 export function MfaSettings({ email }: { email: string }) {
   const [estado, setEstado] = useState<Estado>("carregando");
   const [qrCode, setQrCode] = useState<string | null>(null);

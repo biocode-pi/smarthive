@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 
 interface PageHeaderProps {
   title: ReactNode;
-  /** Linha de leitura com dados reais da tela (contagens, datas), em fonte de instrumento. */
   leitura?: ReactNode;
   voltar?: { to: string; label: string };
   children?: ReactNode;

@@ -1,9 +1,3 @@
-"""Barreiras aplicadas antes de a API ler o corpo de uma requisicao.
-
-O FastAPI le o corpo antes de resolver as dependencias, inclusive a de autenticacao. Sem esta
-camada, qualquer pessoa conseguiria ocupar memoria e disco do servidor sem ter login.
-"""
-
 from __future__ import annotations
 
 from fastapi import HTTPException, status
@@ -45,7 +39,6 @@ def _content_length(headers: Headers) -> int | None:
 
 
 class LimiteDeCorpoMiddleware:
-    """Recusa requisicoes sem login ou grandes demais antes de ler o corpo."""
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -71,8 +64,6 @@ class LimiteDeCorpoMiddleware:
 
         recebido = 0
 
-        # Corpo sem Content-Length (chunked) e contado conforme chega. O FastAPI repassa o
-        # HTTPException levantado aqui como a resposta da requisicao.
         async def receber() -> Message:
             nonlocal recebido
             mensagem = await receive()
