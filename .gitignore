@@ -29,3 +29,6 @@ Thumbs.db
 
 .vercel
 .playwright-mcp/
+
+# Modelos de visao ficam fora do Git (ver docs/modelo-visao.md)
+frontend/public/modelos/*.onnx

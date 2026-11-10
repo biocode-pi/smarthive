@@ -8,6 +8,7 @@ import { Leituras } from "../components/ui/Leituras";
 import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { listarColmeias } from "../services/colmeias";
+import { carregarDetector, type DetectorAbelhas } from "../services/detectorAbelhas";
 import { registrarCapturaSensorCelular } from "../services/sensorCelular";
 import type { Colmeia } from "../types";
 import { cn } from "../utils/classNames";
@@ -109,6 +110,8 @@ export function SensorCelular() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<MobileNet | null>(null);
+  // Modelo treinado pelo grupo; sem ele, a pagina usa o reconhecimento generico.
+  const detectorRef = useRef<DetectorAbelhas | null>(null);
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   // Cada ciclo de analise tem um numero; ao parar ou trocar de camera, o ciclo antigo se encerra.
@@ -120,6 +123,7 @@ export function SensorCelular() {
   const [loading, setLoading] = useState(true);
   const [modelLoading, setModelLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [abelhasNaImagem, setAbelhasNaImagem] = useState(0);
   const [abrindoCamera, setAbrindoCamera] = useState(false);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [cameraId, setCameraId] = useState(cameraSalva);
@@ -170,16 +174,27 @@ export function SensorCelular() {
   }
 
   async function ensureModel() {
-    if (modelRef.current) return modelRef.current;
+    if (detectorRef.current || modelRef.current) return;
     setModelLoading(true);
     try {
+      detectorRef.current = await carregarDetector();
+      if (detectorRef.current) return;
       const [tf, mobilenet] = await Promise.all([import("@tensorflow/tfjs"), import("@tensorflow-models/mobilenet")]);
       await tf.ready();
       modelRef.current = await mobilenet.load({ version: 2, alpha: 1 });
-      return modelRef.current;
     } finally {
       setModelLoading(false);
     }
+  }
+
+  async function analisar(fonte: HTMLVideoElement | HTMLImageElement, quantidade: number): Promise<Prediction[]> {
+    if (detectorRef.current) {
+      const deteccoes = await detectorRef.current.detectar(fonte);
+      setAbelhasNaImagem(deteccoes.length);
+      const melhor = Math.max(0, ...deteccoes.map((item) => item.confianca));
+      return deteccoes.length ? [{ className: "bee", probability: melhor }] : [];
+    }
+    return (await modelRef.current!.classify(fonte, quantidade)) as Prediction[];
   }
 
   async function startCamera(idEscolhido = cameraId) {
@@ -282,15 +297,14 @@ export function SensorCelular() {
     setMessage(null);
 
     try {
-      const model = await ensureModel();
+      await ensureModel();
       const image = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = () => reject(new Error("Imagem inválida"));
         img.src = URL.createObjectURL(file);
       });
-      const result = (await model.classify(image, 8)) as Prediction[];
-      applyPredictions(result);
+      applyPredictions(await analisar(image, 8));
       URL.revokeObjectURL(image.src);
     } catch {
       setCameraError("Não foi possível ler esta imagem. Tente outra foto, em JPG ou PNG.");
@@ -304,16 +318,16 @@ export function SensorCelular() {
 
     const analyze = async () => {
       if (ciclo !== cicloRef.current) return;
-      const model = modelRef.current;
+      const pronto = detectorRef.current ?? modelRef.current;
       const video = videoRef.current;
 
-      if (!model || !video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      if (!pronto || !video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
         timerRef.current = window.setTimeout(analyze, 900);
         return;
       }
 
       try {
-        const result = (await model.classify(video, 5)) as Prediction[];
+        const result = await analisar(video, 5);
         if (ciclo === cicloRef.current) applyPredictions(result);
       } catch {
         if (ciclo === cicloRef.current) setCameraError("A contagem parou. Toque em Parar câmera e abra de novo.");
@@ -397,7 +411,7 @@ export function SensorCelular() {
   if (loading) return <LoadingState />;
 
   const leituraAtual = targetPrediction
-    ? `${targetPrediction.label} na imagem · ${confidenceLabel(targetPrediction.prediction.probability)}`
+    ? `${abelhasNaImagem > 1 ? `${abelhasNaImagem} abelhas` : targetPrediction.label} na imagem · ${confidenceLabel(targetPrediction.prediction.probability)}`
     : cameraActive
       ? "Procurando movimento na entrada…"
       : "Foto sem abelha ou invasor";
@@ -474,6 +488,7 @@ export function SensorCelular() {
                   setBeeDetected(false);
                   setInvaderDetected(false);
                   setDetections(0);
+                  setAbelhasNaImagem(0);
                   setInvaderDetections(0);
                   setTargetPrediction(null);
                   setLastTargetPrediction(null);
