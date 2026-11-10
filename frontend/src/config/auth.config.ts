@@ -37,6 +37,17 @@ export interface AuthTextsConfig {
     hasAccountPrefix: string;
     hasAccountAction: string;
   };
+  mfa: {
+    title: string;
+    subtitle: string;
+    submit: string;
+  };
+  confirmar: {
+    title: string;
+    subtitle: string;
+    submit: string;
+    resendAction: string;
+  };
   recuperar: {
     title: string;
     subtitle: string;
@@ -52,11 +63,13 @@ export interface AuthTextsConfig {
     nome: string;
     email: string;
     senha: string;
+    codigo: string;
   };
   placeholders: {
     nome: string;
     email: string;
     senha: string;
+    codigo: string;
   };
 }
 
@@ -70,17 +83,17 @@ export interface AuthConfig {
 export const authConfig: AuthConfig = {
   brand: {
     logoSrc: logo,
-    name: "SmartHive",
+    name: "Smart Hive",
   },
   quote: {
-    text: "Apicultura conectada, do campo aos dados.",
-    attribution: "SmartHive",
+    text: "Meliponicultura conectada, do campo aos dados.",
+    attribution: "Smart Hive",
   },
   footer: {
-    copyright: `(c) ${new Date().getFullYear()} SmartHive`,
+    copyright: `© ${new Date().getFullYear()} Smart Hive`,
     links: [
-      { label: "Termos", href: "#" },
-      { label: "Privacidade", href: "#" },
+      { label: "Termos de Uso", href: "/termos" },
+      { label: "Privacidade", href: "/privacidade" },
     ],
   },
   texts: {
@@ -94,32 +107,45 @@ export const authConfig: AuthConfig = {
       noAccountAction: "Criar conta",
     },
     cadastro: {
-      title: "Criar conta",
-      subtitle: "Use a mesma conta no aplicativo web e mobile.",
+      title: "Registro",
+      subtitle: "Insira suas informações. A mesma conta vale no site e no aplicativo.",
       submit: "Criar conta",
-      hasAccountPrefix: "Ja tem conta?",
+      hasAccountPrefix: "Já tem conta?",
       hasAccountAction: "Entrar",
+    },
+    mfa: {
+      title: "Verificação em duas etapas",
+      subtitle: "Digite o código de 6 dígitos do seu aplicativo autenticador.",
+      submit: "Verificar",
+    },
+    confirmar: {
+      title: "Confirmar e-mail",
+      subtitle: "Digite o código de 6 dígitos que enviamos para o seu e-mail.",
+      submit: "Confirmar",
+      resendAction: "Reenviar código",
     },
     recuperar: {
       title: "Recuperar acesso",
-      subtitle: "Enviaremos as instrucoes para redefinir sua senha.",
-      submit: "Enviar instrucoes",
+      subtitle: "Enviaremos um código para redefinir sua senha.",
+      submit: "Enviar instruções",
       backAction: "Voltar para o login",
     },
     novaSenha: {
       title: "Nova senha",
-      subtitle: "Defina uma senha para continuar.",
+      subtitle: "Digite o código recebido por e-mail e a nova senha.",
       submit: "Salvar senha",
     },
     labels: {
       nome: "Nome",
       email: "E-mail",
       senha: "Senha",
+      codigo: "Código de verificação",
     },
     placeholders: {
       nome: "Seu nome",
-      email: "voce@email.com",
-      senha: "Minimo 6 caracteres",
+      email: "você@email.com",
+      senha: "Mínimo 8 caracteres, com maiúscula e número",
+      codigo: "000000",
     },
   },
 };

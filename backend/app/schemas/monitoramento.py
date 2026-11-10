@@ -43,7 +43,6 @@ class MonitoramentoUpdate(BaseModel):
     umidade_percentual: float | None = None
     possivel_invasor: bool | None = None
     observacoes: str | None = None
-    midia_url: str | None = None
 
 
 class Monitoramento(MonitoramentoBase):

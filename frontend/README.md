@@ -17,11 +17,17 @@ A aplicacao abre em `http://localhost:5173`.
 
 ```env
 VITE_API_URL=http://localhost:8000/api
+VITE_AWS_REGION=us-east-1
+VITE_COGNITO_USER_POOL_ID=
+VITE_COGNITO_CLIENT_ID=
 ```
 
-Nesta primeira versao, o frontend consome apenas a API FastAPI. O acesso direto
-ao Supabase fica reservado para evolucoes futuras com autenticacao e politicas
-de seguranca.
+O login usa o Amazon Cognito (biblioteca `aws-amplify/auth`, fluxo SRP). Os
+valores do User Pool sao as saidas `UserPoolId` e `UserPoolClientId` da stack
+`smarthive` (veja `infra/README.md`). O access token e enviado a API em
+`Authorization: Bearer`.
+
+Rotas: `/` e o site institucional, `/login` a autenticacao e `/app/*` a plataforma.
 
 ## Telas
 

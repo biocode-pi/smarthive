@@ -1,31 +1,23 @@
-import { cn } from "../../utils/classNames";
 import type { StatusColmeia } from "../../types";
+import { cn } from "../../utils/classNames";
+import { CORES_STATUS, pontosHexagono } from "./FavoMap";
 
-const statusMap: Record<StatusColmeia, { label: string; className: string }> = {
-  ativa: {
-    label: "Ativa",
-    className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  },
-  observacao: {
-    label: "Em observacao",
-    className: "bg-amber-50 text-amber-700 ring-amber-200",
-  },
-  risco: {
-    label: "Risco",
-    className: "bg-rose-50 text-rose-700 ring-rose-200",
-  },
-  inativa: {
-    label: "Inativa",
-    className: "bg-slate-100 text-slate-600 ring-slate-200",
-  },
-};
-
-export function StatusBadge({ status }: { status: StatusColmeia }) {
-  const item = statusMap[status];
+/** Hexagono do favo na cor da situacao: o mesmo simbolo do mapa do meliponario. */
+export function Hexa({ status, className }: { status: StatusColmeia; className?: string }) {
+  const cor = CORES_STATUS[status] ?? CORES_STATUS.inativa;
   return (
-    <span className={cn("inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1", item.className)}>
-      {item.label}
-    </span>
+    <svg viewBox="0 0 14 14" className={cn("h-3.5 w-3.5 flex-shrink-0", className)} aria-hidden="true">
+      <polygon points={pontosHexagono(7, 7, 6.2)} fill={cor.fill} stroke={cor.texto} strokeWidth={1.3} />
+    </svg>
   );
 }
 
+export function StatusBadge({ status }: { status: StatusColmeia }) {
+  const cor = CORES_STATUS[status] ?? CORES_STATUS.inativa;
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold" style={{ color: cor.texto }}>
+      <Hexa status={status} />
+      {cor.rotulo}
+    </span>
+  );
+}

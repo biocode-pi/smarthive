@@ -1,7 +1,13 @@
-insert into colmeias (id, nome, codigo, especie, localizacao, descricao, status, instalada_em)
+-- Dados de exemplo do usuario 'dev-local' (AUTH_MODE=dev).
+-- Para ver estes dados com um usuario real do Cognito, troque o dono depois:
+--   update colmeias set usuario_id = '<sub-do-cognito>' where usuario_id = 'dev-local';
+--   (repita para monitoramentos e alertas)
+
+insert into colmeias (id, usuario_id, nome, codigo, especie, localizacao, descricao, status, instalada_em)
 values
   (
     'colmeia-jatai-campus',
+    'dev-local',
     'Colmeia Jatai - Campus',
     'JAT-001',
     'Jatai',
@@ -12,6 +18,7 @@ values
   ),
   (
     'colmeia-mandacaia-lab',
+    'dev-local',
     'Mandacaia - Meliponario',
     'MAN-002',
     'Mandacaia',
@@ -24,6 +31,7 @@ on conflict (id) do nothing;
 
 insert into monitoramentos (
   id,
+  usuario_id,
   colmeia_id,
   origem,
   duracao_segundos,
@@ -37,6 +45,7 @@ insert into monitoramentos (
 )
 values (
   'mon-campus-001',
+  'dev-local',
   'colmeia-jatai-campus',
   'sensor_celular',
   60,
@@ -52,6 +61,7 @@ on conflict (id) do nothing;
 
 insert into alertas (
   id,
+  usuario_id,
   colmeia_id,
   monitoramento_id,
   tipo,
@@ -62,6 +72,7 @@ insert into alertas (
 )
 values (
   'alerta-observacao-campus',
+  'dev-local',
   'colmeia-jatai-campus',
   'mon-campus-001',
   'observacao',

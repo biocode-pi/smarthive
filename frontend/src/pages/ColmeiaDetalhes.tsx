@@ -1,19 +1,24 @@
-import { ArrowLeft, ClipboardPlus, LineChart } from "lucide-react";
+import { Camera } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { botao } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { GraficoFluxo, serieDeFluxo } from "../components/ui/Fluxo";
+import { Leituras } from "../components/ui/Leituras";
 import { LoadingState } from "../components/ui/LoadingState";
-import { MonitoringCard } from "../components/ui/MonitoringCard";
 import { PageHeader } from "../components/ui/PageHeader";
-import { StatCard } from "../components/ui/StatCard";
+import { RegistroLinha } from "../components/ui/RegistroLinha";
+import { Secao } from "../components/ui/Secao";
 import { StatusBadge } from "../components/ui/StatusBadge";
+import { obterMeliponario } from "../services/meliponarios";
 import { listarMonitoramentosDaColmeia, obterColmeia } from "../services/colmeias";
-import type { Colmeia, Monitoramento } from "../types";
+import type { Colmeia, Meliponario, Monitoramento } from "../types";
 import { formatDate, formatNumber } from "../utils/formatters";
 
 export function ColmeiaDetalhes() {
   const { id } = useParams<{ id: string }>();
   const [colmeia, setColmeia] = useState<Colmeia | null>(null);
+  const [meliponario, setMeliponario] = useState<Meliponario | null>(null);
   const [monitoramentos, setMonitoramentos] = useState<Monitoramento[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +28,13 @@ export function ColmeiaDetalhes() {
       .then(([colmeiaData, monitoramentosData]) => {
         setColmeia(colmeiaData);
         setMonitoramentos(monitoramentosData);
+        if (colmeiaData.meliponario_id) {
+          obterMeliponario(colmeiaData.meliponario_id)
+            .then(setMeliponario)
+            .catch(() => setMeliponario(null));
+        }
       })
+      .catch(() => setColmeia(null))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -32,6 +43,7 @@ export function ColmeiaDetalhes() {
     return {
       total: monitoramentos.length,
       fluxoMedio: monitoramentos.length ? Math.round(totalFluxo / monitoramentos.length) : 0,
+      ultimo: monitoramentos[0]?.fluxo_estimado ?? null,
       invasores: monitoramentos.filter((item) => item.possivel_invasor).length,
     };
   }, [monitoramentos]);
@@ -39,63 +51,88 @@ export function ColmeiaDetalhes() {
   if (loading) return <LoadingState />;
 
   if (!colmeia) {
-    return <EmptyState title="Colmeia nao encontrada" description="O registro solicitado nao existe ou foi removido." />;
+    return (
+      <EmptyState
+        title="Colmeia não encontrada"
+        description="Ela pode ter sido excluída. Volte para a lista e escolha outra."
+        acao={
+          <Link to="/app/colmeias" className={botao("secondary")}>
+            Ver colmeias
+          </Link>
+        }
+      />
+    );
   }
+
+  // Ficha da caixa: so o que foi preenchido.
+  const ficha: Array<[string, string]> = [
+    ["Código", colmeia.codigo || "—"],
+    ["Espécie", colmeia.especie],
+    ["Meliponário", meliponario?.nome ?? (colmeia.meliponario_id ? "…" : "Sem meliponário")],
+    ["Onde fica", colmeia.localizacao || "Não informado"],
+    ["Instalada em", formatDate(colmeia.instalada_em)],
+  ];
 
   return (
     <>
-      <PageHeader title={colmeia.nome} description="Detalhes operacionais, historico de monitoramentos e indicadores iniciais de atividade.">
-        <Link
-          to="/colmeias"
-          className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar
-        </Link>
-        <Link
-          to={`/colmeias/${colmeia.id}/monitoramentos/novo`}
-          className="focus-ring inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hive-600 bg-hive-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-hive-700"
-        >
-          <ClipboardPlus className="h-4 w-4" />
-          Novo monitoramento
+      <PageHeader
+        voltar={meliponario ? { to: `/app/meliponarios/${meliponario.id}`, label: meliponario.nome } : { to: "/app/colmeias", label: "Colmeias" }}
+        title={colmeia.nome}
+        leitura={<StatusBadge status={colmeia.status} />}
+      >
+        <Link to={`/app/sensor-celular?colmeia=${colmeia.id}`} className={botao("primary")}>
+          <Camera className="h-4 w-4" aria-hidden="true" />
+          Nova captura
         </Link>
       </PageHeader>
 
-      <section className="mb-6 rounded-xl border border-white/80 bg-white/90 p-5 shadow-soft">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-950">{colmeia.especie}</h2>
-              <StatusBadge status={colmeia.status} />
-            </div>
-            <p className="mt-2 text-sm text-slate-600">{colmeia.localizacao || "Localizacao nao informada"}</p>
-            <p className="mt-1 text-sm text-slate-500">Instalada em {formatDate(colmeia.instalada_em)}</p>
+      <section className="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-12">
+        <div>
+          <dl className="border-t border-ink/15">
+            {ficha.map(([termo, valor]) => (
+              <div key={termo} className="flex items-baseline justify-between gap-6 border-b border-ink/10 py-3">
+                <dt className="rotulo">{termo}</dt>
+                <dd className={termo === "Código" ? "font-dados text-ink" : "text-right font-bold text-ink"}>{valor}</dd>
+              </div>
+            ))}
+          </dl>
+          {colmeia.descricao ? <p className="mt-5 whitespace-pre-line leading-relaxed text-ink/75">{colmeia.descricao}</p> : null}
+        </div>
+
+        <div className="min-w-0">
+          <Leituras
+            itens={[
+              { rotulo: "Capturas", valor: formatNumber(indicadores.total) },
+              { rotulo: "Fluxo médio", valor: formatNumber(indicadores.fluxoMedio), nota: indicadores.ultimo !== null ? `última: ${formatNumber(indicadores.ultimo)}` : undefined },
+              { rotulo: "Com invasor", valor: formatNumber(indicadores.invasores), alerta: indicadores.invasores > 0 },
+            ]}
+          />
+          <div className="mt-6">
+            <GraficoFluxo data={serieDeFluxo(monitoramentos, 12)} />
           </div>
-          {colmeia.codigo ? <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">{colmeia.codigo}</p> : null}
-        </div>
-        {colmeia.descricao ? <p className="mt-4 text-sm leading-6 text-slate-600">{colmeia.descricao}</p> : null}
-      </section>
-
-      <section className="mb-6 grid gap-4 md:grid-cols-3">
-        <StatCard label="Monitoramentos" value={indicadores.total} icon={<LineChart className="h-5 w-5" />} />
-        <StatCard label="Fluxo medio" value={formatNumber(indicadores.fluxoMedio)} icon={<LineChart className="h-5 w-5" />} />
-        <StatCard label="Registros com invasor" value={indicadores.invasores} icon={<LineChart className="h-5 w-5" />} />
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-bold text-slate-950">Historico de monitoramentos</h2>
-        <div className="space-y-4">
-          {monitoramentos.length ? (
-            monitoramentos.map((monitoramento) => <MonitoringCard key={monitoramento.id} monitoramento={monitoramento} />)
-          ) : (
-            <EmptyState
-              title="Sem historico"
-              description="Registre o primeiro monitoramento para criar a linha do tempo da colmeia."
-            />
-          )}
         </div>
       </section>
+
+      <Secao titulo="Histórico de capturas">
+        {monitoramentos.length ? (
+          <ul className="border-t border-ink/15">
+            {monitoramentos.map((monitoramento) => (
+              <RegistroLinha key={monitoramento.id} monitoramento={monitoramento} />
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            title="Nenhuma captura desta colmeia"
+            description="Aponte o celular para a entrada da caixa e salve a primeira captura. O histórico começa por ela."
+            acao={
+              <Link to={`/app/sensor-celular?colmeia=${colmeia.id}`} className={botao("primary")}>
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                Fazer captura
+              </Link>
+            }
+          />
+        )}
+      </Secao>
     </>
   );
 }
-

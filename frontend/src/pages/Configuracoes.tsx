@@ -1,75 +1,47 @@
-import { Camera, Database, Lock, LogOut, Smartphone, UserCircle } from "lucide-react";
-import { PageHeader } from "../components/ui/PageHeader";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ExcluirConta } from "../components/auth/ExcluirConta";
+import { MfaSettings } from "../components/auth/MfaSettings";
+import { PerfilSettings } from "../components/auth/PerfilSettings";
 import { Button } from "../components/ui/Button";
+import { PageHeader } from "../components/ui/PageHeader";
 import { useAuth, userDisplayName } from "../context/AuthContext";
-import { API_BASE_URL } from "../services/api";
-
-const settings = [
-  {
-    title: "API",
-    value: API_BASE_URL,
-    icon: Database,
-  },
-  {
-    title: "Camera mobile",
-    value: "HTTPS ou localhost",
-    icon: Smartphone,
-  },
-  {
-    title: "Deteccao",
-    value: "Visao local com circulos",
-    icon: Camera,
-  },
-  {
-    title: "Dados",
-    value: "Supabase PostgreSQL",
-    icon: Lock,
-  },
-];
 
 export function Configuracoes() {
+  const navigate = useNavigate();
   const { logout, user } = useAuth();
 
+  async function sair() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
+
   return (
-    <>
-      <PageHeader
-        title="Configuracoes"
-        description="Conta, sessao e parametros tecnicos usados pelo SmartHive."
-      />
+    <div className="max-w-3xl">
+      <PageHeader title="Configurações" leitura={user?.email}>
+        <Button variant="secondary" onClick={sair}>
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          Sair
+        </Button>
+      </PageHeader>
 
-      <section className="surface mb-6 rounded-xl p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="rounded-lg bg-hive-50 p-3 text-hive-700">
-              <UserCircle className="h-6 w-6" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-500">Conta conectada</p>
-              <p className="mt-1 truncate text-lg font-bold text-slate-950">{userDisplayName(user)}</p>
-              <p className="truncate text-sm text-slate-600">{user?.email}</p>
-            </div>
+      <section className="pb-8">
+        <h2 className="titulo-secao">Conta</h2>
+        <dl className="mt-4 border-t border-ink/15">
+          <div className="flex items-baseline justify-between gap-6 border-b border-ink/10 py-3">
+            <dt className="rotulo">Nome</dt>
+            <dd className="font-bold text-ink">{userDisplayName(user)}</dd>
           </div>
-          <Button variant="secondary" icon={<LogOut className="h-4 w-4" />} onClick={logout}>
-            Sair
-          </Button>
-        </div>
+          <div className="flex items-baseline justify-between gap-6 border-b border-ink/10 py-3">
+            <dt className="rotulo">E-mail</dt>
+            <dd className="truncate font-dados text-sm text-ink">{user?.email}</dd>
+          </div>
+        </dl>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        {settings.map((item) => (
-          <div key={item.title} className="surface rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="rounded-lg bg-hive-50 p-3 text-hive-700">
-                <item.icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-500">{item.title}</p>
-                <p className="mt-2 break-words text-lg font-bold text-slate-950">{item.value}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
-    </>
+      {user ? <PerfilSettings /> : null}
+      {user ? <MfaSettings email={user.email} /> : null}
+      {user ? <ExcluirConta email={user.email} /> : null}
+    </div>
   );
 }

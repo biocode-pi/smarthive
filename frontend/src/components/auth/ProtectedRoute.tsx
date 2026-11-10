@@ -8,9 +8,9 @@ export function ProtectedRoute() {
   if (carregando) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
-        <div className="surface rounded-xl p-6 text-center">
-          <p className="text-sm font-semibold text-slate-500">Verificando sessao</p>
-          <p className="mt-2 text-lg font-bold text-slate-950">SmartHive</p>
+        <div className="surface p-6 text-center">
+          <p className="rotulo">Verificando sessão</p>
+          <p className="mt-2 font-expo text-xl font-extrabold text-ink [font-stretch:112%]">Smart Hive</p>
         </div>
       </div>
     );
@@ -24,22 +24,22 @@ export function ProtectedRoute() {
 }
 
 export function PublicOnlyRoute() {
-  const { carregando, recuperandoSenha, user } = useAuth();
+  const { carregando, user } = useAuth();
   const location = useLocation();
-  const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/";
+  const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname ?? "/app";
 
   if (carregando) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
-        <div className="surface rounded-xl p-6 text-center">
-          <p className="text-sm font-semibold text-slate-500">Preparando login</p>
-          <p className="mt-2 text-lg font-bold text-slate-950">SmartHive</p>
+        <div className="surface p-6 text-center">
+          <p className="rotulo">Preparando login</p>
+          <p className="mt-2 font-expo text-xl font-extrabold text-ink [font-stretch:112%]">Smart Hive</p>
         </div>
       </div>
     );
   }
 
-  if (user && !recuperandoSenha) {
+  if (user) {
     return <Navigate to={redirectTo} replace />;
   }
 

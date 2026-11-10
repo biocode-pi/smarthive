@@ -1,26 +1,48 @@
 services:
+  db:
+    # Simula o Amazon RDS PostgreSQL localmente.
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smarthive
+      POSTGRES_USER: smarthive
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smarthive-local}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smarthive -d smarthive"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build:
       context: ./backend
     image: smarthive-backend:local
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       APP_NAME: ${APP_NAME:-SmartHive API}
-      APP_VERSION: ${APP_VERSION:-0.1.0}
       ENVIRONMENT: ${ENVIRONMENT:-docker}
       API_PREFIX: ${API_PREFIX:-/api}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173,http://localhost,http://127.0.0.1}
-      USE_SUPABASE: ${USE_SUPABASE:-false}
-      SUPABASE_URL: ${SUPABASE_URL:-}
-      SUPABASE_KEY: ${SUPABASE_KEY:-}
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
-      SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET:-smarthive-capturas}
-      DATABASE_URL: ${DATABASE_URL:-}
+      AUTH_MODE: ${AUTH_MODE:-dev}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-}
+      COGNITO_APP_CLIENT_ID: ${COGNITO_APP_CLIENT_ID:-}
+      DATABASE_URL: postgresql://smarthive:${POSTGRES_PASSWORD:-smarthive-local}@db:5432/smarthive
+      DATABASE_SSLMODE: disable
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      S3_BUCKET: ${S3_BUCKET:-}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-50}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - backend-data:/app/app/data
       - backend-uploads:/app/app/uploads
 
   frontend:
@@ -37,5 +59,5 @@ services:
       - "${FRONTEND_PORT:-5173}:80"
 
 volumes:
-  backend-data:
+  db-data:
   backend-uploads:

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, File, Form, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+
+from app.auth import Usuario, get_usuario_atual
 
 from app.database import get_store
 from app.schemas.sensor_celular import SensorCelularResposta
@@ -18,11 +20,13 @@ async def registrar_captura_sensor_celular(
     observacoes: str | None = Form(default=None),
     possivel_invasor: bool = Form(default=False),
     arquivo: UploadFile | None = File(default=None),
+    usuario: Usuario = Depends(get_usuario_atual),
 ):
-    midia_url = await storage_service.salvar_upload(arquivo)
+    midia_url = await storage_service.salvar_upload(usuario.id, arquivo)
     fluxo_estimado = abelhas_entrando + abelhas_saindo if abelhas_entrando or abelhas_saindo else movimentos_estimados
 
     monitoramento = monitoramento_service.criar_monitoramento(
+        usuario.id,
         {
             "colmeia_id": colmeia_id,
             "origem": "sensor_celular",
@@ -40,6 +44,7 @@ async def registrar_captura_sensor_celular(
     captura = get_store().create(
         "capturas_sensor_celular",
         {
+            "usuario_id": usuario.id,
             "colmeia_id": colmeia_id,
             "monitoramento_id": monitoramento["id"],
             "duracao_segundos": duracao_segundos,

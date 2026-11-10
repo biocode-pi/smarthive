@@ -1,5 +1,5 @@
 import axios from "axios";
-import { hasSupabaseConfig, supabase } from "./supabase";
+import { obterAccessToken } from "../context/AuthContext";
 
 const configuredApiUrl = import.meta.env.VITE_API_URL ?? "/api";
 const shouldUseSameOriginApi =
@@ -14,16 +14,10 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  if (!hasSupabaseConfig) return config;
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (session?.access_token) {
-    config.headers.Authorization = `Bearer ${session.access_token}`;
+  const token = await obterAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
 

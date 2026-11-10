@@ -1,18 +1,17 @@
 import type { ReactNode } from "react";
 
 interface EmptyStateProps {
-  icon?: ReactNode;
   title: string;
   description: string;
+  acao?: ReactNode;
 }
 
-export function EmptyState({ icon, title, description }: EmptyStateProps) {
+export function EmptyState({ title, description, acao }: EmptyStateProps) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white/70 p-8 text-center">
-      {icon ? <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-hive-50 text-hive-700">{icon}</div> : null}
-      <h3 className="text-base font-semibold text-slate-950">{title}</h3>
-      <p className="mx-auto mt-2 max-w-lg text-sm text-slate-500">{description}</p>
+    <div className="rounded-[24px] border-2 border-dashed border-ink/20 px-6 py-8">
+      <p className="font-expo text-lg font-bold text-ink [font-stretch:108%]">{title}</p>
+      <p className="mt-1 max-w-lg text-sm leading-relaxed text-ink/70">{description}</p>
+      {acao ? <div className="mt-5">{acao}</div> : null}
     </div>
   );
 }
-

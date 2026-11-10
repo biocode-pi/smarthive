@@ -1,6 +1,8 @@
 import asyncio
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.auth import Usuario, get_usuario_atual
 
 from app.services import alerta_service, colmeia_service, monitoramento_service
 
@@ -9,11 +11,11 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
 @router.get("/resumo")
-async def obter_resumo():
+async def obter_resumo(usuario: Usuario = Depends(get_usuario_atual)):
     colmeias, monitoramentos, alertas = await asyncio.gather(
-        asyncio.to_thread(colmeia_service.listar_colmeias),
-        asyncio.to_thread(monitoramento_service.listar_monitoramentos),
-        asyncio.to_thread(alerta_service.listar_alertas),
+        asyncio.to_thread(colmeia_service.listar_colmeias, usuario.id),
+        asyncio.to_thread(monitoramento_service.listar_monitoramentos, usuario.id),
+        asyncio.to_thread(alerta_service.listar_alertas, usuario.id),
     )
 
     return {
