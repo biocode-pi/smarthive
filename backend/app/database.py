@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import date, datetime, timezone
 from decimal import Decimal
@@ -12,6 +13,10 @@ from app.config import get_settings
 
 
 TABLES = ("meliponarios", "colmeias", "monitoramentos", "alertas", "capturas_sensor_celular", "perfis")
+
+
+class RegistroDuplicado(Exception):
+    """Gravacao recusada porque repetiria um valor que precisa ser unico."""
 
 
 def now_iso() -> str:
@@ -150,6 +155,19 @@ class LocalJsonStore:
         with self.data_file.open("w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=2)
 
+    @staticmethod
+    def _verificar_codigo_unico(data: Dict[str, List[Dict[str, Any]]], table: str, item: Dict[str, Any]) -> None:
+        """Mesma regra do unique (usuario_id, codigo) do PostgreSQL; sem codigo nao ha conflito."""
+        if table != "colmeias" or not item.get("codigo"):
+            return
+        for outra in data["colmeias"]:
+            if (
+                outra.get("id") != item.get("id")
+                and outra.get("usuario_id") == item.get("usuario_id")
+                and outra.get("codigo") == item["codigo"]
+            ):
+                raise RegistroDuplicado(table)
+
     def list(self, table: str, filtros: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         data = self._read()
         itens = data.get(table, [])
@@ -166,6 +184,7 @@ class LocalJsonStore:
         item.setdefault("id", str(uuid4()))
         item.setdefault("criado_em", now_iso())
         item.setdefault("atualizado_em", now_iso())
+        self._verificar_codigo_unico(data, table, item)
         data.setdefault(table, []).append(item)
         self._write(data)
         return item
@@ -175,6 +194,7 @@ class LocalJsonStore:
         for index, item in enumerate(data.get(table, [])):
             if item.get("id") == item_id:
                 updated = {**item, **payload, "id": item_id, "atualizado_em": now_iso()}
+                self._verificar_codigo_unico(data, table, updated)
                 data[table][index] = updated
                 self._write(data)
                 return updated
@@ -221,6 +241,14 @@ class PostgresStore:
             prepare_threshold=None,
         )
 
+    @contextmanager
+    def _conexao_de_escrita(self):
+        try:
+            with self._connect() as conn:
+                yield conn
+        except self._psycopg.errors.UniqueViolation as exc:
+            raise RegistroDuplicado(str(exc)) from exc
+
     def _table_identifier(self, table: str):
         if table not in TABLES:
             raise ValueError(f"Tabela nao permitida: {table}")
@@ -258,7 +286,7 @@ class PostgresStore:
     def create(self, table: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         data = self._adapt_payload(payload, remove_none=True)
 
-        with self._connect() as conn:
+        with self._conexao_de_escrita() as conn:
             with conn.cursor() as cursor:
                 if not data:
                     query = self._psycopg.sql.SQL("insert into {} default values returning *").format(
@@ -296,7 +324,7 @@ class PostgresStore:
             self._psycopg.sql.SQL(", ").join(assignments),
         )
 
-        with self._connect() as conn:
+        with self._conexao_de_escrita() as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, (*data.values(), item_id))
                 return normalize_db_row(cursor.fetchone())

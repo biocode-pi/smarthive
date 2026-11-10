@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from fastapi import HTTPException, status
 
-from app.database import get_store
+from app.database import RegistroDuplicado, get_store
 from app.schemas.colmeia import ColmeiaCreate, ColmeiaUpdate
 
 
 TABLE = "colmeias"
+
+
+def _codigo_repetido() -> HTTPException:
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Já existe uma colmeia com este código.")
 
 
 def listar_colmeias(usuario_id: str) -> list[dict]:
@@ -25,7 +29,10 @@ def criar_colmeia(usuario_id: str, payload: ColmeiaCreate) -> dict:
     from app.services import meliponario_service
 
     meliponario_service.validar_dono(usuario_id, payload.meliponario_id)
-    return get_store().create(TABLE, {**payload.model_dump(mode="json"), "usuario_id": usuario_id})
+    try:
+        return get_store().create(TABLE, {**payload.model_dump(mode="json"), "usuario_id": usuario_id})
+    except RegistroDuplicado as exc:
+        raise _codigo_repetido() from exc
 
 
 def atualizar_colmeia(usuario_id: str, colmeia_id: str, payload: ColmeiaUpdate | dict) -> dict:
@@ -34,7 +41,10 @@ def atualizar_colmeia(usuario_id: str, colmeia_id: str, payload: ColmeiaUpdate |
     obter_colmeia(usuario_id, colmeia_id)
     dados = payload if isinstance(payload, dict) else payload.model_dump(exclude_unset=True, mode="json")
     meliponario_service.validar_dono(usuario_id, dados.get("meliponario_id"))
-    colmeia = get_store().update(TABLE, colmeia_id, dados)
+    try:
+        colmeia = get_store().update(TABLE, colmeia_id, dados)
+    except RegistroDuplicado as exc:
+        raise _codigo_repetido() from exc
     if not colmeia:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Colmeia não encontrada.")
     return colmeia

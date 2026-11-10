@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class StatusColmeia(str, Enum):
@@ -9,6 +9,11 @@ class StatusColmeia(str, Enum):
     observacao = "observacao"
     risco = "risco"
     inativa = "inativa"
+
+
+def _limpar_codigo(valor: str | None) -> str | None:
+    """Codigo em branco equivale a sem codigo, para nao colidir na regra de codigo unico."""
+    return (valor.strip() or None) if valor is not None else None
 
 
 class ColmeiaBase(BaseModel):
@@ -20,6 +25,8 @@ class ColmeiaBase(BaseModel):
     status: StatusColmeia = StatusColmeia.ativa
     instalada_em: date | None = None
     meliponario_id: str | None = None
+
+    _codigo_limpo = field_validator("codigo")(_limpar_codigo)
 
 
 class ColmeiaCreate(ColmeiaBase):
@@ -35,6 +42,8 @@ class ColmeiaUpdate(BaseModel):
     status: StatusColmeia | None = None
     instalada_em: date | None = None
     meliponario_id: str | None = None
+
+    _codigo_limpo = field_validator("codigo")(_limpar_codigo)
 
 
 class Colmeia(ColmeiaBase):
