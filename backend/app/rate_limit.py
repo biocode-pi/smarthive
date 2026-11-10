@@ -1,7 +1,7 @@
 """Limite de requisicoes por IP (janela fixa de 60 s, em memoria).
 
-A API roda em um unico processo, entao um contador em memoria basta. Uploads tem
-limite proprio, mais baixo, por serem as requisicoes mais caras (disco, S3, banco).
+A API roda em um unico processo, entao um contador em memoria basta. Cada tipo de rota
+tem o proprio limite, conforme o custo e o risco dela (ver grupo_e_limite).
 
 IP do cliente: em producao a requisicao passa por CloudFront e Caddy. O cliente pode
 enviar um X-Forwarded-For falso, mas o CloudFront acrescenta o IP real ao final e o
@@ -92,10 +92,19 @@ limitador = LimitadorDeRequisicoes()
 
 def grupo_e_limite(request: Request, settings: Settings) -> tuple[str, int] | None:
     caminho = request.url.path.removeprefix(settings.api_prefix)
-    if request.method == "OPTIONS" or caminho.startswith("/health") or not caminho.startswith("/"):
+    metodo = request.method
+    if metodo == "OPTIONS" or not caminho.startswith("/"):
         return None
-    if request.method == "POST" and caminho in ROTAS_DE_UPLOAD:
+    if caminho.startswith("/health"):
+        return "publico", settings.rate_limit_publico_por_minuto
+    if metodo == "POST" and caminho in ROTAS_DE_UPLOAD:
         return "upload", settings.rate_limit_upload_por_minuto
+    if metodo == "DELETE" and caminho == "/conta":
+        return "conta", settings.rate_limit_conta_por_minuto
+    if caminho == "/dashboard/resumo":
+        return "dashboard", settings.rate_limit_dashboard_por_minuto
+    if metodo in ("POST", "PUT", "PATCH", "DELETE"):
+        return "escrita", settings.rate_limit_escrita_por_minuto
     return "geral", settings.rate_limit_por_minuto
 
 

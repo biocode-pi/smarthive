@@ -16,7 +16,7 @@ uvicorn app.main:app --reload
 A API fica em `http://localhost:8000` e a documentacao interativa em
 `http://localhost:8000/docs` (desativada quando `ENVIRONMENT=production`).
 
-Sem configuracao extra a API roda com `AUTH_MODE=dev` (sem login, todos os dados
+Com o `.env` copiado do `.env.example` a API roda com `AUTH_MODE=dev` (sem login, todos os dados
 pertencem ao usuario `dev-local`) e grava em `app/data/smarthive.local.json`.
 
 ## Configuracao

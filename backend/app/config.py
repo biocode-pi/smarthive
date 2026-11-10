@@ -7,6 +7,10 @@ from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# Unicos ambientes em que a API pode rodar sem login (AUTH_MODE=dev).
+AMBIENTES_SEM_LOGIN = {"development", "dev", "local", "docker", "test"}
+
+
 class Settings(BaseSettings):
     app_name: str = "SmartHive API"
     app_version: str = "0.2.0"
@@ -19,9 +23,9 @@ class Settings(BaseSettings):
         description="Lista separada por virgulas com origens permitidas.",
     )
 
-    # Autenticacao: "cognito" valida o JWT do Amazon Cognito; "dev" usa um usuario fixo
-    # e so e permitido fora de producao.
-    auth_mode: Literal["cognito", "dev"] = "dev"
+    # Autenticacao: "cognito" valida o JWT do Amazon Cognito; "dev" usa um usuario fixo, precisa
+    # ser pedido explicitamente e so e aceito em ambiente local. Sem configuracao, a API nao sobe.
+    auth_mode: Literal["cognito", "dev"] = "cognito"
     dev_user_id: str = "dev-local"
     aws_region: str = "us-east-1"
     cognito_user_pool_id: str | None = None
@@ -36,11 +40,18 @@ class Settings(BaseSettings):
     s3_bucket: str | None = None
     s3_url_expiracao_segundos: int = 3600
     max_upload_mb: int = 50
+    # Corpo maximo: rotas JSON e, nos uploads, o arquivo mais a sobra do formato multipart.
+    max_corpo_mb: int = 1
+    margem_multipart_mb: int = 5
 
-    # Limite de requisicoes por IP a cada 60 s. TRUSTED_PROXY_HOPS: quantos proxies
-    # confiaveis acrescentam ao X-Forwarded-For (producao: CloudFront + Caddy = 2).
+    # Limite de requisicoes por IP a cada 60 s, separado por tipo de rota. TRUSTED_PROXY_HOPS:
+    # quantos proxies confiaveis acrescentam ao X-Forwarded-For (producao: CloudFront + Caddy = 2).
     rate_limit_por_minuto: int = 120
+    rate_limit_escrita_por_minuto: int = 60
     rate_limit_upload_por_minuto: int = 20
+    rate_limit_dashboard_por_minuto: int = 60
+    rate_limit_conta_por_minuto: int = 5
+    rate_limit_publico_por_minuto: int = 60
     trusted_proxy_hops: int = 0
 
     upload_dir: Path = Path(__file__).resolve().parent / "uploads"
@@ -56,6 +67,8 @@ class Settings(BaseSettings):
     def validar_configuracao(self) -> "Settings":
         if self.is_production and self.auth_mode != "cognito":
             raise ValueError("Em producao AUTH_MODE deve ser 'cognito'.")
+        if self.auth_mode == "dev" and (self.environment.lower() not in AMBIENTES_SEM_LOGIN or os.getenv("VERCEL")):
+            raise ValueError("AUTH_MODE=dev so e permitido em ambiente local.")
         if self.auth_mode == "cognito" and not (self.cognito_user_pool_id and self.cognito_app_client_id):
             raise ValueError("AUTH_MODE=cognito exige COGNITO_USER_POOL_ID e COGNITO_APP_CLIENT_ID.")
         if self.storage_backend == "s3" and not self.s3_bucket:

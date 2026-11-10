@@ -54,14 +54,19 @@ done
 touch /opt/smarthive/sites.caddy
 
 cd /opt/smarthive/current
+# Um Caddyfile invalido derrubaria o HTTPS: confere antes de trocar o que esta no ar.
+docker compose -p smarthive --env-file /opt/smarthive/db.env run --rm --no-deps -T caddy \
+  caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose -p smarthive --env-file /opt/smarthive/db.env up -d --build --remove-orphans
 docker image prune -f >/dev/null
-# Com "admin off" o Caddy nao recarrega sozinho; reinicia so quando os redirecionamentos mudam.
-# O arquivo so e gravado aqui (com printf, mantendo o inode do bind mount): se o "up" falhar,
-# o proximo deploy ainda ve a diferenca e reinicia o Caddy.
-if [ "$(cat /opt/smarthive/sites.caddy)" != "${SITES_NOVO%$'\n'}" ]; then
+# Com "admin off" o Caddy nao recarrega sozinho; recria o container quando os redirecionamentos
+# ou o Caddyfile mudam. O sites.caddy so e gravado aqui (com printf, mantendo o inode do bind
+# mount): se o "up" falhar, o proximo deploy ainda ve a diferenca. O Caddyfile e comparado com
+# o que o container esta usando, entao um deploy interrompido tambem e corrigido no seguinte.
+CADDYFILE_ATIVO="$(docker compose -p smarthive --env-file /opt/smarthive/db.env exec -T caddy cat /etc/caddy/Caddyfile 2>/dev/null || true)"
+if [ "$(cat /opt/smarthive/sites.caddy)" != "${SITES_NOVO%$'\n'}" ] || [ "$(cat Caddyfile)" != "$CADDYFILE_ATIVO" ]; then
   printf '%s' "$SITES_NOVO" > /opt/smarthive/sites.caddy
-  docker compose -p smarthive restart caddy
+  docker compose -p smarthive --env-file /opt/smarthive/db.env up -d --no-deps --force-recreate caddy
 fi
 
 # Backup diario do Postgres para o S3 as 03:00 UTC (00:00 em Brasilia).
