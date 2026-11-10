@@ -73,6 +73,11 @@ Resources:
     Properties:
       UserPoolName: !Sub "${AWS::StackName}-usuarios"
       UserPoolTier: ESSENTIALS
+      # Exclusao acidental do pool apagaria todas as contas.
+      DeletionProtection: ACTIVE
+      # O e-mail so muda depois de confirmado pelo novo endereco.
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate: [email]
       UsernameAttributes: [email]
       AutoVerifiedAttributes: [email]
       # MFA opcional por aplicativo autenticador (TOTP), sem custo de SMS.
