@@ -44,7 +44,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 async function carregarUsuario(): Promise<Usuario | null> {
   try {
     const { userId } = await getCurrentUser();
-    // Nome e e-mail ja vem no ID token salvo localmente; evita uma chamada de rede a cada carregamento.
     const { tokens } = await fetchAuthSession();
     const claims = tokens?.idToken?.payload;
     if (!claims) return null;
@@ -58,7 +57,6 @@ async function carregarUsuario(): Promise<Usuario | null> {
   }
 }
 
-/** Access token atual (renovado automaticamente pelo Amplify) para enviar a API. */
 export async function obterAccessToken(): Promise<string | null> {
   if (!hasCognitoConfig) return null;
   try {
@@ -99,7 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (email: string, senha: string, manterConectado: boolean) =>
     executar(async () => {
-      // Sem "manter conectado", os tokens ficam so ate fechar o navegador.
       cognitoUserPoolsTokenProvider.setKeyValueStorage(manterConectado ? defaultStorage : amplifySessionStorage);
       const { nextStep } = await signIn({ username: email, password: senha });
       if (nextStep.signInStep === "CONFIRM_SIGN_UP") {

@@ -50,7 +50,6 @@ export function Alertas() {
   if (loading) return <LoadingState />;
 
   const codigoDaColmeia = new Map(colmeias.map((c) => [c.id, c.codigo || c.nome]));
-  // Mais grave primeiro; na mesma gravidade, o mais recente.
   const abertos = alertas
     .filter((alerta) => !alerta.resolvido)
     .sort((a, b) => ordemSeveridade[a.severidade] - ordemSeveridade[b.severidade] || b.criado_em.localeCompare(a.criado_em));

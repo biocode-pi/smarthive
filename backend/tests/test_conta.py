@@ -58,7 +58,6 @@ def test_exclusao_no_s3_fica_restrita_a_pasta_do_usuario(settings, monkeypatch):
 
     class Paginador:
         def paginate(self, Bucket, Prefix):
-            # O S3 so devolve chaves do prefixo pedido; incluimos uma de fora para provar o filtro.
             yield {"Contents": [{"Key": f"{Prefix}a.png"}, {"Key": f"{Prefix}b.mp4"}, {"Key": "usuarios/outro/c.png"}]}
 
     class S3Falso:

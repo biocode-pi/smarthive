@@ -1,12 +1,6 @@
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
 import type { StatusColmeia } from "../../types";
 import { cn } from "../../utils/classNames";
-
-/**
- * Mapa do meliponario em forma de favo: cada hexagono e uma colmeia, colorida pelo
- * status. As celulas ocupam o favo em espiral a partir do centro, como um favo cresce;
- * as posicoes vazias do anel atual aparecem so como contorno.
- */
 
 export interface CelulaFavo {
   id: string;
@@ -19,7 +13,6 @@ export interface CelulaFavo {
 const RAIO = 46;
 const LARGURA = Math.sqrt(3) * RAIO;
 
-// Mesmos tons pastel dos selos de status do app mobile (com texto escuro, contraste AA).
 export const CORES_STATUS: Record<StatusColmeia, { fill: string; texto: string; rotulo: string }> = {
   ativa: { fill: "#cff8cc", texto: "#1a6b12", rotulo: "Em dia" },
   observacao: { fill: "#fae596", texto: "#645f46", rotulo: "Em observação" },
@@ -36,7 +29,6 @@ const DIRECOES: Array<[number, number]> = [
   [0, 1],
 ];
 
-/** Coordenadas axiais em espiral: centro, anel 1 (6), anel 2 (12)... */
 function espiral(quantidade: number): Array<[number, number]> {
   const posicoes: Array<[number, number]> = [[0, 0]];
   for (let anel = 1; posicoes.length < quantidade; anel += 1) {
@@ -53,7 +45,6 @@ function espiral(quantidade: number): Array<[number, number]> {
 }
 
 function tamanhoDoFavo(quantidade: number): number {
-  // Completa o anel atual para o favo ficar fechado (1, 7, 19, 37...).
   let total = 1;
   for (let anel = 1; total < quantidade; anel += 1) total += 6 * anel;
   return total;
@@ -76,7 +67,6 @@ interface FavoMapProps {
   onSelecionar?: (id: string) => void;
   className?: string;
   titulo?: string;
-  /** Cor da borda entre as celulas; use a cor do fundo para o favo "recortado". */
   corDoContorno?: string;
 }
 
@@ -130,6 +120,8 @@ export function FavoMap({
         return (
           <g
             key={celula.id}
+            data-celula={celula.status}
+            style={{ "--i": indice } as CSSProperties}
             className={cn(
               "origin-center outline-none [transform-box:fill-box]",
               interativa && "cursor-pointer transition-transform duration-150 hover:scale-[1.04] focus-visible:scale-[1.04]",

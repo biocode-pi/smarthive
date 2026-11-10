@@ -15,11 +15,9 @@ import { formatNumber } from "../utils/formatters";
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 
 export function enderecoCompleto(m: Pick<Meliponario, "endereco" | "cidade" | "uf">) {
-  // Mesmo formato do card do app: "Cidade, Endereco".
   return [m.cidade, m.endereco].filter(Boolean).join(", ");
 }
 
-/** Situacao do meliponario: "Em dia" ou quantos alertas estao abertos. */
 export function SeloAlertas({ alertas }: { alertas: number }) {
   return alertas > 0 ? (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-status-risco-texto">
@@ -62,7 +60,6 @@ export function Meliponarios() {
     void carregar();
   }, []);
 
-  // Busca e filtro no navegador: a lista e pequena e a resposta fica instantanea.
   const visiveis = useMemo(() => {
     const termo = busca
       .normalize("NFD")

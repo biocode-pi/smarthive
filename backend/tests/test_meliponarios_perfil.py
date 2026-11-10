@@ -49,7 +49,6 @@ def test_meliponario_isolado_por_usuario(client):
     assert client.get(f"/api/meliponarios/{meliponario['id']}", headers=outro).status_code == 404
     assert client.put(f"/api/meliponarios/{meliponario['id']}", json={"nome": "Hack"}, headers=outro).status_code == 404
     assert client.delete(f"/api/meliponarios/{meliponario['id']}", headers=outro).status_code == 404
-    # Nao da para colocar uma colmeia propria no meliponario de outra pessoa.
     resposta = client.post(
         "/api/colmeias", json={"nome": "Intrusa", "especie": "Jataí", "meliponario_id": meliponario["id"]}, headers=outro
     )
@@ -78,8 +77,8 @@ def test_perfil_registra_consentimento_e_revogacao(client):
 
     revogado = client.put("/api/perfil", json={"notificacoes_email": False}, headers=h).json()
     assert revogado["notificacoes_email"] is False and revogado["revogado_em"]
-    assert revogado["consentimento_em"] == ativado["consentimento_em"]  # historico preservado
-    assert revogado["telefone"] == "11912345678"  # campo omitido nao muda
+    assert revogado["consentimento_em"] == ativado["consentimento_em"]
+    assert revogado["telefone"] == "11912345678"
 
     sem_telefone = client.put("/api/perfil", json={"telefone": None}, headers=h).json()
     assert sem_telefone["telefone"] is None

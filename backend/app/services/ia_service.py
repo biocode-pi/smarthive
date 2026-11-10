@@ -9,12 +9,6 @@ def analisar_fluxo_experimental(
     abelhas_entrando: int | None,
     abelhas_saindo: int | None,
 ) -> dict[str, Any]:
-    """Analise heuristica do fluxo.
-
-    Placeholder para futura IA com OpenCV, YOLO, TensorFlow ou PyTorch. Nesta
-    fase academica, a funcao apenas interpreta os numeros informados pelo
-    usuario/celular para manter a arquitetura preparada.
-    """
 
     movimentos = movimentos_estimados or 0
     entrando = abelhas_entrando or 0
@@ -39,15 +33,9 @@ def analisar_fluxo_experimental(
 
 
 def detectar_possivel_invasor(possivel_invasor_manual: bool, observacoes: str | None = None) -> bool:
-    """Detecta risco inicial de invasor por regra simples.
-
-    Futuramente esta funcao pode receber frames de video e usar deteccao de
-    objetos para identificar formigas, forideos, aranhas ou outras ameacas.
-    """
 
     if possivel_invasor_manual:
         return True
-    # Compara sem acentos: "ameaça" e "forídeo" digitados corretamente tambem contam.
     texto = unicodedata.normalize("NFKD", (observacoes or "").lower())
     texto = "".join(c for c in texto if not unicodedata.combining(c))
     palavras_chave = ("invasor", "formiga", "forideo", "aranha", "mosca", "ameaca", "ataque")
@@ -59,11 +47,6 @@ def classificar_status_colmeia(
     possivel_invasor: bool,
     status_atual: str = "ativa",
 ) -> str:
-    """Classifica status operacional da colmeia com heuristica inicial.
-
-    Em uma evolucao de IA/IoT, esta etapa podera combinar series temporais,
-    temperatura, umidade, audio, visao computacional e modelos embarcados.
-    """
 
     if possivel_invasor:
         return "risco"

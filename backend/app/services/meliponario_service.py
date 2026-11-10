@@ -59,7 +59,6 @@ def obter_meliponario(usuario_id: str, meliponario_id: str) -> dict:
 
 
 def validar_dono(usuario_id: str, meliponario_id: str | None) -> None:
-    """Impede vincular uma colmeia a meliponario de outro usuario."""
     if meliponario_id:
         _obter_bruto(usuario_id, meliponario_id)
 
@@ -84,7 +83,6 @@ def atualizar_meliponario(usuario_id: str, meliponario_id: str, payload: Melipon
 def excluir_meliponario(usuario_id: str, meliponario_id: str) -> None:
     _obter_bruto(usuario_id, meliponario_id)
     store = get_store()
-    # As colmeias nao sao apagadas: ficam sem meliponario e continuam no historico.
     for colmeia in store.list("colmeias", {"usuario_id": usuario_id, "meliponario_id": meliponario_id}):
         store.update("colmeias", colmeia["id"], {"meliponario_id": None})
     store.delete(TABLE, meliponario_id)

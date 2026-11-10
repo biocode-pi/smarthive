@@ -113,7 +113,7 @@ def test_limite_geral_por_ip(client, settings, monkeypatch, limitador_limpo):
     assert codigos == [200, 200, 200, 429]
     bloqueada = client.get("/api/colmeias", headers=h)
     assert int(bloqueada.headers["Retry-After"]) >= 1
-    assert client.get("/api/health").status_code == 200  # healthcheck fica fora do limite
+    assert client.get("/api/health").status_code == 200
 
 
 def test_limite_de_upload(client, settings, monkeypatch, limitador_limpo):
@@ -123,17 +123,16 @@ def test_limite_de_upload(client, settings, monkeypatch, limitador_limpo):
     dados = {"colmeia_id": colmeia_id}
     assert client.post("/api/monitoramentos", data=dados, headers=h).status_code == 201
     assert client.post("/api/monitoramentos", data=dados, headers=h).status_code == 429
-    assert client.get("/api/colmeias", headers=h).status_code == 200  # limite geral e separado
+    assert client.get("/api/colmeias", headers=h).status_code == 200
 
 
 def test_x_forwarded_for_falsificado_nao_burla_limite(client, settings, monkeypatch, limitador_limpo):
-    # Producao: CloudFront acrescenta o IP real e o Caddy acrescenta o do CloudFront.
     monkeypatch.setattr(settings, "trusted_proxy_hops", 2)
     monkeypatch.setattr(settings, "rate_limit_por_minuto", 2)
     h = headers_de("user-rl-xff")
     codigos = []
     for i in range(3):
-        cadeia = f"10.0.0.{i}, 203.0.113.7, 130.176.0.1"  # 1o item forjado pelo cliente; IP real fixo
+        cadeia = f"10.0.0.{i}, 203.0.113.7, 130.176.0.1"
         codigos.append(client.get("/api/colmeias", headers={**h, "X-Forwarded-For": cadeia}).status_code)
     assert codigos == [200, 200, 429]
 
@@ -144,7 +143,7 @@ def test_ipv6_do_mesmo_bloco_64_conta_junto(client, settings, monkeypatch, limit
     h = headers_de("user-rl-v6")
     codigos = []
     for i in range(3):
-        cadeia = f"2001:db8:abcd:12::{i + 1:x}, 130.176.0.1"  # enderecos diferentes, mesmo /64
+        cadeia = f"2001:db8:abcd:12::{i + 1:x}, 130.176.0.1"
         codigos.append(client.get("/api/colmeias", headers={**h, "X-Forwarded-For": cadeia}).status_code)
     assert codigos == [200, 200, 429]
 
@@ -154,10 +153,8 @@ def test_teto_de_chaves_usa_balde_de_excedente():
 
     limitador = LimitadorDeRequisicoes(max_chaves=3)
     assert [limitador.registrar(f"10.0.0.{i}", "geral", 2) for i in range(3)] == [None, None, None]
-    # Teto atingido: IPs novos nao sao recusados de cara, dividem o balde de excedente (2 x fator).
     novos = [limitador.registrar(f"10.9.{i}.1", "geral", 2) for i in range(2 * FATOR_EXCEDENTE + 1)]
     assert novos[:-1] == [None] * (2 * FATOR_EXCEDENTE) and novos[-1] is not None
-    # Clientes ja conhecidos continuam com o proprio limite, sem efeito do excedente.
     assert limitador.registrar("10.0.0.1", "geral", 2) is None
 
 

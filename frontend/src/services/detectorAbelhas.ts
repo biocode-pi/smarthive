@@ -1,14 +1,6 @@
-// O caminho relativo e necessario: o pacote nao exporta estes arquivos pelo nome.
 import mjsUrl from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.mjs?url";
 import wasmUrl from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?url";
 
-/**
- * Detector de abelhas treinado pelo grupo (YOLOv8 exportado para ONNX), rodando no proprio
- * aparelho: as imagens nao vao para um servidor para serem analisadas.
- *
- * O nome do arquivo leva a versao porque o deploy publica tudo com cache de 1 ano.
- * Como gerar o arquivo: docs/modelo-visao.md.
- */
 const MODELO_URL = "/modelos/jatai-v1.onnx";
 const TAMANHO = 640;
 const CONFIANCA_MINIMA = 0.25;
@@ -34,7 +26,6 @@ function dimensoes(fonte: Fonte) {
     : { largura: fonte.naturalWidth, altura: fonte.naturalHeight };
 }
 
-/** Imagem em 640x640 mantendo a proporcao, com faixas cinza, como no treinamento. */
 function tensorDaImagem(fonte: Fonte, contexto: CanvasRenderingContext2D): Float32Array {
   const { largura, altura } = dimensoes(fonte);
   const escala = TAMANHO / Math.max(largura, altura);
@@ -63,7 +54,6 @@ function iou(a: Deteccao, b: Deteccao) {
   return uniao > 0 ? intersecao / uniao : 0;
 }
 
-/** Saida do YOLOv8 exportado sem NMS: [1, 4 + classes, n], com centro, largura, altura e notas. */
 function interpretarSaida(dados: Float32Array, colunas: number, linhas: number): Deteccao[] {
   const candidatas: Deteccao[] = [];
   for (let i = 0; i < linhas; i += 1) {
@@ -86,7 +76,6 @@ function interpretarSaida(dados: Float32Array, colunas: number, linhas: number):
   return finais;
 }
 
-/** Baixa o modelo, se ele existir. Devolve null quando nao houver um modelo utilizavel. */
 export async function carregarDetector(): Promise<DetectorAbelhas | null> {
   try {
     const resposta = await fetch(MODELO_URL);
@@ -95,7 +84,7 @@ export async function carregarDetector(): Promise<DetectorAbelhas | null> {
 
     const ort = await import("onnxruntime-web/wasm");
     ort.env.wasm.wasmPaths = { mjs: mjsUrl, wasm: wasmUrl };
-    ort.env.wasm.numThreads = 1; // varias threads exigiriam cabecalhos COOP/COEP no site
+    ort.env.wasm.numThreads = 1;
     const sessao = await ort.InferenceSession.create(modelo, { executionProviders: ["wasm"] });
 
     const canvas = document.createElement("canvas");
@@ -110,11 +99,9 @@ export async function carregarDetector(): Promise<DetectorAbelhas | null> {
       return saida[sessao.outputNames[0]];
     };
 
-    // Confere o formato uma vez: um modelo exportado de outro jeito nao pode virar contagem errada.
     const teste = await rodar(new Float32Array(3 * TAMANHO * TAMANHO));
     if (teste.dims.length !== 3 || teste.dims[0] !== 1 || teste.dims[1] < 5) return null;
 
-    // A sessao nao aceita duas analises ao mesmo tempo (camera e foto enviada).
     let fila: Promise<unknown> = Promise.resolve();
     return {
       detectar(fonte) {

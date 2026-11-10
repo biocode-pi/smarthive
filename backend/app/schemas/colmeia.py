@@ -12,7 +12,6 @@ class StatusColmeia(str, Enum):
 
 
 def _limpar_codigo(valor: str | None) -> str | None:
-    """Codigo em branco equivale a sem codigo, para nao colidir na regra de codigo unico."""
     return (valor.strip() or None) if valor is not None else None
 
 

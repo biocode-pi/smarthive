@@ -9,7 +9,6 @@ interface LegalLayoutProps {
   children: ReactNode;
 }
 
-/** Layout das paginas de texto legal: leitura confortavel e navegacao entre os documentos. */
 export function LegalLayout({ titulo, resumo, children }: LegalLayoutProps) {
   return (
     <div className="min-h-screen text-ink">

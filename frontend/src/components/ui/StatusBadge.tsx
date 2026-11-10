@@ -2,7 +2,6 @@ import type { StatusColmeia } from "../../types";
 import { cn } from "../../utils/classNames";
 import { CORES_STATUS, pontosHexagono } from "./FavoMap";
 
-/** Hexagono do favo na cor da situacao: o mesmo simbolo do mapa do meliponario. */
 export function Hexa({ status, className }: { status: StatusColmeia; className?: string }) {
   const cor = CORES_STATUS[status] ?? CORES_STATUS.inativa;
   return (

@@ -19,7 +19,6 @@ def listar_colmeias(usuario_id: str) -> list[dict]:
 
 def obter_colmeia(usuario_id: str, colmeia_id: str) -> dict:
     colmeia = get_store().get(TABLE, colmeia_id)
-    # Colmeia de outro usuario responde 404, para nao revelar que o id existe.
     if not colmeia or colmeia.get("usuario_id") != usuario_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Colmeia não encontrada.")
     return colmeia
@@ -53,8 +52,6 @@ def atualizar_colmeia(usuario_id: str, colmeia_id: str, payload: ColmeiaUpdate |
 def excluir_colmeia(usuario_id: str, colmeia_id: str) -> None:
     obter_colmeia(usuario_id, colmeia_id)
     store = get_store()
-    # Remove os dados dependentes explicitamente: o JSON local nao tem chaves estrangeiras,
-    # e um alerta de colmeia apagada continuaria aparecendo na lista.
     for tabela in ("alertas", "capturas_sensor_celular", "monitoramentos"):
         for item in store.list(tabela, {"usuario_id": usuario_id, "colmeia_id": colmeia_id}):
             store.delete(tabela, item["id"])

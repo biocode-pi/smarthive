@@ -16,7 +16,6 @@ import { obterResumoDashboard } from "../services/dashboard";
 import type { Colmeia, DashboardResumo, StatusColmeia } from "../types";
 import { formatNumber } from "../utils/formatters";
 
-/** Atividade: o que as capturas recentes mediram na entrada das colmeias. */
 export function Dashboard() {
   const [resumo, setResumo] = useState<DashboardResumo | null>(null);
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);

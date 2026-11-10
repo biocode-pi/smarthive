@@ -13,7 +13,6 @@ logger = logging.getLogger("smarthive")
 
 @router.get("")
 def healthcheck():
-    # Publico: usado pelo healthcheck do Docker e do load balancer. Nao expor detalhes internos.
     return {"status": "ok", "app": get_settings().app_name}
 
 

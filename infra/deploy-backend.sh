@@ -1,14 +1,10 @@
 #!/bin/bash
-# Empacota backend + schema, envia ao S3 e manda a instancia EC2 instalar via SSM.
-# Uso (Git Bash, na raiz do repo): bash infra/deploy-backend.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 AWS="${AWS:-aws}"
 command -v "$AWS" >/dev/null 2>&1 || AWS="/c/Program Files/Amazon/AWSCLIV2/aws.exe"
 STACK="${STACK:-smarthive}"
-# Dominios raiz de outros sites que este servidor redireciona para www (o registro.br nao
-# aceita CNAME no raiz). biocode.dev.br: landing da equipe, no repo biocode-pi/biocode.
 DOMINIOS_EXTRAS="${DOMINIOS_EXTRAS:-biocode.dev.br}"
 
 output() {
@@ -38,7 +34,6 @@ tar -C . -cf - \
   backend | tar -C "$TMP/pkg" -xf -
 tar -C "$TMP/pkg" -czf "$TMP/app.tgz" .
 
-# Configuracao nao secreta da API. A senha do banco fica so na instancia (db.env).
 cat > "$TMP/app.env" <<ENV
 ENVIRONMENT=production
 API_PREFIX=/api
@@ -52,7 +47,6 @@ STORAGE_BACKEND=s3
 S3_BUCKET=$(output UploadsBucketName)
 BACKUP_BUCKET=$(output BackupBucketName)
 MAX_UPLOAD_MB=50
-# CloudFront + Caddy acrescentam ao X-Forwarded-For; o IP real e o 2o a partir do fim.
 TRUSTED_PROXY_HOPS=2
 RATE_LIMIT_POR_MINUTO=120
 RATE_LIMIT_UPLOAD_POR_MINUTO=20
@@ -74,7 +68,6 @@ COMMAND_ID="$("$AWS" ssm send-command --instance-ids "$INSTANCE_ID" \
   --parameters "file://$PARAMS_FILE" --query Command.CommandId --output text | tr -d '\r')"
 
 echo "Release $RELEASE_ID enviada (comando SSM $COMMAND_ID). Aguardando instalacao..."
-# O waiter do SSM desiste em ~100s; o build na t4g.micro pode levar alguns minutos.
 STATUS=Pending
 for _ in $(seq 1 120); do
   STATUS="$("$AWS" ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \

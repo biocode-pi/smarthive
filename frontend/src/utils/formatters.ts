@@ -35,7 +35,6 @@ export const tipoAlertaLabel: Record<string, string> = {
   sistema: "Sistema",
 };
 
-/** Registros antigos guardaram a leitura automatica com o prefixo "IA:"; mostra com o nome atual. */
 export function textoObservacao(texto?: string | null): string {
   return (texto ?? "")
     .replace(/^IA: (.+?) identificado como "[^"]*" com (\d+%) de confiança\./gm, "Leitura automática: $1 na imagem ($2).")

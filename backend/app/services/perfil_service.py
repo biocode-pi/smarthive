@@ -25,7 +25,6 @@ def atualizar_perfil(usuario_id: str, payload: PerfilUpdate) -> dict:
     if payload.notificacoes_email is not None:
         ja_ativo = bool(atual and atual.get("notificacoes_email"))
         dados["notificacoes_email"] = payload.notificacoes_email
-        # Guarda quando o consentimento foi dado e quando foi revogado (prova para a LGPD).
         if payload.notificacoes_email and not ja_ativo:
             dados["consentimento_em"] = agora
             dados["revogado_em"] = None

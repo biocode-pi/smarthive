@@ -12,9 +12,7 @@
 }
 
 html {
-  /* O toque ganha feedback proprio (.press); o destaque cinza do navegador sobra. */
   -webkit-tap-highlight-color: transparent;
-  /* Ancoras (#como-funciona) param abaixo do cabecalho fixo. */
   scroll-padding-top: 5rem;
 }
 
@@ -24,7 +22,6 @@ html {
   }
 }
 
-/* Sem a espera de ~300 ms do toque duplo para zoom. */
 a,
 button,
 label,
@@ -39,7 +36,6 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  /* Creme da lista do app mobile. */
   background: #fff5c5;
 }
 
@@ -50,8 +46,6 @@ textarea {
   font: inherit;
 }
 
-/* Campos tem largura minima intrinseca; sem isso, numa coluna estreita de grid eles
-   empurram o card para fora (ex.: "Especie" no formulario de colmeias). */
 label,
 input,
 select,
@@ -64,16 +58,13 @@ a {
 }
 
 .focus-ring {
-  /* Foco em preto: o amarelo da marca nao aparece sobre o creme. */
   @apply focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2 focus:ring-offset-white;
 }
 
 .surface {
-  /* Painel branco: so onde ha algo para manipular (formulario, mapa, camera). */
   @apply min-w-0 rounded-[24px] bg-white ring-1 ring-ink/10;
 }
 
-/* Titulo de pagina: Archivo larga e pesada, a mesma voz dos titulos do site. */
 .titulo-pagina {
   @apply font-expo font-extrabold leading-[0.95] text-ink;
   font-size: clamp(2rem, 4.2vw, 3rem);
@@ -85,12 +76,10 @@ a {
   font-stretch: 108%;
 }
 
-/* Rotulo de leitura: Plex Mono em caixa alta, como a etiqueta de um instrumento. */
 .rotulo {
   @apply font-dados text-[11px] uppercase tracking-[0.14em] text-ink/60;
 }
 
-/* Campos de formulario. */
 .campo {
   @apply h-12 w-full rounded-field bg-white px-4 font-normal text-ink ring-1 ring-ink/15 placeholder:text-ink/40 focus:outline-none focus:ring-2 focus:ring-ink;
 }
@@ -101,13 +90,11 @@ textarea.campo {
   @apply grid gap-1.5 text-sm font-bold text-ink;
 }
 
-/* Link de acao em texto: sublinhado grosso que escurece no hover. */
 .link-acao {
   @apply rounded font-bold text-ink underline decoration-ink/30 decoration-2 underline-offset-4 hover:decoration-ink;
 }
 
 @layer components {
-/* Tabela de registros: sem caixa em volta, so linhas finas. */
 .table-shell {
   @apply overflow-x-auto;
 }
@@ -125,7 +112,6 @@ textarea.campo {
 }
 }
 
-/* Titulos em Lato Bold, como no app mobile. */
 h1,
 h2,
 h3 {
@@ -133,8 +119,6 @@ h3 {
   font-weight: 700;
 }
 
-/* Espacamento entre letras depende do tamanho: titulos grandes mais justos, caixa alta
-   mais aberta. Quebra de linha equilibrada nos titulos e sem palavra sozinha no fim. */
 h1,
 h2 {
   letter-spacing: -0.01em;
@@ -150,7 +134,6 @@ p {
   text-wrap: pretty;
 }
 
-/* Feedback no instante do toque (pointer-down), nao so ao soltar. */
 button,
 .press {
   transition-property: transform, color, background-color, border-color, box-shadow, filter, opacity;
@@ -163,7 +146,6 @@ button:not(:disabled):active,
   transition-duration: 80ms;
 }
 
-/* Camadas translucidas (cabecalhos e barras): o conteudo passa por baixo. */
 .material-mel {
   background-color: rgb(255 204 0 / 0.86);
   backdrop-filter: blur(20px) saturate(180%);
@@ -196,9 +178,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Painel modal (Sheet): sobe da borda no celular e surge no centro no computador.
-   Curva de desaceleracao das folhas do iOS; transicoes partem da posicao atual na tela. */
-/* Enquanto sai, o painel nao bloqueia toques na pagina. */
 .sheet[data-visivel="false"] {
   pointer-events: none;
 }
@@ -231,7 +210,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Menu que desce do cabecalho: altura animada por grid, reversivel no meio do caminho. */
 .recolhivel {
   display: grid;
   grid-template-rows: 0fr;
@@ -249,7 +227,6 @@ button:not(:disabled):active,
   overflow: hidden;
 }
 
-/* Instrumento do site: abelhas cruzando a entrada da caixa (x = 268 e o tubo). */
 .abelha {
   animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
   animation-iteration-count: infinite;
@@ -305,7 +282,290 @@ button:not(:disabled):active,
   }
 }
 
-/* Numeros de dados alinhados em colunas (KPIs, tabelas). */
+[data-animar] {
+  overflow-x: clip;
+}
+[data-animar] [data-revelar] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 700ms ease,
+    transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+[data-animar] [data-revelar="direita"] {
+  transform: translateX(40px);
+}
+[data-animar] [data-revelar="escala"] {
+  transform: scale(0.92);
+}
+[data-animar] [data-revelar][data-visto] {
+  opacity: 1;
+  transform: none;
+}
+
+.palavra-caixa {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0.14em 0.04em 0.08em 0;
+  margin: -0.14em -0.04em -0.08em 0;
+}
+.palavra {
+  display: inline-block;
+}
+[data-animar] [data-revelar="palavras"] {
+  opacity: 1;
+  transform: none;
+}
+[data-animar] [data-revelar="palavras"] .palavra {
+  transform: translateY(125%);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+[data-animar] [data-revelar="palavras"][data-visto] .palavra {
+  transform: none;
+}
+
+.favo-fundo {
+  will-change: transform;
+  -webkit-mask-image: linear-gradient(100deg, transparent 25%, #000 80%);
+  mask-image: linear-gradient(100deg, transparent 25%, #000 80%);
+}
+
+.seta-avanca {
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.group:hover .seta-avanca {
+  transform: translateX(4px);
+}
+
+.linha-cresce {
+  transform-origin: left;
+}
+[data-animar] .linha-cresce {
+  transform: scaleX(0);
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 200ms;
+}
+[data-animar] [data-visto] .linha-cresce {
+  transform: none;
+}
+
+.especie-nome {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.especie:hover .especie-nome {
+  transform: translateX(14px);
+}
+.especie-abelha {
+  opacity: 0;
+  margin-top: -0.75rem;
+}
+
+[data-animar] .favo-surgir [data-celula] {
+  opacity: 0;
+}
+[data-animar] [data-visto] .favo-surgir [data-celula] {
+  animation: celula-surge 620ms cubic-bezier(0.34, 1.45, 0.64, 1) both;
+  animation-delay: calc(250ms + var(--i, 0) * 100ms);
+}
+@keyframes celula-surge {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .flutuar {
+    animation: flutuar 6s ease-in-out infinite;
+  }
+  @keyframes flutuar {
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .grafico-surge {
+    animation: grafico-surge 1600ms cubic-bezier(0.16, 1, 0.3, 1) 500ms both;
+  }
+  @keyframes grafico-surge {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  .numero-pulso {
+    animation: numero-pulso 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes numero-pulso {
+    from {
+      transform: scale(1.08);
+    }
+  }
+
+  .abelha-paira {
+    animation: abelha-paira 900ms ease-in-out infinite;
+  }
+  @keyframes abelha-paira {
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  .abelha-asas {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: abelha-asas 110ms ease-in-out infinite alternate;
+  }
+  @keyframes abelha-asas {
+    to {
+      transform: scaleY(0.45);
+    }
+  }
+
+  .enxame-abelha {
+    opacity: 0.55;
+    animation-name: enxame-voa;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+  @keyframes enxame-voa {
+    from {
+      transform: translate3d(-60px, 0, 0);
+    }
+    25% {
+      transform: translate3d(25vw, -18px, 0);
+    }
+    50% {
+      transform: translate3d(50vw, 14px, 0);
+    }
+    75% {
+      transform: translate3d(75vw, -12px, 0);
+    }
+    to {
+      transform: translate3d(calc(100vw + 60px), 0, 0);
+    }
+  }
+
+  .especie:hover .especie-abelha {
+    animation: especie-voa 1500ms ease-in-out;
+  }
+  @keyframes especie-voa {
+    0% {
+      opacity: 0;
+      left: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      left: calc(100% - 1.5rem);
+    }
+  }
+
+  [data-visto] .art-piscar {
+    animation: art-piscar 1100ms steps(2, jump-none) infinite;
+  }
+  @keyframes art-piscar {
+    to {
+      opacity: 0.15;
+    }
+  }
+  [data-visto] .art-mira > span:nth-child(-n + 4) {
+    animation: art-mira 1800ms ease-in-out infinite;
+  }
+  @keyframes art-mira {
+    50% {
+      opacity: 0.35;
+    }
+  }
+  [data-visto] .art-abelha {
+    animation: art-abelha 2400ms ease-in-out infinite;
+  }
+  @keyframes art-abelha {
+    0%,
+    100% {
+      transform: translate(-16px, -7px);
+    }
+    50% {
+      transform: translate(16px, 7px);
+    }
+  }
+  [data-visto] .art-progresso {
+    animation: art-progresso 2800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  @keyframes art-progresso {
+    from {
+      transform: scaleX(0);
+    }
+    85%,
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .art-barra {
+    transform-origin: bottom;
+  }
+  [data-animar] .art-barra {
+    transform: scaleY(0);
+  }
+  [data-animar] [data-visto] .art-barra {
+    animation: art-barra 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(300ms + var(--i, 0) * 90ms);
+  }
+  @keyframes art-barra {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  [data-animar] [data-visto] .art-queda {
+    animation:
+      art-barra 650ms cubic-bezier(0.16, 1, 0.3, 1) both calc(300ms + var(--i, 0) * 90ms),
+      art-piscar 900ms ease-in-out 1500ms infinite alternate;
+  }
+  [data-visto] .art-alerta {
+    animation: art-alerta 4200ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+  @keyframes art-alerta {
+    0% {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    12%,
+    88% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+  [data-animar] [data-visto] .favo-surgir [data-celula="risco"] polygon {
+    animation: celula-risco 1500ms ease-in-out 1600ms infinite alternate;
+  }
+  @keyframes celula-risco {
+    to {
+      fill-opacity: 0.55;
+    }
+  }
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
 }
@@ -319,7 +579,6 @@ button:not(:disabled):active,
     transition-duration: 0.01ms !important;
   }
 
-  /* Movimento reduzido nao e ausencia de feedback: troca deslizes e escala por esmaecer. */
   .sheet-painel,
   .sheet[data-visivel="true"] .sheet-painel,
   button:not(:disabled):active,
@@ -335,7 +594,6 @@ button:not(:disabled):active,
   }
 }
 
-/* Paginas de texto legal: hierarquia clara e linha confortavel para leitura longa. */
 .legal h2 {
   @apply mt-10 text-2xl font-semibold text-hive-900;
 }

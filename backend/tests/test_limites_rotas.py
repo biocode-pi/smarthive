@@ -36,8 +36,6 @@ def colmeia_de(client, h):
     return client.post("/api/colmeias", json={"nome": "Jataí", "especie": "Jataí"}, headers=h).json()
 
 
-# --- O corpo so e lido depois da autenticacao
-
 
 def test_json_sem_token_nao_e_lido(client):
     resposta = client.post("/api/colmeias", content=b'{"nome": ', headers=JSON)
@@ -74,8 +72,6 @@ def test_preflight_cors_nao_exige_token(client):
 
     assert resposta.status_code == 200
 
-
-# --- Tamanho do corpo
 
 
 def test_json_acima_do_limite_responde_413(client):
@@ -136,8 +132,6 @@ def test_requisicao_de_upload_acima_do_teto_responde_413(client, settings, monke
     assert resposta.status_code == 413
 
 
-# --- Limite por rota
-
 
 def test_escrita_tem_limite_proprio_sem_afetar_leitura(client, settings, monkeypatch):
     monkeypatch.setattr(settings, "rate_limit_escrita_por_minuto", 2)
@@ -176,8 +170,6 @@ def test_health_tem_limite_proprio(client, settings, monkeypatch):
 
     assert [client.get("/api/health").status_code for _ in range(3)] == [200, 200, 429]
 
-
-# --- Autenticacao falha fechada
 
 
 @pytest.fixture

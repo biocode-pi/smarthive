@@ -16,7 +16,7 @@ TABLES = ("meliponarios", "colmeias", "monitoramentos", "alertas", "capturas_sen
 
 
 class RegistroDuplicado(Exception):
-    """Gravacao recusada porque repetiria um valor que precisa ser unico."""
+    pass
 
 
 def now_iso() -> str:
@@ -33,7 +33,6 @@ class Store(Protocol):
 
 
 def clean_insert_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Remove valores None para permitir que defaults do PostgreSQL sejam usados."""
 
     return {key: value for key, value in payload.items() if value is not None}
 
@@ -132,11 +131,6 @@ def seed_data(usuario_id: str) -> Dict[str, List[Dict[str, Any]]]:
 
 
 class LocalJsonStore:
-    """Persistencia simples para o MVP local.
-
-    Em producao a API usa PostgreSQL (Amazon RDS); este store deixa a API
-    funcional em bancada academica sem nenhum banco configurado.
-    """
 
     def __init__(self, data_file: Path, usuario_seed: str):
         self.data_file = data_file
@@ -157,7 +151,6 @@ class LocalJsonStore:
 
     @staticmethod
     def _verificar_codigo_unico(data: Dict[str, List[Dict[str, Any]]], table: str, item: Dict[str, Any]) -> None:
-        """Mesma regra do unique (usuario_id, codigo) do PostgreSQL; sem codigo nao ha conflito."""
         if table != "colmeias" or not item.get("codigo"):
             return
         for outra in data["colmeias"]:
@@ -216,7 +209,6 @@ class LocalJsonStore:
 
 
 class PostgresStore:
-    """Persistencia no PostgreSQL (Amazon RDS em producao) via DATABASE_URL."""
 
     def __init__(self, database_url: str, sslmode: str = "require"):
         try:

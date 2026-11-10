@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 
 export default defineConfig(({ mode }) => {
-  // VITE_PROXY_API permite rodar o frontend local contra outra API (ex.: a da AWS).
   const alvo = loadEnv(mode, process.cwd(), "").VITE_PROXY_API || "http://localhost:8000";
   const proxy = { target: alvo, changeOrigin: true, secure: true };
 
