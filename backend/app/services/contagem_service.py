@@ -14,6 +14,7 @@ from app.config import get_settings
 TAMANHO = 640
 CONFIANCA_MINIMA = 0.25
 IOU_MAXIMO = 0.45
+MAXIMO_DE_PIXELS = 4096 * 4096
 
 logger = logging.getLogger("smarthive")
 _trava = threading.Lock()
@@ -96,7 +97,11 @@ def contar(conteudo: bytes) -> Contagem | None:
             sessao = _carregar()
             if sessao is None:
                 return None
-            imagem = Image.open(io.BytesIO(conteudo)).convert("RGB")
+            with Image.open(io.BytesIO(conteudo)) as original:
+                if original.width * original.height > MAXIMO_DE_PIXELS:
+                    return None
+                original.draft("RGB", (TAMANHO, TAMANHO))
+                imagem = original.convert("RGB")
             saida = sessao.run(None, {sessao.get_inputs()[0].name: _tensor(imagem)})[0][0]
     except Exception:
         logger.exception("Falha ao contar abelhas na imagem")

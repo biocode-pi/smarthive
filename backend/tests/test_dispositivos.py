@@ -187,6 +187,28 @@ def test_foto_grande_demais_e_recusada(client, sem_modelo):
     assert resposta.status_code == 413
 
 
+def png_enorme() -> bytes:
+    buffer = io.BytesIO()
+    Image.new("L", (5000, 5000)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def test_foto_com_dimensoes_enormes_e_recusada(client, sem_modelo):
+    h = headers_de("user-disp-pixels")
+    colmeia = criar_colmeia(client, h)
+    criado = criar_dispositivo(client, h, colmeia["id"]).json()
+    foto = png_enorme()
+    assert len(foto) < MB
+
+    resposta = enviar(client, chave(criado["chave"]), foto=foto)
+
+    assert resposta.status_code == 413
+
+
+def test_contagem_ignora_imagem_com_dimensoes_enormes(modelo_falso):
+    assert contagem_service.contar(png_enorme()) is None
+
+
 def test_leituras_fora_da_faixa_sao_recusadas(client, sem_modelo):
     h = headers_de("user-disp-faixa")
     colmeia = criar_colmeia(client, h)

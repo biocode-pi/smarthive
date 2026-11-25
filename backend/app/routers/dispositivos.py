@@ -51,9 +51,12 @@ async def receber_captura(
     conteudo = await foto.read()
     try:
         with Image.open(io.BytesIO(conteudo)) as imagem:
+            largura, altura = imagem.size
             imagem.verify()
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail="Envie uma foto JPEG ou PNG.") from exc
+    if largura * altura > contagem_service.MAXIMO_DE_PIXELS:
+        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="Foto com resolução acima de 4096 × 4096.")
     await foto.seek(0)
 
     usuario_id = dispositivo["usuario_id"]
