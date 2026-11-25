@@ -2,6 +2,7 @@ import { Camera } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { botao } from "../components/ui/Button";
+import { Dispositivos } from "../components/ui/Dispositivos";
 import { EmptyState } from "../components/ui/EmptyState";
 import { GraficoFluxo, serieDeFluxo } from "../components/ui/Fluxo";
 import { Leituras } from "../components/ui/Leituras";
@@ -111,6 +112,8 @@ export function ColmeiaDetalhes() {
           </div>
         </div>
       </section>
+
+      <Dispositivos colmeiaId={colmeia.id} />
 
       <Secao titulo="Histórico de capturas">
         {monitoramentos.length ? (

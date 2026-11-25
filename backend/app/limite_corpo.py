@@ -9,9 +9,11 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from app import auth
 from app.config import Settings, get_settings
 from app.rate_limit import ROTAS_DE_UPLOAD
+from app.services import dispositivo_service
 
 
 METODOS_COM_CORPO = {"POST", "PUT", "PATCH"}
+ROTA_DO_DISPOSITIVO = "/dispositivos/captura"
 MB = 1024 * 1024
 
 
@@ -21,6 +23,8 @@ def _muito_grande() -> HTTPException:
 
 def _limite_em_bytes(scope: Scope, settings: Settings) -> int:
     caminho = scope["path"].removeprefix(settings.api_prefix)
+    if caminho == ROTA_DO_DISPOSITIVO:
+        return (settings.max_foto_dispositivo_mb + 1) * MB
     if scope["method"] == "POST" and caminho in ROTAS_DE_UPLOAD:
         return settings.max_upload_bytes + settings.margem_multipart_mb * MB
     return settings.max_corpo_mb * MB
@@ -52,7 +56,9 @@ class LimiteDeCorpoMiddleware:
         headers = Headers(scope=scope)
         limite = _limite_em_bytes(scope, settings)
         try:
-            if settings.auth_mode == "cognito":
+            if scope["path"].removeprefix(settings.api_prefix) == ROTA_DO_DISPOSITIVO:
+                await run_in_threadpool(dispositivo_service.autenticar, headers.get("authorization"))
+            elif settings.auth_mode == "cognito":
                 await run_in_threadpool(_autenticar, headers.get("authorization"), settings)
             tamanho = _content_length(headers)
             if tamanho is not None and tamanho > limite:

@@ -89,3 +89,16 @@ export interface SensorCelularResposta {
   mensagem: string;
 }
 
+
+export interface Dispositivo {
+  id: string;
+  colmeia_id: string;
+  nome: string;
+  criado_em: string;
+  ultimo_envio_em?: string | null;
+  revogado_em?: string | null;
+}
+
+export interface DispositivoCriado extends Dispositivo {
+  chave: string;
+}

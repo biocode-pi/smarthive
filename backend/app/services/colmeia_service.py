@@ -52,7 +52,7 @@ def atualizar_colmeia(usuario_id: str, colmeia_id: str, payload: ColmeiaUpdate |
 def excluir_colmeia(usuario_id: str, colmeia_id: str) -> None:
     obter_colmeia(usuario_id, colmeia_id)
     store = get_store()
-    for tabela in ("alertas", "capturas_sensor_celular", "monitoramentos"):
+    for tabela in ("dispositivos", "alertas", "capturas_sensor_celular", "monitoramentos"):
         for item in store.list(tabela, {"usuario_id": usuario_id, "colmeia_id": colmeia_id}):
             store.delete(tabela, item["id"])
     if not store.delete(TABLE, colmeia_id):

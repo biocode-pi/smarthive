@@ -12,7 +12,7 @@ from uuid import uuid4
 from app.config import get_settings
 
 
-TABLES = ("meliponarios", "colmeias", "monitoramentos", "alertas", "capturas_sensor_celular", "perfis")
+TABLES = ("meliponarios", "colmeias", "monitoramentos", "alertas", "capturas_sensor_celular", "perfis", "dispositivos")
 
 
 class RegistroDuplicado(Exception):
