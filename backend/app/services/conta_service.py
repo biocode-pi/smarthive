@@ -8,7 +8,7 @@ from app.services import storage_service
 
 logger = logging.getLogger("smarthive")
 
-TABELAS = ("alertas", "capturas_sensor_celular", "monitoramentos", "colmeias", "meliponarios", "perfis")
+TABELAS = ("dispositivos", "alertas", "capturas_sensor_celular", "monitoramentos", "colmeias", "meliponarios", "perfis")
 
 
 def excluir_dados_do_usuario(usuario_id: str) -> dict[str, int]:

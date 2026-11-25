@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     max_upload_mb: int = 50
     max_corpo_mb: int = 1
     margem_multipart_mb: int = 5
+    max_foto_dispositivo_mb: int = 5
 
     rate_limit_por_minuto: int = 120
     rate_limit_escrita_por_minuto: int = 60
@@ -48,6 +49,7 @@ class Settings(BaseSettings):
 
     upload_dir: Path = Path(__file__).resolve().parent / "uploads"
     local_data_file: Path = Path(__file__).resolve().parent / "data" / "smarthive.local.json"
+    modelo_abelhas: Path = Path(__file__).resolve().parent / "modelos" / "jatai-v1.onnx"
 
     model_config = SettingsConfigDict(
         env_file=".env",

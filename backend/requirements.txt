@@ -7,3 +7,6 @@ python-multipart==0.0.32
 psycopg[binary]==3.3.6
 PyJWT[crypto]==2.15.1
 boto3==1.43.118
+numpy==2.5.4
+onnxruntime==1.31.1
+pillow==13.0.0

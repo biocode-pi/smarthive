@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.limite_corpo import LimiteDeCorpoMiddleware
 from app.rate_limit import aplicar_limite
-from app.routers import alertas, colmeias, conta, dashboard, health, meliponarios, monitoramentos, perfil, sensor_celular
+from app.routers import alertas, colmeias, conta, dashboard, dispositivos, health, meliponarios, monitoramentos, perfil, sensor_celular
 
 
 settings = get_settings()
@@ -59,6 +59,7 @@ app.include_router(perfil.router, prefix=settings.api_prefix)
 app.include_router(conta.router, prefix=settings.api_prefix)
 app.include_router(monitoramentos.router, prefix=settings.api_prefix)
 app.include_router(sensor_celular.router, prefix=settings.api_prefix)
+app.include_router(dispositivos.router, prefix=settings.api_prefix)
 app.include_router(alertas.router, prefix=settings.api_prefix)
 app.include_router(dashboard.router, prefix=settings.api_prefix)
 app.include_router(health.router, prefix=settings.api_prefix)

@@ -32,6 +32,10 @@ tar -C . -cf - \
   --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.venv' --exclude='.env' \
   --exclude='tests' --exclude='app/data/*.json' --exclude='app/uploads/*' \
   backend | tar -C "$TMP/pkg" -xf -
+if [ -f frontend/public/modelos/jatai-v1.onnx ]; then
+  mkdir -p "$TMP/pkg/backend/app/modelos"
+  cp frontend/public/modelos/jatai-v1.onnx "$TMP/pkg/backend/app/modelos/"
+fi
 tar -C "$TMP/pkg" -czf "$TMP/app.tgz" .
 
 cat > "$TMP/app.env" <<ENV

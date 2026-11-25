@@ -27,4 +27,6 @@ Thumbs.db
 .playwright-mcp/
 
 frontend/public/modelos/*.onnx
+backend/app/modelos/*.onnx
 *.pt
+iot/k10/smarthive_k10/configuracao.h

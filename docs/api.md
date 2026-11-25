@@ -65,6 +65,7 @@ encerrar a sessao. Peca confirmacao antes (o web exige digitar o e-mail).
 - `POST /monitoramentos` (multipart, com `arquivo` opcional) e `POST /sensor-celular/captura`.
 - `GET /alertas`, `POST /alertas`, `PUT /alertas/{id}/resolver`.
 - `GET /dashboard/resumo`.
+- `GET/POST /colmeias/{id}/dispositivos`, `DELETE /dispositivos/{id}` e `POST /dispositivos/captura` (placa K10, chave propria). Detalhes em [iot/k10.md](iot/k10.md).
 
 Midias voltam em `midia_url` como link temporario (1 hora) para o S3.
 
