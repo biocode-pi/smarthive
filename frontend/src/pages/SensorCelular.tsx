@@ -1,5 +1,5 @@
 import type { MobileNet } from "@tensorflow-models/mobilenet";
-import { Loader2, Video } from "lucide-react";
+import { Cpu, Loader2, Video } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { botao, Button } from "../components/ui/Button";
@@ -9,9 +9,11 @@ import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { listarColmeias } from "../services/colmeias";
 import { carregarDetector, type DetectorAbelhas } from "../services/detectorAbelhas";
+import { listarDispositivos } from "../services/dispositivos";
 import { registrarCapturaSensorCelular } from "../services/sensorCelular";
-import type { Colmeia } from "../types";
+import type { Colmeia, Dispositivo } from "../types";
 import { cn } from "../utils/classNames";
+import { formatDateTime } from "../utils/formatters";
 
 type Prediction = {
   className: string;
@@ -114,6 +116,7 @@ export function SensorCelular() {
   const cicloRef = useRef(0);
 
   const [colmeias, setColmeias] = useState<Colmeia[]>([]);
+  const [placas, setPlacas] = useState<Dispositivo[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
@@ -144,6 +147,20 @@ export function SensorCelular() {
 
     return () => stopCamera();
   }, []);
+
+  useEffect(() => {
+    setPlacas([]);
+    if (!form.colmeia_id) return;
+    let ativo = true;
+    listarDispositivos(form.colmeia_id)
+      .then((itens) => {
+        if (ativo) setPlacas(itens.filter((item) => !item.revogado_em));
+      })
+      .catch(() => undefined);
+    return () => {
+      ativo = false;
+    };
+  }, [form.colmeia_id]);
 
   useEffect(() => {
     const dispositivos = navigator.mediaDevices;
@@ -544,6 +561,26 @@ export function SensorCelular() {
                   ))}
                 </select>
               </label>
+              {placas.length ? (
+                <div className="flex gap-3 rounded-field bg-honey-500/15 p-4 text-sm text-ink ring-1 ring-honey-500/40">
+                  <Cpu className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <p>
+                    {placas.length === 1 ? (
+                      <>
+                        A placa <strong>{placas[0].nome}</strong> já envia capturas desta colmeia
+                        {placas[0].ultimo_envio_em ? `; último envio em ${formatDateTime(placas[0].ultimo_envio_em)}` : ", mas ainda não enviou nenhuma"}.
+                      </>
+                    ) : (
+                      <>
+                        <strong>{placas.length} placas</strong> já enviam capturas desta colmeia.
+                      </>
+                    )}{" "}
+                    <Link to={`/app/colmeias/${form.colmeia_id}`} className="link-acao">
+                      Ver histórico
+                    </Link>
+                  </p>
+                </div>
+              ) : null}
 
               <label className="campo-rotulo">
                 Tempo observando (segundos)
