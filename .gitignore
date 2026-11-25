@@ -27,3 +27,4 @@ Thumbs.db
 .playwright-mcp/
 
 frontend/public/modelos/*.onnx
+*.pt
