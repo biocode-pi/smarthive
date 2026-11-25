@@ -51,6 +51,8 @@ docker compose -p smarthive --env-file /opt/smarthive/db.env run --rm --no-deps 
   caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose -p smarthive --env-file /opt/smarthive/db.env up -d --build --remove-orphans
 docker image prune -f >/dev/null
+docker compose -p smarthive --env-file /opt/smarthive/db.env exec -T db \
+  psql -v ON_ERROR_STOP=1 -q -U smarthive -d smarthive < database/schema.sql
 CADDYFILE_ATIVO="$(docker compose -p smarthive --env-file /opt/smarthive/db.env exec -T caddy cat /etc/caddy/Caddyfile 2>/dev/null || true)"
 if [ "$(cat /opt/smarthive/sites.caddy)" != "${SITES_NOVO%$'\n'}" ] || [ "$(cat Caddyfile)" != "$CADDYFILE_ATIVO" ]; then
   printf '%s' "$SITES_NOVO" > /opt/smarthive/sites.caddy

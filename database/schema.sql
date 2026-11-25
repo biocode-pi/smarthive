@@ -94,7 +94,19 @@ create table if not exists perfis (
   atualizado_em timestamptz not null default now()
 );
 
+create table if not exists dispositivos (
+  id text primary key default gen_random_uuid()::text,
+  usuario_id text not null,
+  colmeia_id text not null references colmeias(id) on delete cascade,
+  nome text not null,
+  chave_hash text not null unique,
+  criado_em timestamptz not null default now(),
+  ultimo_envio_em timestamptz,
+  revogado_em timestamptz
+);
+
 create index if not exists idx_colmeias_usuario on colmeias (usuario_id);
+create index if not exists idx_dispositivos_colmeia on dispositivos (colmeia_id);
 create index if not exists idx_colmeias_meliponario on colmeias (meliponario_id);
 create index if not exists idx_meliponarios_usuario on meliponarios (usuario_id);
 create index if not exists idx_monitoramentos_usuario_data on monitoramentos (usuario_id, data_hora desc);

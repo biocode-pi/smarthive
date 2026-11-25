@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from app.config import Settings
 
 JANELA_SEGUNDOS = 60
-ROTAS_DE_UPLOAD = ("/monitoramentos", "/sensor-celular/captura")
+ROTAS_DE_UPLOAD = ("/monitoramentos", "/sensor-celular/captura", "/dispositivos/captura")
 
 
 MAX_CHAVES_POR_JANELA = 20_000

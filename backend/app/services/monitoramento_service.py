@@ -48,9 +48,10 @@ def criar_monitoramento(usuario_id: str, dados: dict[str, Any]) -> dict:
 
     if not dados.get("data_hora"):
         dados["data_hora"] = datetime.now(timezone.utc).isoformat()
-    dados["fluxo_estimado"] = dados.get("fluxo_estimado") or (
-        (dados.get("abelhas_entrando") or 0) + (dados.get("abelhas_saindo") or 0)
-    )
+    if dados.get("fluxo_estimado") is None and (
+        dados.get("abelhas_entrando") is not None or dados.get("abelhas_saindo") is not None
+    ):
+        dados["fluxo_estimado"] = (dados.get("abelhas_entrando") or 0) + (dados.get("abelhas_saindo") or 0)
     dados["possivel_invasor"] = ia_service.detectar_possivel_invasor(
         bool(dados.get("possivel_invasor")),
         dados.get("observacoes"),

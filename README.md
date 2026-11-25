@@ -21,6 +21,7 @@ Plataforma web para monitorar colmeias de abelhas nativas sem ferrão. O melipon
 - **Meliponários:** cadastro, busca, filtro por alertas e mapa das colmeias de cada local.
 - **Colmeias:** cadastro por espécie, código, localização e situação, com ficha e histórico de cada uma.
 - **Captura:** câmera do celular ou do computador, com escolha entre as câmeras disponíveis, inclusive uma GoPro usada como webcam. Também aceita foto ou vídeo. A leitura automática acontece no próprio navegador.
+- **Placas conectadas:** cada colmeia pode receber uma placa UNIHIKER K10, que envia foto, temperatura e umidade por conta própria. O servidor conta as abelhas da foto e grava a captura no histórico. Guia em [docs/iot/k10.md](docs/iot/k10.md).
 - **Atividade:** entradas, saídas, movimentos e situação das colmeias.
 - **Histórico:** todas as capturas, com a mídia registrada.
 - **Alertas:** gerados a partir das capturas ou criados manualmente, com gravidade e resolução.
@@ -144,6 +145,7 @@ backend/    API em FastAPI e testes
 frontend/   site e plataforma em React
 database/   estrutura do banco e dados de exemplo
 infra/      infraestrutura na AWS e scripts de publicação
+iot/k10/    programa da placa K10 e simulador de envio
 docs/       documentação de segurança e da API
 ```
 
