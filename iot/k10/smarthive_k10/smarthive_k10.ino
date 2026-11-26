@@ -9,16 +9,41 @@ AHT20 aht20;
 WiFiMulti redes;
 
 const char *LIMITE = "----smarthiveK10";
-unsigned long ultimoEnvio = 0;
-volatile bool capturarAgora = false;
+const int BLOCOS_X = 16;
+const int BLOCOS_Y = 12;
+const int DIFERENCA_DE_BRILHO = 14;
+const int BLOCOS_PARA_MOVIMENTO = 6;
+const unsigned long PAUSA_APOS_ENVIO_MS = 15000;
 
-void mostrar(const String &linha1, const String &linha2 = "") {
-  Serial.println("[tela] " + linha1 + (linha2.length() ? " | " + linha2 : ""));
+unsigned long ultimoEnvio = 0;
+unsigned long ultimaLeitura = 0;
+String resposta = "";
+volatile bool capturarAgora = false;
+bool movimentoPendente = false;
+bool temCenaAnterior = false;
+uint8_t cenaAnterior[BLOCOS_X * BLOCOS_Y];
+
+void mostrar(const String &linha1, const String &linha2 = "", const String &alerta = "") {
+  Serial.println("[tela] " + linha1 + (linha2.length() ? " | " + linha2 : "") + (alerta.length() ? " | " + alerta : ""));
   k10.canvas->canvasClear();
   k10.canvas->canvasText("SmartHive", 1, 0x000000);
   k10.canvas->canvasText(linha1.c_str(), 3, 0x000000);
   k10.canvas->canvasText(linha2.c_str(), 4, 0x000000);
+  if (alerta.length()) k10.canvas->canvasText(alerta.c_str(), 6, 0xFF0000);
   k10.canvas->updateCanvas();
+}
+
+String campoJson(const String &json, const String &nome) {
+  int inicio = json.indexOf("\"" + nome + "\":");
+  if (inicio < 0) return "";
+  inicio += nome.length() + 3;
+  if (json.charAt(inicio) == '"') {
+    int fim = json.indexOf('"', inicio + 1);
+    return json.substring(inicio + 1, fim);
+  }
+  int fim = inicio;
+  while (fim < (int)json.length() && json.charAt(fim) != ',' && json.charAt(fim) != '}') fim++;
+  return json.substring(inicio, fim);
 }
 
 void aoApertarA() {
@@ -89,7 +114,7 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
 
   size_t total = inicio.length() + tamanhoJpeg + fim.length();
   uint8_t *corpo = (uint8_t *)ps_malloc(total);
-  if (!corpo) return -1;
+  if (!corpo) return -4;
   memcpy(corpo, inicio.c_str(), inicio.length());
   memcpy(corpo + inicio.length(), jpeg, tamanhoJpeg);
   memcpy(corpo + inicio.length() + tamanhoJpeg, fim.c_str(), fim.length());
@@ -104,6 +129,7 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
   cliente.setInsecure();
   cliente.setTimeout(30);
   int status = -1;
+  resposta = "";
   if (cliente.connect(host.c_str(), 443)) {
     cliente.print(String("POST ") + caminho + " HTTP/1.1\r\nHost: " + host +
                   "\r\nAuthorization: Dispositivo " + CHAVE +
@@ -116,12 +142,17 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
       if (escrito == 0) break;
       enviado += escrito;
     }
+    unsigned long espera = millis();
+    while (!cliente.available() && cliente.connected() && millis() - espera < 20000) delay(20);
     String linha = cliente.readStringUntil('\n');
     if (linha.startsWith("HTTP/1.1 ")) status = linha.substring(9, 12).toInt();
     Serial.println("[http] " + linha);
     while (cliente.connected() || cliente.available()) {
       String resto = cliente.readStringUntil('\n');
-      if (resto.startsWith("{")) Serial.println("[http] " + resto);
+      if (resto.startsWith("{")) {
+        resposta = resto;
+        Serial.println("[http] " + resto);
+      }
       if (!cliente.available() && !cliente.connected()) break;
     }
   } else {
@@ -130,6 +161,35 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
   cliente.stop();
   free(corpo);
   return status;
+}
+
+int blocosMudados() {
+  camera_fb_t *quadro = esp_camera_fb_get();
+  if (!quadro) return 0;
+  uint32_t soma[BLOCOS_X * BLOCOS_Y] = {0};
+  uint16_t quantidade[BLOCOS_X * BLOCOS_Y] = {0};
+  int largura = quadro->width;
+  int altura = quadro->height;
+  for (int y = 0; y < altura; y += 6) {
+    for (int x = 0; x < largura; x += 6) {
+      size_t i = 2 * ((size_t)y * largura + x);
+      uint16_t pixel = (quadro->buf[i] << 8) | quadro->buf[i + 1];
+      uint8_t brilho = (((pixel >> 11) & 0x1F) * 8 * 30 + ((pixel >> 5) & 0x3F) * 4 * 59 + (pixel & 0x1F) * 8 * 11) / 100;
+      int bloco = (y * BLOCOS_Y / altura) * BLOCOS_X + (x * BLOCOS_X / largura);
+      soma[bloco] += brilho;
+      quantidade[bloco]++;
+    }
+  }
+  esp_camera_fb_return(quadro);
+
+  int mudados = 0;
+  for (int b = 0; b < BLOCOS_X * BLOCOS_Y; b++) {
+    uint8_t media = quantidade[b] ? soma[b] / quantidade[b] : 0;
+    if (temCenaAnterior && abs((int)media - (int)cenaAnterior[b]) > DIFERENCA_DE_BRILHO) mudados++;
+    cenaAnterior[b] = media;
+  }
+  temCenaAnterior = true;
+  return mudados;
 }
 
 void capturarEEnviar() {
@@ -151,7 +211,11 @@ void capturarEEnviar() {
   free(jpeg);
 
   if (status == 201) {
-    mostrar("Captura enviada", String(temperatura, 1) + " C  " + String(umidade, 0) + " %");
+    String abelhas = campoJson(resposta, "abelhas");
+    String invasor = campoJson(resposta, "invasor");
+    String contagem = (abelhas == "" || abelhas == "null") ? "Captura enviada" : abelhas + (abelhas == "1" ? " abelha" : " abelhas");
+    String aviso = (invasor == "" || invasor == "null") ? "" : "INVASOR: " + invasor + "!";
+    mostrar(contagem, String(temperatura, 1) + " C  " + String(umidade, 0) + " %", aviso);
   } else if (status == 401) {
     mostrar("Chave recusada", "Gere outra no site");
   } else {
@@ -175,14 +239,39 @@ void setup() {
     while (true) delay(1000);
   }
   conectarWifi();
-  capturarAgora = true;
+  mostrar("Aguardando movimento", WiFi.status() == WL_CONNECTED ? WiFi.SSID() : "Sem Wi-Fi");
+}
+
+void enviarAgora() {
+  capturarAgora = false;
+  movimentoPendente = false;
+  capturarEEnviar();
+  ultimoEnvio = millis();
+  temCenaAnterior = false;
 }
 
 void loop() {
-  if (capturarAgora || millis() - ultimoEnvio >= INTERVALO_MS) {
-    capturarAgora = false;
-    ultimoEnvio = millis();
-    capturarEEnviar();
+  if (capturarAgora) {
+    enviarAgora();
+    return;
   }
-  delay(50);
+  if (INTERVALO_MS > 0 && millis() - ultimoEnvio >= INTERVALO_MS) {
+    enviarAgora();
+    return;
+  }
+  if (millis() - ultimaLeitura >= 500) {
+    ultimaLeitura = millis();
+    int mudados = blocosMudados();
+    bool podeEnviar = millis() - ultimoEnvio >= PAUSA_APOS_ENVIO_MS;
+    if (mudados >= BLOCOS_PARA_MOVIMENTO) {
+      if (podeEnviar && !movimentoPendente) {
+        movimentoPendente = true;
+        mostrar("Movimento!", "Aguardando parar...");
+      }
+    } else if (movimentoPendente && podeEnviar) {
+      enviarAgora();
+      return;
+    }
+  }
+  delay(20);
 }
