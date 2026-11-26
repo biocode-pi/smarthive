@@ -65,8 +65,8 @@ async def receber_captura(
 
     usuario_id = dispositivo["usuario_id"]
     midia_url = await storage_service.salvar_upload(usuario_id, foto)
-    contagem = await run_in_threadpool(contagem_service.contar, conteudo)
     invasor = await run_in_threadpool(contagem_service.detectar_invasor, conteudo)
+    contagem = await run_in_threadpool(contagem_service.contar, conteudo, invasor.regiao if invasor else None)
     abelhas = contagem.abelhas if contagem else None
     monitoramento = await run_in_threadpool(
         monitoramento_service.criar_monitoramento,

@@ -18,6 +18,7 @@ MAXIMO_DE_PIXELS = 4096 * 4096
 TAMANHO_CLASSIFICADOR = 224
 CLASSES_DE_ARANHA = range(72, 78)
 CONFIANCA_ARANHA = 0.7
+CONFIANCA_REGIAO_ARANHA = 0.4
 MEDIA = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 DESVIO = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
@@ -36,6 +37,7 @@ class Contagem:
 class Invasor:
     nome: str
     confianca: float
+    regiao: tuple[int, int, int, int]
 
 
 def limpar_cache() -> None:
@@ -107,7 +109,7 @@ def _iou(a, b) -> float:
     return intersecao / uniao if uniao > 0 else 0.0
 
 
-def contar(conteudo: bytes) -> Contagem | None:
+def contar(conteudo: bytes, ignorar: tuple[int, int, int, int] | None = None) -> Contagem | None:
     try:
         with _trava:
             sessao = _carregar()
@@ -121,19 +123,34 @@ def contar(conteudo: bytes) -> Contagem | None:
         logger.exception("Falha ao contar abelhas na imagem")
         return None
     caixas = _caixas(saida)
+    if ignorar is not None:
+        escala = TAMANHO / max(imagem.size)
+        margem_x = (TAMANHO - round(imagem.width * escala)) / 2
+        margem_y = (TAMANHO - round(imagem.height * escala)) / 2
+        x1, y1, x2, y2 = ignorar
+
+        def fora(caixa) -> bool:
+            cx = ((caixa[1] + caixa[3]) / 2 - margem_x) / escala
+            cy = ((caixa[2] + caixa[4]) / 2 - margem_y) / escala
+            return not (x1 <= cx <= x2 and y1 <= cy <= y2)
+
+        caixas = [caixa for caixa in caixas if fora(caixa)]
     return Contagem(abelhas=len(caixas), confianca=caixas[0][0] if caixas else 0.0)
 
 
-def _recortes(imagem: Image.Image):
+def _recortes(imagem: Image.Image, divisoes: int):
     largura, altura = imagem.size
-    for divisoes in (2, 3):
-        lado = max(largura, altura) / divisoes * 1.2
-        for i in range(divisoes):
-            for j in range(divisoes):
-                cx, cy = largura * (i + 0.5) / divisoes, altura * (j + 0.5) / divisoes
-                yield imagem.crop(
-                    (max(0, cx - lado / 2), max(0, cy - lado / 2), min(largura, cx + lado / 2), min(altura, cy + lado / 2))
-                )
+    lado = max(largura, altura) / divisoes * 1.2
+    for i in range(divisoes):
+        for j in range(divisoes):
+            cx, cy = largura * (i + 0.5) / divisoes, altura * (j + 0.5) / divisoes
+            caixa = (
+                round(max(0, cx - lado / 2)),
+                round(max(0, cy - lado / 2)),
+                round(min(largura, cx + lado / 2)),
+                round(min(altura, cy + lado / 2)),
+            )
+            yield caixa, imagem.crop(caixa)
 
 
 def _probabilidade_de_aranha(sessao, recorte: Image.Image) -> float:
@@ -154,8 +171,23 @@ def detectar_invasor(conteudo: bytes) -> Invasor | None:
             imagem = _abrir(conteudo)
             if imagem is None:
                 return None
-            maior = max(_probabilidade_de_aranha(sessao, recorte) for recorte in _recortes(imagem))
+            maior = 0.0
+            positivas = []
+            for divisoes in (3, 2):
+                for caixa, recorte in _recortes(imagem, divisoes):
+                    probabilidade = _probabilidade_de_aranha(sessao, recorte)
+                    maior = max(maior, probabilidade)
+                    if probabilidade >= CONFIANCA_REGIAO_ARANHA:
+                        positivas.append(caixa)
     except Exception:
         logger.exception("Falha ao procurar invasores na imagem")
         return None
-    return Invasor(nome="aranha", confianca=maior) if maior >= CONFIANCA_ARANHA else None
+    if maior < CONFIANCA_ARANHA:
+        return None
+    regiao = (
+        min(c[0] for c in positivas),
+        min(c[1] for c in positivas),
+        max(c[2] for c in positivas),
+        max(c[3] for c in positivas),
+    )
+    return Invasor(nome="aranha", confianca=maior, regiao=regiao)

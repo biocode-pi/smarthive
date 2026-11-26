@@ -181,7 +181,7 @@ def test_aranha_na_foto_vira_possivel_invasor_com_alerta(client, modelo_falso, c
 
     corpo = enviar(client, chave(criado["chave"]), foto=jpeg(640, 480)).json()
 
-    assert corpo["abelhas"] == 2
+    assert corpo["abelhas"] == 0
     assert corpo["invasor"] == "aranha"
     monitoramento = client.get(f"/api/monitoramentos/{corpo['monitoramento_id']}", headers=h).json()
     assert monitoramento["possivel_invasor"] is True
@@ -266,6 +266,20 @@ def test_foto_com_dimensoes_enormes_e_recusada(client, sem_modelo):
     resposta = enviar(client, chave(criado["chave"]), foto=foto)
 
     assert resposta.status_code == 413
+
+
+def test_contagem_descarta_caixas_dentro_da_regiao_do_invasor(modelo_falso):
+    foto = jpeg(640, 480)
+
+    assert contagem_service.contar(foto).abelhas == 2
+    assert contagem_service.contar(foto, ignorar=(300, 150, 500, 300)).abelhas == 1
+
+
+def test_invasor_informa_a_regiao_onde_foi_visto(classificador_com_aranha):
+    invasor = contagem_service.detectar_invasor(jpeg(640, 480))
+
+    assert invasor.nome == "aranha"
+    assert invasor.regiao == (0, 0, 640, 480)
 
 
 def test_contagem_ignora_imagem_com_dimensoes_enormes(modelo_falso):
