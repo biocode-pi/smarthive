@@ -1,11 +1,13 @@
 #include "unihiker_k10.h"
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include "configuracao.h"
 
 UNIHIKER_K10 k10;
 AHT20 aht20;
+WiFiMulti redes;
 
 const char *LIMITE = "----smarthiveK10";
 unsigned long ultimoEnvio = 0;
@@ -58,11 +60,13 @@ bool iniciarCamera() {
 
 void conectarWifi() {
   if (WiFi.status() == WL_CONNECTED) return;
-  mostrar("Conectando Wi-Fi", WIFI_NOME);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_NOME, WIFI_SENHA);
-  for (int i = 0; i < 40 && WiFi.status() != WL_CONNECTED; i++) delay(500);
-  mostrar(WiFi.status() == WL_CONNECTED ? "Wi-Fi conectado" : "Sem Wi-Fi", WiFi.localIP().toString());
+  mostrar("Procurando Wi-Fi");
+  redes.run(20000);
+  if (WiFi.status() == WL_CONNECTED) {
+    mostrar("Wi-Fi conectado", WiFi.SSID());
+  } else {
+    mostrar("Sem Wi-Fi", "Ligue o roteador");
+  }
 }
 
 bool fotografar(uint8_t **jpeg, size_t *tamanho) {
@@ -138,6 +142,10 @@ void setup() {
   k10.initScreen(2);
   k10.creatCanvas();
   k10.buttonA->setPressedCallback(aoApertarA);
+
+  WiFi.mode(WIFI_STA);
+  redes.addAP(WIFI_NOME, WIFI_SENHA);
+  if (strlen(WIFI_NOME_2) > 0) redes.addAP(WIFI_NOME_2, WIFI_SENHA_2);
 
   if (!iniciarCamera()) {
     mostrar("Camera nao iniciou");
