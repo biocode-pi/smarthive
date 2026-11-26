@@ -32,13 +32,17 @@ def revogar_dispositivo(dispositivo_id: str, usuario: Usuario = Depends(get_usua
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _descricao(contagem: contagem_service.Contagem | None) -> str | None:
-    if contagem is None:
-        return None
-    if contagem.abelhas == 0:
-        return "Leitura automática: nenhuma abelha na imagem."
-    texto = "1 abelha" if contagem.abelhas == 1 else f"{contagem.abelhas} abelhas"
-    return f"Leitura automática: {texto} na imagem ({round(contagem.confianca * 100)}%)."
+def _descricao(contagem: contagem_service.Contagem | None, invasor: contagem_service.Invasor | None) -> str | None:
+    partes = []
+    if contagem is not None:
+        if contagem.abelhas == 0:
+            partes.append("Leitura automática: nenhuma abelha na imagem.")
+        else:
+            texto = "1 abelha" if contagem.abelhas == 1 else f"{contagem.abelhas} abelhas"
+            partes.append(f"Leitura automática: {texto} na imagem ({round(contagem.confianca * 100)}%).")
+    if invasor is not None:
+        partes.append(f"Possível invasor: {invasor.nome} ({round(invasor.confianca * 100)}%).")
+    return " ".join(partes) or None
 
 
 @router.post("/dispositivos/captura", response_model=CapturaDispositivoResposta, status_code=status.HTTP_201_CREATED)
@@ -61,7 +65,8 @@ async def receber_captura(
 
     usuario_id = dispositivo["usuario_id"]
     midia_url = await storage_service.salvar_upload(usuario_id, foto)
-    contagem = await run_in_threadpool(contagem_service.contar, conteudo)
+    invasor = await run_in_threadpool(contagem_service.detectar_invasor, conteudo)
+    contagem = await run_in_threadpool(contagem_service.contar, conteudo, invasor.regiao if invasor else None)
     abelhas = contagem.abelhas if contagem else None
     monitoramento = await run_in_threadpool(
         monitoramento_service.criar_monitoramento,
@@ -73,7 +78,8 @@ async def receber_captura(
             "umidade_percentual": umidade_percentual,
             "movimentos_estimados": abelhas,
             "fluxo_estimado": abelhas,
-            "observacoes": _descricao(contagem),
+            "possivel_invasor": invasor is not None,
+            "observacoes": _descricao(contagem, invasor),
             "midia_url": midia_url,
         },
     )
@@ -81,5 +87,6 @@ async def receber_captura(
     return {
         "monitoramento_id": monitoramento["id"],
         "abelhas": abelhas,
+        "invasor": invasor.nome if invasor else None,
         "mensagem": "Captura registrada.",
     }
