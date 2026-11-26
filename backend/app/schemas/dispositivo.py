@@ -31,4 +31,5 @@ class DispositivoCriado(Dispositivo):
 class CapturaDispositivoResposta(BaseModel):
     monitoramento_id: str
     abelhas: int | None
+    invasor: str | None = None
     mensagem: str

@@ -10,15 +10,30 @@ WiFiMulti redes;
 
 const char *LIMITE = "----smarthiveK10";
 unsigned long ultimoEnvio = 0;
+String resposta = "";
 volatile bool capturarAgora = false;
 
-void mostrar(const String &linha1, const String &linha2 = "") {
-  Serial.println("[tela] " + linha1 + (linha2.length() ? " | " + linha2 : ""));
+void mostrar(const String &linha1, const String &linha2 = "", const String &alerta = "") {
+  Serial.println("[tela] " + linha1 + (linha2.length() ? " | " + linha2 : "") + (alerta.length() ? " | " + alerta : ""));
   k10.canvas->canvasClear();
   k10.canvas->canvasText("SmartHive", 1, 0x000000);
   k10.canvas->canvasText(linha1.c_str(), 3, 0x000000);
   k10.canvas->canvasText(linha2.c_str(), 4, 0x000000);
+  if (alerta.length()) k10.canvas->canvasText(alerta.c_str(), 6, 0xFF0000);
   k10.canvas->updateCanvas();
+}
+
+String campoJson(const String &json, const String &nome) {
+  int inicio = json.indexOf("\"" + nome + "\":");
+  if (inicio < 0) return "";
+  inicio += nome.length() + 3;
+  if (json.charAt(inicio) == '"') {
+    int fim = json.indexOf('"', inicio + 1);
+    return json.substring(inicio + 1, fim);
+  }
+  int fim = inicio;
+  while (fim < (int)json.length() && json.charAt(fim) != ',' && json.charAt(fim) != '}') fim++;
+  return json.substring(inicio, fim);
 }
 
 void aoApertarA() {
@@ -104,6 +119,7 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
   cliente.setInsecure();
   cliente.setTimeout(30);
   int status = -1;
+  resposta = "";
   if (cliente.connect(host.c_str(), 443)) {
     cliente.print(String("POST ") + caminho + " HTTP/1.1\r\nHost: " + host +
                   "\r\nAuthorization: Dispositivo " + CHAVE +
@@ -121,7 +137,10 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
     Serial.println("[http] " + linha);
     while (cliente.connected() || cliente.available()) {
       String resto = cliente.readStringUntil('\n');
-      if (resto.startsWith("{")) Serial.println("[http] " + resto);
+      if (resto.startsWith("{")) {
+        resposta = resto;
+        Serial.println("[http] " + resto);
+      }
       if (!cliente.available() && !cliente.connected()) break;
     }
   } else {
@@ -151,7 +170,11 @@ void capturarEEnviar() {
   free(jpeg);
 
   if (status == 201) {
-    mostrar("Captura enviada", String(temperatura, 1) + " C  " + String(umidade, 0) + " %");
+    String abelhas = campoJson(resposta, "abelhas");
+    String invasor = campoJson(resposta, "invasor");
+    String contagem = (abelhas == "" || abelhas == "null") ? "Captura enviada" : abelhas + (abelhas == "1" ? " abelha" : " abelhas");
+    String aviso = (invasor == "" || invasor == "null") ? "" : "INVASOR: " + invasor + "!";
+    mostrar(contagem, String(temperatura, 1) + " C  " + String(umidade, 0) + " %", aviso);
   } else if (status == 401) {
     mostrar("Chave recusada", "Gere outra no site");
   } else {

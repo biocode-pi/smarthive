@@ -28,6 +28,12 @@ cp infra/ec2/docker-compose.prod.yml "$TMP/pkg/docker-compose.yml"
 cp infra/ec2/Caddyfile "$TMP/pkg/Caddyfile"
 cp infra/ec2/backup.sh infra/ec2/restore.sh "$TMP/pkg/"
 cp database/schema.sql "$TMP/pkg/database/"
+CLASSIFICADOR=backend/app/modelos/mobilenetv2-12.onnx
+if [ ! -f "$CLASSIFICADOR" ]; then
+  mkdir -p backend/app/modelos
+  curl -fsSL -o "$CLASSIFICADOR" \
+    https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-12.onnx
+fi
 tar -C . -cf - \
   --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.venv' --exclude='.env' \
   --exclude='tests' --exclude='app/data/*.json' --exclude='app/uploads/*' \

@@ -72,6 +72,41 @@ def modelo_falso(monkeypatch, settings, tmp_path):
     contagem_service.limpar_cache()
 
 
+def salvar_classificador(caminho, indice_alto=None):
+    logits = np.zeros((1, 1000), dtype=np.float32)
+    if indice_alto is not None:
+        logits[0, indice_alto] = 12.0
+    grafo = helper.make_graph(
+        [helper.make_node("Constant", [], ["saida"], value=numpy_helper.from_array(logits))],
+        "classificador",
+        [helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, 224, 224])],
+        [helper.make_tensor_value_info("saida", TensorProto.FLOAT, [1, 1000])],
+    )
+    modelo = helper.make_model(grafo, opset_imports=[helper.make_opsetid("", 13)])
+    modelo.ir_version = 8
+    onnx.save(modelo, caminho)
+
+
+@pytest.fixture
+def classificador_com_aranha(monkeypatch, settings, tmp_path):
+    caminho = tmp_path / "classificador.onnx"
+    salvar_classificador(caminho, indice_alto=73)
+    monkeypatch.setattr(settings, "modelo_classificador", caminho)
+    contagem_service.limpar_cache()
+    yield
+    contagem_service.limpar_cache()
+
+
+@pytest.fixture
+def classificador_sem_aranha(monkeypatch, settings, tmp_path):
+    caminho = tmp_path / "classificador.onnx"
+    salvar_classificador(caminho)
+    monkeypatch.setattr(settings, "modelo_classificador", caminho)
+    contagem_service.limpar_cache()
+    yield
+    contagem_service.limpar_cache()
+
+
 def test_dono_cria_dispositivo_e_recebe_a_chave_uma_vez(client):
     h = headers_de("user-disp-cria")
     colmeia = criar_colmeia(client, h)
@@ -137,6 +172,34 @@ def test_captura_conta_abelhas_com_o_modelo(client, modelo_falso):
     monitoramento = client.get(f"/api/monitoramentos/{corpo['monitoramento_id']}", headers=h).json()
     assert monitoramento["fluxo_estimado"] == 2
     assert "2 abelhas" in monitoramento["observacoes"]
+
+
+def test_aranha_na_foto_vira_possivel_invasor_com_alerta(client, modelo_falso, classificador_com_aranha):
+    h = headers_de("user-disp-aranha")
+    colmeia = criar_colmeia(client, h)
+    criado = criar_dispositivo(client, h, colmeia["id"]).json()
+
+    corpo = enviar(client, chave(criado["chave"]), foto=jpeg(640, 480)).json()
+
+    assert corpo["abelhas"] == 2
+    assert corpo["invasor"] == "aranha"
+    monitoramento = client.get(f"/api/monitoramentos/{corpo['monitoramento_id']}", headers=h).json()
+    assert monitoramento["possivel_invasor"] is True
+    assert "aranha" in monitoramento["observacoes"].lower()
+    alertas = client.get("/api/alertas", headers=h).json()
+    assert any(a["monitoramento_id"] == corpo["monitoramento_id"] and a["tipo"] == "possivel_invasor" for a in alertas)
+
+
+def test_sem_aranha_nao_marca_invasor(client, modelo_falso, classificador_sem_aranha):
+    h = headers_de("user-disp-sem-aranha")
+    colmeia = criar_colmeia(client, h)
+    criado = criar_dispositivo(client, h, colmeia["id"]).json()
+
+    corpo = enviar(client, chave(criado["chave"])).json()
+
+    assert corpo["invasor"] is None
+    monitoramento = client.get(f"/api/monitoramentos/{corpo['monitoramento_id']}", headers=h).json()
+    assert monitoramento["possivel_invasor"] is False
 
 
 @pytest.mark.parametrize(
