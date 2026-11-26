@@ -1,21 +1,23 @@
 #include "unihiker_k10.h"
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <WiFiClientSecure.h>
-#include <HTTPClient.h>
 #include "configuracao.h"
 
 UNIHIKER_K10 k10;
 AHT20 aht20;
+WiFiMulti redes;
 
 const char *LIMITE = "----smarthiveK10";
 unsigned long ultimoEnvio = 0;
 volatile bool capturarAgora = false;
 
 void mostrar(const String &linha1, const String &linha2 = "") {
+  Serial.println("[tela] " + linha1 + (linha2.length() ? " | " + linha2 : ""));
   k10.canvas->canvasClear();
-  k10.canvas->canvasText("SmartHive", 1, 0xF5A623);
-  k10.canvas->canvasText(linha1.c_str(), 3, 0xFFFFFF);
-  k10.canvas->canvasText(linha2.c_str(), 4, 0xFFFFFF);
+  k10.canvas->canvasText("SmartHive", 1, 0x000000);
+  k10.canvas->canvasText(linha1.c_str(), 3, 0x000000);
+  k10.canvas->canvasText(linha2.c_str(), 4, 0x000000);
   k10.canvas->updateCanvas();
 }
 
@@ -57,11 +59,13 @@ bool iniciarCamera() {
 
 void conectarWifi() {
   if (WiFi.status() == WL_CONNECTED) return;
-  mostrar("Conectando Wi-Fi", WIFI_NOME);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_NOME, WIFI_SENHA);
-  for (int i = 0; i < 40 && WiFi.status() != WL_CONNECTED; i++) delay(500);
-  mostrar(WiFi.status() == WL_CONNECTED ? "Wi-Fi conectado" : "Sem Wi-Fi", WiFi.localIP().toString());
+  mostrar("Procurando Wi-Fi");
+  redes.run(20000);
+  if (WiFi.status() == WL_CONNECTED) {
+    mostrar("Wi-Fi conectado", WiFi.SSID());
+  } else {
+    mostrar("Sem Wi-Fi", "Ligue o roteador");
+  }
 }
 
 bool fotografar(uint8_t **jpeg, size_t *tamanho) {
@@ -90,16 +94,40 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
   memcpy(corpo + inicio.length(), jpeg, tamanhoJpeg);
   memcpy(corpo + inicio.length() + tamanhoJpeg, fim.c_str(), fim.length());
 
+  String endereco = ENDERECO;
+  endereco.replace("https://", "");
+  int barra = endereco.indexOf('/');
+  String host = endereco.substring(0, barra);
+  String caminho = endereco.substring(barra);
+
   WiFiClientSecure cliente;
   cliente.setInsecure();
-  HTTPClient http;
-  http.setTimeout(30000);
-  http.begin(cliente, ENDERECO);
-  http.addHeader("Authorization", String("Dispositivo ") + CHAVE);
-  http.addHeader("Content-Type", String("multipart/form-data; boundary=") + LIMITE);
-  int status = http.POST(corpo, total);
-  if (status > 0) Serial.println(http.getString());
-  http.end();
+  cliente.setTimeout(30);
+  int status = -1;
+  if (cliente.connect(host.c_str(), 443)) {
+    cliente.print(String("POST ") + caminho + " HTTP/1.1\r\nHost: " + host +
+                  "\r\nAuthorization: Dispositivo " + CHAVE +
+                  "\r\nContent-Type: multipart/form-data; boundary=" + LIMITE +
+                  "\r\nContent-Length: " + String(total) +
+                  "\r\nConnection: close\r\n\r\n");
+    size_t enviado = 0;
+    while (enviado < total && cliente.connected()) {
+      size_t escrito = cliente.write(corpo + enviado, min((size_t)4096, total - enviado));
+      if (escrito == 0) break;
+      enviado += escrito;
+    }
+    String linha = cliente.readStringUntil('\n');
+    if (linha.startsWith("HTTP/1.1 ")) status = linha.substring(9, 12).toInt();
+    Serial.println("[http] " + linha);
+    while (cliente.connected() || cliente.available()) {
+      String resto = cliente.readStringUntil('\n');
+      if (resto.startsWith("{")) Serial.println("[http] " + resto);
+      if (!cliente.available() && !cliente.connected()) break;
+    }
+  } else {
+    status = -2;
+  }
+  cliente.stop();
   free(corpo);
   return status;
 }
@@ -137,6 +165,10 @@ void setup() {
   k10.initScreen(2);
   k10.creatCanvas();
   k10.buttonA->setPressedCallback(aoApertarA);
+
+  WiFi.mode(WIFI_STA);
+  redes.addAP(WIFI_NOME, WIFI_SENHA);
+  if (strlen(WIFI_NOME_2) > 0) redes.addAP(WIFI_NOME_2, WIFI_SENHA_2);
 
   if (!iniciarCamera()) {
     mostrar("Camera nao iniciou");
