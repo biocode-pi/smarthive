@@ -12,10 +12,11 @@ unsigned long ultimoEnvio = 0;
 volatile bool capturarAgora = false;
 
 void mostrar(const String &linha1, const String &linha2 = "") {
+  Serial.println("[tela] " + linha1 + (linha2.length() ? " | " + linha2 : ""));
   k10.canvas->canvasClear();
-  k10.canvas->canvasText("SmartHive", 1, 0xF5A623);
-  k10.canvas->canvasText(linha1.c_str(), 3, 0xFFFFFF);
-  k10.canvas->canvasText(linha2.c_str(), 4, 0xFFFFFF);
+  k10.canvas->canvasText("SmartHive", 1, 0x000000);
+  k10.canvas->canvasText(linha1.c_str(), 3, 0x000000);
+  k10.canvas->canvasText(linha2.c_str(), 4, 0x000000);
   k10.canvas->updateCanvas();
 }
 
