@@ -20,6 +20,18 @@ export function formatSigned(value: number): string {
   return value > 0 ? `+${formatNumber(value)}` : formatNumber(value);
 }
 
+export function leituraDaCaptura(captura: {
+  origem: string;
+  fluxo_estimado?: number | null;
+  movimentos_estimados?: number | null;
+}): { valor: string; unidade: string; daPlaca: boolean } {
+  const quantidade = captura.fluxo_estimado ?? captura.movimentos_estimados;
+  if (captura.origem === "iot_futuro") {
+    return { valor: formatNumber(quantidade), unidade: quantidade === 1 ? "abelha" : "abelhas", daPlaca: true };
+  }
+  return { valor: formatNumber(quantidade), unidade: "mov.", daPlaca: false };
+}
+
 export function origemLabel(origem: string): string {
   if (origem === "sensor_celular") return "Celular";
   if (origem === "iot_futuro") return "Dispositivo";

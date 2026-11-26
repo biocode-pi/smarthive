@@ -13,7 +13,6 @@ const Colmeias = lazy(() => import("./pages/Colmeias").then(({ Colmeias }) => ({
 const Configuracoes = lazy(() =>
   import("./pages/Configuracoes").then(({ Configuracoes }) => ({ default: Configuracoes })),
 );
-const Dashboard = lazy(() => import("./pages/Dashboard").then(({ Dashboard }) => ({ default: Dashboard })));
 const Login = lazy(() => import("./pages/Login").then(({ Login }) => ({ default: Login })));
 const NotFound = lazy(() => import("./pages/NotFound").then(({ NotFound }) => ({ default: NotFound })));
 const Privacidade = lazy(() => import("./pages/Privacidade").then(({ Privacidade }) => ({ default: Privacidade })));
@@ -56,7 +55,7 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="app" element={<AppLayout />}>
                 <Route index element={<Overview />} />
-                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="dashboard" element={<Navigate to="/app" replace />} />
                 <Route path="meliponarios" element={<Meliponarios />} />
                 <Route path="meliponarios/:id" element={<MeliponarioDetalhes />} />
                 <Route path="colmeias" element={<Colmeias />} />
