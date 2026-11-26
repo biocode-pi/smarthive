@@ -14,7 +14,7 @@ import { Hexa, StatusBadge } from "../components/ui/StatusBadge";
 import { listarColmeias } from "../services/colmeias";
 import { obterResumoDashboard } from "../services/dashboard";
 import type { Colmeia, DashboardResumo } from "../types";
-import { formatDateTime, formatNumber, formatSigned, origemLabel } from "../utils/formatters";
+import { formatDateTime, formatNumber, formatSigned, leituraDaCaptura, origemLabel } from "../utils/formatters";
 
 const gravidade: Record<string, number> = { risco: 0, observacao: 1, ativa: 2, inativa: 3 };
 
@@ -215,7 +215,7 @@ export function Overview() {
                 <tr>
                   <th>Quando</th>
                   <th>Colmeia</th>
-                  <th className="text-right">Movimento</th>
+                  <th className="text-right">Leitura</th>
                   <th>Origem</th>
                 </tr>
               </thead>
@@ -224,7 +224,10 @@ export function Overview() {
                   <tr key={item.id}>
                     <td className="whitespace-nowrap font-dados text-ink/75">{formatDateTime(item.data_hora ?? item.criado_em)}</td>
                     <td className="whitespace-nowrap font-dados">{codigoDaColmeia.get(item.colmeia_id) ?? "—"}</td>
-                    <td className="tabular text-right font-dados font-medium">{formatNumber(item.fluxo_estimado)}</td>
+                    <td className="tabular whitespace-nowrap text-right font-dados font-medium">
+                      {leituraDaCaptura(item).valor}
+                      <span className="ml-1 text-xs font-normal text-ink/60">{leituraDaCaptura(item).unidade}</span>
+                    </td>
                     <td className="text-ink/75">{origemLabel(item.origem)}</td>
                   </tr>
                 ))}

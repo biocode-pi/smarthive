@@ -8,7 +8,7 @@ import { PageHeader } from "../components/ui/PageHeader";
 import { listarColmeias } from "../services/colmeias";
 import { excluirMonitoramento, listarMonitoramentos } from "../services/monitoramentos";
 import type { Colmeia, Monitoramento } from "../types";
-import { formatDateTime, formatNumber, origemLabel } from "../utils/formatters";
+import { formatDateTime, formatNumber, leituraDaCaptura, origemLabel } from "../utils/formatters";
 
 export function Registros() {
   const [registros, setRegistros] = useState<Monitoramento[]>([]);
@@ -72,7 +72,7 @@ export function Registros() {
                 <th>Quando</th>
                 <th>Colmeia</th>
                 <th>Origem</th>
-                <th className="text-right">Movimento</th>
+                <th className="text-right">Leitura</th>
                 <th className="text-right">Entrou / saiu</th>
                 <th>Invasor</th>
                 <th>
@@ -97,11 +97,12 @@ export function Registros() {
                       )}
                     </td>
                     <td className="text-ink/75">{origemLabel(registro.origem)}</td>
-                    <td className="tabular text-right font-dados font-medium">
-                      {formatNumber(registro.fluxo_estimado ?? registro.movimentos_estimados)}
+                    <td className="tabular whitespace-nowrap text-right font-dados font-medium">
+                      {leituraDaCaptura(registro).valor}
+                      <span className="ml-1 text-xs font-normal text-ink/60">{leituraDaCaptura(registro).unidade}</span>
                     </td>
                     <td className="tabular whitespace-nowrap text-right font-dados text-ink/75">
-                      {formatNumber(registro.abelhas_entrando)} / {formatNumber(registro.abelhas_saindo)}
+                      {registro.origem === "iot_futuro" ? "—" : `${formatNumber(registro.abelhas_entrando)} / ${formatNumber(registro.abelhas_saindo)}`}
                     </td>
                     <td>
                       {registro.possivel_invasor ? (

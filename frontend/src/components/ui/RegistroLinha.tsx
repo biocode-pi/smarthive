@@ -1,10 +1,11 @@
 import type { Monitoramento } from "../../types";
 import { mediaUrl } from "../../services/api";
-import { formatDateTime, formatNumber, origemLabel, textoObservacao } from "../../utils/formatters";
+import { formatDateTime, formatNumber, leituraDaCaptura, origemLabel, textoObservacao } from "../../utils/formatters";
 
 export function RegistroLinha({ monitoramento, colmeia }: { monitoramento: Monitoramento; colmeia?: string }) {
   const url = mediaUrl(monitoramento.midia_url);
   const observacao = textoObservacao(monitoramento.observacoes);
+  const leitura = leituraDaCaptura(monitoramento);
   return (
     <li className="grid gap-x-6 gap-y-2 border-b border-ink/10 py-4 sm:grid-cols-[10rem_1fr_auto]">
       <div className="font-dados text-sm text-ink/70">
@@ -16,11 +17,13 @@ export function RegistroLinha({ monitoramento, colmeia }: { monitoramento: Monit
       </div>
       <div className="min-w-0">
         <p className="tabular font-dados text-ink">
-          <span className="text-2xl font-medium">{formatNumber(monitoramento.fluxo_estimado ?? monitoramento.movimentos_estimados)}</span>
-          <span className="ml-1.5 text-sm text-ink/60">mov.</span>
-          <span className="ml-4 text-sm text-ink/70">
-            ↓ {formatNumber(monitoramento.abelhas_entrando)} · ↑ {formatNumber(monitoramento.abelhas_saindo)}
-          </span>
+          <span className="text-2xl font-medium">{leitura.valor}</span>
+          <span className="ml-1.5 text-sm text-ink/60">{leitura.unidade}</span>
+          {leitura.daPlaca ? null : (
+            <span className="ml-4 text-sm text-ink/70">
+              ↓ {formatNumber(monitoramento.abelhas_entrando)} · ↑ {formatNumber(monitoramento.abelhas_saindo)}
+            </span>
+          )}
         </p>
         {observacao ? <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-ink/70">{observacao}</p> : null}
       </div>

@@ -14,7 +14,6 @@ const navGrupos = [
     { to: "/app/sensor-celular", label: "Captura" },
   ],
   [
-    { to: "/app/dashboard", label: "Atividade" },
     { to: "/app/registros", label: "Histórico" },
     { to: "/app/alertas", label: "Alertas" },
     { to: "/app/configuracoes", label: "Configurações" },
