@@ -2,7 +2,6 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <WiFiClientSecure.h>
-#include <HTTPClient.h>
 #include "configuracao.h"
 
 UNIHIKER_K10 k10;
@@ -95,16 +94,40 @@ int enviar(const uint8_t *jpeg, size_t tamanhoJpeg, float temperatura, float umi
   memcpy(corpo + inicio.length(), jpeg, tamanhoJpeg);
   memcpy(corpo + inicio.length() + tamanhoJpeg, fim.c_str(), fim.length());
 
+  String endereco = ENDERECO;
+  endereco.replace("https://", "");
+  int barra = endereco.indexOf('/');
+  String host = endereco.substring(0, barra);
+  String caminho = endereco.substring(barra);
+
   WiFiClientSecure cliente;
   cliente.setInsecure();
-  HTTPClient http;
-  http.setTimeout(30000);
-  http.begin(cliente, ENDERECO);
-  http.addHeader("Authorization", String("Dispositivo ") + CHAVE);
-  http.addHeader("Content-Type", String("multipart/form-data; boundary=") + LIMITE);
-  int status = http.POST(corpo, total);
-  if (status > 0) Serial.println(http.getString());
-  http.end();
+  cliente.setTimeout(30);
+  int status = -1;
+  if (cliente.connect(host.c_str(), 443)) {
+    cliente.print(String("POST ") + caminho + " HTTP/1.1\r\nHost: " + host +
+                  "\r\nAuthorization: Dispositivo " + CHAVE +
+                  "\r\nContent-Type: multipart/form-data; boundary=" + LIMITE +
+                  "\r\nContent-Length: " + String(total) +
+                  "\r\nConnection: close\r\n\r\n");
+    size_t enviado = 0;
+    while (enviado < total && cliente.connected()) {
+      size_t escrito = cliente.write(corpo + enviado, min((size_t)4096, total - enviado));
+      if (escrito == 0) break;
+      enviado += escrito;
+    }
+    String linha = cliente.readStringUntil('\n');
+    if (linha.startsWith("HTTP/1.1 ")) status = linha.substring(9, 12).toInt();
+    Serial.println("[http] " + linha);
+    while (cliente.connected() || cliente.available()) {
+      String resto = cliente.readStringUntil('\n');
+      if (resto.startsWith("{")) Serial.println("[http] " + resto);
+      if (!cliente.available() && !cliente.connected()) break;
+    }
+  } else {
+    status = -2;
+  }
+  cliente.stop();
   free(corpo);
   return status;
 }
