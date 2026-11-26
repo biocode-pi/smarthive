@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     upload_dir: Path = Path(__file__).resolve().parent / "uploads"
     local_data_file: Path = Path(__file__).resolve().parent / "data" / "smarthive.local.json"
     modelo_abelhas: Path = Path(__file__).resolve().parent / "modelos" / "jatai-v1.onnx"
+    confianca_contagem: float = 0.6
     modelo_classificador: Path = Path(__file__).resolve().parent / "modelos" / "mobilenetv2-12.onnx"
 
     model_config = SettingsConfigDict(

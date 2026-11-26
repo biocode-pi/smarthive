@@ -275,6 +275,12 @@ def test_contagem_descarta_caixas_dentro_da_regiao_do_invasor(modelo_falso):
     assert contagem_service.contar(foto, ignorar=(300, 150, 500, 300)).abelhas == 1
 
 
+def test_limite_de_confianca_da_contagem_vem_da_configuracao(modelo_falso, monkeypatch, settings):
+    monkeypatch.setattr(settings, "confianca_contagem", 0.75)
+
+    assert contagem_service.contar(jpeg(640, 480)).abelhas == 1
+
+
 def test_invasor_informa_a_regiao_onde_foi_visto(classificador_com_aranha):
     invasor = contagem_service.detectar_invasor(jpeg(640, 480))
 

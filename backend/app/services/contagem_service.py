@@ -12,7 +12,6 @@ from app.config import get_settings
 
 
 TAMANHO = 640
-CONFIANCA_MINIMA = 0.25
 IOU_MAXIMO = 0.45
 MAXIMO_DE_PIXELS = 4096 * 4096
 TAMANHO_CLASSIFICADOR = 224
@@ -80,7 +79,7 @@ def _tensor(imagem: Image.Image) -> np.ndarray:
 
 def _caixas(saida: np.ndarray) -> list[tuple[float, float, float, float, float]]:
     confiancas = saida[4:].max(axis=0)
-    indices = np.where(confiancas >= CONFIANCA_MINIMA)[0]
+    indices = np.where(confiancas >= get_settings().confianca_contagem)[0]
     candidatas = sorted(
         (
             (
